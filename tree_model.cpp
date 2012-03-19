@@ -320,7 +320,8 @@ void tree_model::use_in_sql(const QModelIndex& idx)
 
 void tree_model::refresh(connection_link dbc)
 {
-  auto p = std::find_if(std::begin(m_root.m_children), std::end(m_root.m_children), [&](std::unique_ptr<tree_item>& itm){ return itm->get_connection() == dbc; });
+  auto p = std::find_if(std::begin(m_root.m_children), std::end(m_root.m_children)
+    , [&](std::unique_ptr<tree_item>& itm){ return itm->get_connection().link.get() == dbc.link.get(); });
   if (p != std::end(m_root.m_children)) refresh(index((*p)->position(), 0));
 }
 

@@ -6,7 +6,7 @@
 #include <memory>
 #include <Qt>
 
-class layer;
+class layer; // https://svn.boost.org/trac/boost/ticket/6687
 
 struct layer_link {
   struct resource {
@@ -20,7 +20,6 @@ struct layer_link {
   size_t m_order;
 
   layer_link();
-  bool operator <(const layer_link& r) const;
   layer* operator ->() const;
 }; // layer_link
 

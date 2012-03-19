@@ -58,17 +58,17 @@ FORMS +=\
   res/odbc.ui
 
 INCLUDEPATH +=\
-  D:/projects/boost_1_49_0/\
-  D:/projects/include/oci/\
-  D:/projects/include/
+  ../boost_1_49_0/\
+  ../include/oci/\
+  ../include/
 
 RESOURCES +=\
   res/resource.qrc
 
 Release:LIBS +=\
-  D:/projects/boost_1_49_0/stage/lib_64bit/libboost_date_time-vc100-mt-1_49.lib\
-  D:/projects/boost_1_49_0/stage/lib_64bit/libboost_thread-vc100-mt-1_49.lib
+  ../boost_1_49_0/stage/lib/libboost_date_time-vc100-mt-1_49.lib\
+  ../boost_1_49_0/stage/lib/libboost_thread-vc100-mt-1_49.lib
 
 Debug:LIBS +=\
-  D:/projects/boost_1_49_0/stage/lib_64bit/libboost_date_time-vc100-mt-gd-1_49.lib\
-  D:/projects/boost_1_49_0/stage/lib_64bit/libboost_thread-vc100-mt-gd-1_49.lib
+  ../boost_1_49_0/stage/lib/libboost_date_time-vc100-mt-gd-1_49.lib\
+  ../boost_1_49_0/stage/lib/libboost_thread-vc100-mt-gd-1_49.lib

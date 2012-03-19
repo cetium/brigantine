@@ -6,13 +6,13 @@
 #include "layer.h"
 
 class layer_raster : public layer {
-  brig::database::raster_definition m_raster;
+  brig::database::raster_pyramid m_raster;
 
   size_t get_level(const frame& fr) const;
   std::string get_raster_column(size_t level) const;
 
 public:
-  layer_raster(connection_link dbc, const brig::database::raster_definition& raster) : layer(dbc), m_raster(raster)  {}
+  layer_raster(connection_link dbc, const brig::database::raster_pyramid& raster) : layer(dbc), m_raster(raster)  {}
   virtual QString get_string();
   virtual QString get_icon()  { return ":/palette.png"; }
 
@@ -20,7 +20,7 @@ public:
   virtual brig::database::identifier get_geometry_column(size_t level)  { return m_raster.levels[level].geometry_layer; }
   virtual brig::database::table_definition get_table_definition(size_t level);
 
-  virtual size_t limit()  { return 70; }
+  virtual size_t limit()  { return 100; }
   virtual std::shared_ptr<brig::database::rowset> attributes(const frame& fr);
   virtual std::shared_ptr<brig::database::rowset> drawing(const frame& fr, bool limited);
   virtual void draw(const std::vector<brig::database::variant>& row, const frame& fr, QPainter& painter);

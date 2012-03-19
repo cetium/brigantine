@@ -115,7 +115,7 @@ void sql_view::on_commands(connection_link dbc, std::vector<std::string> sqls)
 
 void sql_view::on_disconnect(connection_link dbc)
 {
-  if (!(dbc == m_dbc)) return;
+  if (dbc.link.get() != m_dbc.link.get()) return;
   m_dbc = connection_link();
   m_title->setText("");
   m_title->setToolTip("");

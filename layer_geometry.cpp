@@ -23,8 +23,8 @@ brig::database::table_definition layer_geometry::get_table_definition(size_t)
 std::shared_ptr<brig::database::rowset> layer_geometry::attributes(const frame& fr)
 {
   auto tbl(get_table_definition(0));
-  tbl.box_filter_column = m_id.qualifier;
-  tbl.box_filter = prepare_box(fr);
+  tbl.box_column = m_id.qualifier;
+  tbl.box = prepare_box(fr);
   for (size_t i(0); i < tbl.columns.size(); ++i)
     if (tbl.columns[i].name != m_id.qualifier) tbl.select_columns.push_back(tbl.columns[i].name);
   tbl.rows = int(limit());
@@ -49,8 +49,8 @@ std::shared_ptr<brig::database::rowset> layer_geometry::drawing(const frame& fr,
   }; // reproject
 
   auto tbl(get_table_definition(0));
-  tbl.box_filter_column = m_id.qualifier;
-  tbl.box_filter = prepare_box(fr);
+  tbl.box_column = m_id.qualifier;
+  tbl.box = prepare_box(fr);
   tbl.select_columns.push_back(m_id.qualifier);
   if (limited) tbl.rows = int(limit());
   auto rs(get_connection()->get_table(tbl));

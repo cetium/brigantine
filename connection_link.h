@@ -5,7 +5,7 @@
 
 #include <memory>
 
-class connection;
+class connection; // https://svn.boost.org/trac/boost/ticket/6687
 
 struct connection_link
 {
@@ -18,7 +18,6 @@ struct connection_link
   std::shared_ptr<resource> link;
 
   connection_link();
-  bool operator ==(const connection_link& r) const;
   connection* operator ->();
 }; // connection_link
 
