@@ -23,11 +23,11 @@ brig::database::table_definition layer_geometry::get_table_definition(size_t)
 std::shared_ptr<brig::database::rowset> layer_geometry::attributes(const frame& fr)
 {
   auto tbl(get_table_definition(0));
-  tbl.box_column = m_id.qualifier;
-  tbl.box = prepare_box(fr);
+  tbl.select_box_column = m_id.qualifier;
+  tbl.select_box = prepare_box(fr);
   for (size_t i(0); i < tbl.columns.size(); ++i)
     if (tbl.columns[i].name != m_id.qualifier) tbl.select_columns.push_back(tbl.columns[i].name);
-  tbl.rows = int(limit());
+  tbl.select_rows = int(limit());
   return get_connection()->get_table(tbl);
 }
 
@@ -49,10 +49,10 @@ std::shared_ptr<brig::database::rowset> layer_geometry::drawing(const frame& fr,
   }; // reproject
 
   auto tbl(get_table_definition(0));
-  tbl.box_column = m_id.qualifier;
-  tbl.box = prepare_box(fr);
+  tbl.select_box_column = m_id.qualifier;
+  tbl.select_box = prepare_box(fr);
   tbl.select_columns.push_back(m_id.qualifier);
-  if (limited) tbl.rows = int(limit());
+  if (limited) tbl.select_rows = int(limit());
   auto rs(get_connection()->get_table(tbl));
   auto pj(get_epsg());
   return int(fr.get_epsg()) == int(pj)? rs: std::make_shared<brig::database::threaded_rowset>(std::make_shared<reproject>(rs, pj, fr.get_epsg()));
