@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <brig/proj/transform.hpp>
+#include <brig/string_cast.hpp>
 #include <cmath>
 #include <exception>
 #include <map>
@@ -114,7 +115,14 @@ void show_message(const char* msg)
 {
   QMessageBox dlg;
   dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
-  dlg.setWindowIcon(QIcon(":/wheel.png"));
+  dlg.setWindowIcon(QIcon(":/res/wheel.png"));
   dlg.setText(QString::fromUtf8(msg));
   dlg.exec();
+}
+
+std::string get_table_name(const std::string& tbl, size_t level)
+{
+  std::string str(tbl);
+  if (level > 0) str += "_" + brig::string_cast<char>(level);
+  return str;
 }

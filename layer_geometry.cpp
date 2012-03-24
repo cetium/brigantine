@@ -1,23 +1,27 @@
 // Andrew Naplavkov
 
 #include <brig/database/threaded_rowset.hpp>
-#include <brig/proj/transform_wkb.hpp>
 #include <brig/qt/draw.hpp>
 #include <exception>
 #include "layer_geometry.h"
+#include "reproject.h"
 #include "utilities.h"
 
-QString layer_geometry::get_string()
-{
-  QString str;
-  if (!m_id.schema.empty()) str += QString::fromUtf8(m_id.schema.c_str()) + ".";
-  str += QString::fromUtf8(m_id.name.c_str()) + "." + QString::fromUtf8(m_id.qualifier.c_str());
-  return str;
-}
+layer_geometry::layer_geometry(connection_link dbc, const brig::database::identifier& id, const brig::database::table_definition& tbl)
+  : layer(dbc), m_id(id), m_tbl(tbl)
+{}
 
 brig::database::table_definition layer_geometry::get_table_definition(size_t)
 {
   return m_tbl.columns.empty()? get_connection()->get_table_definition(m_id): m_tbl;
+}
+
+layer* layer_geometry::clone_finish(connection_link dbc, const std::string& tbl, std::vector<std::string>&)
+{
+  brig::database::identifier id(m_id);
+  id.name = tbl;
+  dbc->clone_finish(id);
+  return new layer_geometry(dbc, id);
 }
 
 std::shared_ptr<brig::database::rowset> layer_geometry::attributes(const frame& fr)
@@ -28,42 +32,28 @@ std::shared_ptr<brig::database::rowset> layer_geometry::attributes(const frame& 
   for (size_t i(0); i < tbl.columns.size(); ++i)
     if (tbl.columns[i].name != m_id.qualifier) tbl.select_columns.push_back(tbl.columns[i].name);
   tbl.select_rows = int(limit());
-  return get_connection()->get_table(tbl);
+  return get_connection()->get_rowset(tbl);
 }
 
 std::shared_ptr<brig::database::rowset> layer_geometry::drawing(const frame& fr, bool limited)
 {
-  class reproject : public brig::database::rowset {
-    std::shared_ptr<rowset> m_rs;
-    brig::proj::epsg m_from, m_to;
-  public:
-    reproject(std::shared_ptr<rowset> rs, const brig::proj::epsg& from, const brig::proj::epsg& to) : m_rs(rs), m_from(from), m_to(to)  {}
-    virtual std::vector<std::string> columns()  { return m_rs->columns(); }
-    virtual bool fetch(std::vector<brig::database::variant>& row)
-      {
-        if (!m_rs->fetch(row)) return false;
-        try  { if (!row.empty() && row[0].type() == typeid(brig::blob_t)) brig::proj::transform_wkb(boost::get<brig::blob_t>(row[0]), m_from, m_to); }
-        catch (const std::exception&)  { row[0] = brig::database::null_t(); }
-        return true;
-      }
-  }; // reproject
-
   auto tbl(get_table_definition(0));
   tbl.select_box_column = m_id.qualifier;
   tbl.select_box = prepare_box(fr);
   tbl.select_columns.push_back(m_id.qualifier);
   if (limited) tbl.select_rows = int(limit());
-  auto rs(get_connection()->get_table(tbl));
-  auto pj(get_epsg());
-  return int(fr.get_epsg()) == int(pj)? rs: std::make_shared<brig::database::threaded_rowset>(std::make_shared<reproject>(rs, pj, fr.get_epsg()));
+  auto rs(get_connection()->get_rowset(tbl));
+  reproject_map_item item;
+  item.column = 0;
+  item.pj_from = get_epsg();
+  item.pj_to = fr.get_epsg();
+  reproject_map map;
+  if (int(item.pj_from) != int(item.pj_to)) map.push_back(item);
+  return map.empty()? rs: std::make_shared<brig::database::threaded_rowset>(std::make_shared<reproject>(rs, map));
 }
 
 void layer_geometry::draw(const std::vector<brig::database::variant>& row, const frame& fr, QPainter& painter)
 {
-  try
-  {
-    if (!row.empty() && row[0].type() == typeid(brig::blob_t))
-      brig::qt::draw( boost::get<brig::blob_t>(row[0]), fr, painter );
-  }
-  catch (const std::exception&)  {}
+  if (!row.empty() && row[0].type() == typeid(brig::blob_t))
+    brig::qt::draw( boost::get<brig::blob_t>(row[0]), fr, painter );
 }

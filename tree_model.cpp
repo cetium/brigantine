@@ -8,15 +8,20 @@
 #include <memory>
 #include <QFile>
 #include <QIcon>
-#include <QMessageBox>
 #include <QRegExp>
 #include <QString>
 #include <QTextStream>
 #include <vector>
 #include "connection.h"
+#include "dialog_clone.h"
+#include "dialog_drop.h"
+#include "dialog_insert.h"
 #include "layer.h"
 #include "layer_geometry.h"
 #include "layer_raster.h"
+#include "task_clone.h"
+#include "task_exec.h"
+#include "task_insert.h"
 #include "task_mbr.h"
 #include "tree_model.h"
 #include "utilities.h"
@@ -114,19 +119,11 @@ void tree_model::connect_to(connection_link dbc)
 
   auto geometries(dbc->get_geometry_layers());
   for (auto iter(std::begin(geometries)); iter != std::end(geometries); ++iter)
-  {
-    layer_link lr;
-    lr.link->lr = new layer_geometry(dbc, *iter);
-    dbc_itm->m_children.emplace_back(new tree_item(dbc_itm.get(), lr));
-  }
+    dbc_itm->m_children.emplace_back(new tree_item(dbc_itm.get(), layer_link(new layer_geometry(dbc, *iter))));
 
   auto rasters(dbc->get_raster_layers());
   for (auto iter(std::begin(rasters)); iter != std::end(rasters); ++iter)
-  {
-    layer_link lr;
-    lr.link->lr = new layer_raster(dbc, *iter);
-    dbc_itm->m_children.emplace_back(new tree_item(dbc_itm.get(), lr));
-  }
+    dbc_itm->m_children.emplace_back(new tree_item(dbc_itm.get(), layer_link(new layer_raster(dbc, *iter))));
 
   beginInsertRows(QModelIndex(), int(m_root.m_children.size()), int(m_root.m_children.size()));
   m_root.m_children.push_back(std::move(dbc_itm));
@@ -135,21 +132,17 @@ void tree_model::connect_to(connection_link dbc)
 
 void tree_model::connect_oci(QString srv, QString usr, QString pwd)
 {
-  connection_link dbc;
-  dbc.link->dbc = new connection
+  connect_to(connection_link(new connection
     ( std::make_shared<brig::database::oracle::command_allocator>(srv.toUtf8().constData(), usr.toUtf8().constData(), pwd.toUtf8().constData())
     , srv + ";UID=" + usr + ";"
-    );
-  connect_to(dbc);
+    )));
 }
 
 void tree_model::connect_odbc(QString dsn)
 {
   QString str(dsn);
   str.replace(QRegExp("PWD=\\w*;"), "");
-  connection_link dbc;
-  dbc.link->dbc = new connection(std::make_shared<brig::database::odbc::command_allocator>(dsn.toUtf8().constData()), str);
-  connect_to(dbc);
+  connect_to(connection_link(new connection(std::make_shared<brig::database::odbc::command_allocator>(dsn.toUtf8().constData()), str)));
 }
 
 void tree_model::connect_sqlite(QString file, bool init)
@@ -164,7 +157,7 @@ void tree_model::connect_sqlite(QString file, bool init)
   auto allocator(std::make_shared<brig::database::sqlite::command_allocator>(file.toUtf8().constData()));
   if (init)
   {
-    QFile file(":/init_spatialite.sql");
+    QFile file(":/res/init_spatialite.sql");
     file.open(QIODevice::ReadOnly|QIODevice::Text);
     QTextStream stream(&file);
     std::unique_ptr<brig::database::command, deleter> cmd(allocator->allocate(), deleter(allocator));
@@ -174,9 +167,7 @@ void tree_model::connect_sqlite(QString file, bool init)
       cmd->exec(sql.toUtf8().constData());
     }
   }
-  connection_link dbc;
-  dbc.link->dbc = new connection(allocator, file);
-  connect_to(dbc);
+  connect_to(connection_link(new connection(allocator, file)));
 }
 
 bool tree_model::is_connection(const QModelIndex& idx) const
@@ -231,19 +222,11 @@ void tree_model::refresh(const QModelIndex& idx)
   {
     auto geometries(dbc->get_geometry_layers());
     for (auto iter(std::begin(geometries)); iter != std::end(geometries); ++iter)
-    {
-      layer_link lr;
-      lr.link->lr = new layer_geometry(dbc, *iter);
-      children.emplace_back(new tree_item(dbc_itm, lr));
-    }
+      children.emplace_back(new tree_item(dbc_itm, layer_link(new layer_geometry(dbc, *iter))));
 
     auto rasters(dbc->get_raster_layers());
     for (auto iter(std::begin(rasters)); iter != std::end(rasters); ++iter)
-    {
-      layer_link lr;
-      lr.link->lr = new layer_raster(dbc, *iter);
-      children.emplace_back(new tree_item(dbc_itm, lr));
-    }
+      children.emplace_back(new tree_item(dbc_itm, layer_link(new layer_raster(dbc, *iter))));
   }
   catch (const std::exception& e)  { show_message(e.what()); }
 
@@ -321,21 +304,70 @@ void tree_model::use_in_sql(const QModelIndex& idx)
 void tree_model::refresh(connection_link dbc)
 {
   auto p = std::find_if(std::begin(m_root.m_children), std::end(m_root.m_children)
-    , [&](std::unique_ptr<tree_item>& itm){ return itm->get_connection().link.get() == dbc.link.get(); });
+    , [&](std::unique_ptr<tree_item>& itm){ return itm->get_connection() == dbc; });
   if (p != std::end(m_root.m_children)) refresh(index((*p)->position(), 0));
 }
 
-void tree_model::paste_layer(layer_link, const QModelIndex&)
+void tree_model::paste_layer(layer_link lr_copy, const QModelIndex& idx_paste)
 {
-  // todo:
+  if (!is_connection(idx_paste)) return;
+  const tree_item* dbc_itm(static_cast<tree_item*>(idx_paste.internalPointer()));
+  auto dbc(dbc_itm->get_connection());
+  dialog_clone dlg(lr_copy->get_identifier().name);
+  if (dlg.exec() != QDialog::Accepted) return;
+  if (dlg.sql())
+  {
+    qRegisterMetaType<connection_link>("connection_link");
+    qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
+    task_clone* tsk(new task_clone(lr_copy, dbc, dlg.tbl(), true));
+    connect
+      ( tsk, SIGNAL(signal_commands(connection_link, std::vector<std::string>))
+      , this, SLOT(emit_commands(connection_link, std::vector<std::string>))
+      );
+    emit signal_task(std::shared_ptr<task>(tsk));
+  }
+  else
+  {
+    qRegisterMetaType<connection_link>("connection_link");
+    task_clone* tsk(new task_clone(lr_copy, dbc, dlg.tbl(), false));
+    connect(tsk, SIGNAL(signal_refresh(connection_link)), this, SLOT(refresh(connection_link)));
+    emit signal_task(std::shared_ptr<task>(tsk));
+  }
 }
 
-void tree_model::paste_rows(layer_link, const QModelIndex&)
+void tree_model::paste_rows(layer_link lr_copy, const QModelIndex& idx_paste)
 {
-  // todo:
+  if (!is_layer(idx_paste)) return;
+  const tree_item* itm_paste(static_cast<const tree_item*>(idx_paste.internalPointer()));
+  layer_link lr_paste = itm_paste->get_layer();
+  if (lr_copy->get_levels() != lr_paste->get_levels()) return;
+
+  dialog_insert dlg(lr_copy, lr_paste);
+  if (dlg.exec() != QDialog::Accepted) return;
+  task_insert* tsk(new task_insert(lr_copy, lr_paste, dlg.get_insert_map()));
+  emit signal_task(std::shared_ptr<task>(tsk));
 }
 
-void tree_model::drop(const QModelIndex&)
+void tree_model::drop(const QModelIndex& idx)
 {
-  // todo:
+  if (!is_layer(idx)) return;
+  tree_item* lr_itm(static_cast<tree_item*>(idx.internalPointer()));
+  auto lr(lr_itm->get_layer());
+  auto dbc(lr_itm->m_parent->get_connection());
+
+  std::vector<std::string> sql;
+  lr->drop_start(sql);
+  for (size_t level(0); level < lr->get_levels(); ++level)
+    dbc->drop(lr->get_table_definition(level), sql);
+
+  dialog_drop dlg(lr->get_string());
+  if (dlg.exec() != QDialog::Accepted) return;
+  else if (dlg.sql()) emit signal_commands(dbc, sql);
+  else
+  {
+    qRegisterMetaType<connection_link>("connection_link");
+    task_exec* tsk(new task_exec(dbc, sql));
+    connect(tsk, SIGNAL(signal_refresh(connection_link)), this, SLOT(refresh(connection_link)));
+    emit signal_task(std::shared_ptr<task>(tsk));
+  }
 }

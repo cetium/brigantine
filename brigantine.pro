@@ -5,9 +5,13 @@ QT +=\
 HEADERS +=\
   connection.h\
   connection_link.h\
+  dialog_clone.h\
+  dialog_drop.h\
+  dialog_insert.h\
   dialog_oci.h\
   dialog_odbc.h\
   frame.h\
+  insert_map.h\
   layer.h\
   layer_geometry.h\
   layer_link.h\
@@ -16,12 +20,15 @@ HEADERS +=\
   map_thread.h\
   map_view.h\
   progress.h\
+  reproject.h\
   sql_model.h\
   sql_thread.h\
   sql_view.h\
   task.h\
   task_attributes.h\
+  task_clone.h\
   task_exec.h\
+  task_insert.h\
   task_mbr.h\
   tree_item.h\
   tree_model.h\
@@ -31,6 +38,9 @@ HEADERS +=\
 SOURCES +=\
   connection.cpp\
   connection_link.cpp\
+  dialog_clone.cpp\
+  dialog_drop.cpp\
+  dialog_insert.cpp\
   dialog_oci.cpp\
   dialog_odbc.cpp\
   frame.cpp\
@@ -42,11 +52,14 @@ SOURCES +=\
   main_window.cpp\
   map_thread.cpp\
   map_view.cpp\
+  reproject.cpp\
   sql_model.cpp\
   sql_thread.cpp\
   sql_view.cpp\
   task_attributes.cpp\
+  task_clone.cpp\
   task_exec.cpp\
+  task_insert.cpp\
   task_mbr.cpp\
   tree_item.cpp\
   tree_model.cpp\
@@ -54,16 +67,18 @@ SOURCES +=\
   utilities.cpp
 
 FORMS +=\
-  res/oci.ui\
-  res/odbc.ui
+  dialog_clone.ui\
+  dialog_drop.ui\
+  dialog_oci.ui\
+  dialog_odbc.ui
+
+RESOURCES +=\
+  resource.qrc
 
 INCLUDEPATH +=\
   ../boost_1_49_0/\
   ../include/oci/\
   ../include/
-
-RESOURCES +=\
-  res/resource.qrc
 
 Release:LIBS +=\
   ../boost_1_49_0/stage/lib/libboost_date_time-vc100-mt-1_49.lib\

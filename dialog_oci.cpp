@@ -2,9 +2,9 @@
 
 #include <QApplication>
 #include "dialog_oci.h"
-#include "ui_oci.h"
+#include "ui_dialog_oci.h"
 
-dialog_oci::dialog_oci() : QDialog(QApplication::activeWindow()), ui(new Ui::oci)
+dialog_oci::dialog_oci() : QDialog(QApplication::activeWindow()), ui(new Ui::dialog_oci)
 {
   ui->setupUi(this);
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);

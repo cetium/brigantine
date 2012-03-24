@@ -1,0 +1,32 @@
+<RCC>
+    <qresource prefix="/">
+        <file>res/db2.png</file>
+        <file>res/ms_sql.png</file>
+        <file>res/mysql.png</file>
+        <file>res/postgres.png</file>
+        <file>res/sqlite.png</file>
+        <file>res/oracle.png</file>
+        <file>res/disconnect.png</file>
+        <file>res/zoom.png</file>
+        <file>res/odbc.png</file>
+        <file>res/init_spatialite.sql</file>
+        <file>res/sql.png</file>
+        <file>res/run.png</file>
+        <file>res/wheel.png</file>
+        <file>res/globe.png</file>
+        <file>res/fetch.png</file>
+        <file>res/refresh.png</file>
+        <file>res/copy.png</file>
+        <file>res/paste.png</file>
+        <file>res/sql_disabled.png</file>
+        <file>res/map.png</file>
+        <file>res/map_disabled.png</file>
+        <file>res/globe_disabled.png</file>
+        <file>res/anonymous.png</file>
+        <file>res/delete.png</file>
+        <file>res/shp.png</file>
+        <file>res/add_folder.png</file>
+        <file>res/compasses.png</file>
+        <file>res/palette.png</file>
+    </qresource>
+</RCC>

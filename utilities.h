@@ -10,6 +10,7 @@
 #include <QRectF>
 #include <QString>
 #include <Qt>
+#include <string>
 #include "frame.h"
 
 const int SignalInterval = 750;
@@ -30,6 +31,7 @@ QRectF world(const brig::proj::epsg& epsg);
 QString rich_text(const QString& icon, const QString& text);
 QString to_string(size_t num);
 void show_message(const char* msg);
+std::string get_table_name(const std::string& tbl, size_t level);
 
 struct wait_cursor {
   wait_cursor()

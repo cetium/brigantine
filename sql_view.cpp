@@ -24,13 +24,13 @@ sql_view::sql_view(QWidget* parent) : QWidget(parent), m_mdl(new sql_model()), m
   tool_bar->setFloatable(false);
   tool_bar->setMovable(false);
 
-  m_fetch = tool_bar->addAction(QIcon(":/fetch.png"), "fetch", this, SLOT(fetch()));
+  m_fetch = tool_bar->addAction(QIcon(":/res/fetch.png"), "fetch", this, SLOT(fetch()));
   m_fetch->setDisabled(true);
 
-  m_run = tool_bar->addAction(QIcon(":/run.png"), "run", this, SLOT(run()));
+  m_run = tool_bar->addAction(QIcon(":/res/run.png"), "run", this, SLOT(run()));
   m_run->setDisabled(true);
 
-  m_cancel = tool_bar->addAction(QIcon(":/delete.png"), "stop", this, SLOT(cancel()));
+  m_cancel = tool_bar->addAction(QIcon(":/res/delete.png"), "stop", this, SLOT(cancel()));
   m_cancel->setDisabled(true);
 
   m_sql = new QTextEdit;
@@ -115,7 +115,7 @@ void sql_view::on_commands(connection_link dbc, std::vector<std::string> sqls)
 
 void sql_view::on_disconnect(connection_link dbc)
 {
-  if (dbc.link.get() != m_dbc.link.get()) return;
+  if (dbc != m_dbc) return;
   m_dbc = connection_link();
   m_title->setText("");
   m_title->setToolTip("");
@@ -135,8 +135,8 @@ void sql_view::on_process(const QString& msg)  { emit signal_process(msg); }
 
 void sql_view::on_idle()
 {
-  m_fetch->setEnabled(m_dbc.link);
-  m_run->setEnabled(m_dbc.link);
+  m_fetch->setEnabled(m_dbc);
+  m_run->setEnabled(m_dbc);
   m_cancel->setDisabled(true);
   emit signal_idle();
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>odbc</class>
- <widget class="QDialog" name="odbc">
+ <class>dialog_odbc</class>
+ <widget class="QDialog" name="dialog_odbc">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="resource.qrc">
-    <normaloff>:/wheel.png</normaloff>:/wheel.png</iconset>
+    <normaloff>:/res/wheel.png</normaloff>:/res/wheel.png</iconset>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_2">
    <item>

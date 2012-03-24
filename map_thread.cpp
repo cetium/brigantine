@@ -44,7 +44,7 @@ void map_thread::render(std::vector<layer_link> lrs, const frame& fr)
 
 void map_thread::render_layer(layer_link lr, const frame& fr, QImage& img, QString& msg, size_t& counter, QTime& time)
 {
-  if (!lr.link) return;
+  if (!lr) return;
   try
   {
     QPainter painter(&img);

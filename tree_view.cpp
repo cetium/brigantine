@@ -33,63 +33,63 @@ tree_view::tree_view(QWidget* parent) : QTreeView(parent)
   setHeaderHidden(true);
   connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(show_menu(const QPoint&)));
 
-  m_connect_oci = new QAction(QIcon(":/oracle.png"), "connect to Oracle", this);
+  m_connect_oci = new QAction(QIcon(":/res/oracle.png"), "connect to Oracle", this);
   m_connect_oci->setIconVisibleInMenu(true);
   connect(m_connect_oci, SIGNAL(triggered()), this, SLOT(connect_oci()));
 
-  m_connect_odbc = new QAction(QIcon(":/odbc.png"), "connect using ODBC", this);
+  m_connect_odbc = new QAction(QIcon(":/res/odbc.png"), "connect using ODBC", this);
   m_connect_odbc->setIconVisibleInMenu(true);
   connect(m_connect_odbc, SIGNAL(triggered()), this, SLOT(connect_odbc()));
 
-  m_open_sqlite = new QAction(QIcon(":/sqlite.png"), "open SQLite file", this);
+  m_open_sqlite = new QAction(QIcon(":/res/sqlite.png"), "open SQLite file", this);
   m_open_sqlite->setIconVisibleInMenu(true);
   connect(m_open_sqlite, SIGNAL(triggered()), this, SLOT(open_sqlite()));
 
-  m_new_sqlite = new QAction(QIcon(":/add_folder.png"), "new SQLite file", this);
+  m_new_sqlite = new QAction(QIcon(":/res/add_folder.png"), "new SQLite file", this);
   m_new_sqlite->setIconVisibleInMenu(true);
   connect(m_new_sqlite, SIGNAL(triggered()), this, SLOT(new_sqlite()));
 
-  m_copy_shp = new QAction(QIcon(":/shp.png"), "copy shapefile", this);
+  m_copy_shp = new QAction(QIcon(":/res/shp.png"), "copy shapefile", this);
   m_copy_shp->setIconVisibleInMenu(true);
   connect(m_copy_shp, SIGNAL(triggered()), this, SLOT(copy_shp()));
 
-  m_refresh = new QAction(QIcon(":/refresh.png"), "refresh", this);
+  m_refresh = new QAction(QIcon(":/res/refresh.png"), "refresh", this);
   m_refresh->setIconVisibleInMenu(true);
   connect(m_refresh, SIGNAL(triggered()), this, SLOT(refresh()));
 
-  m_use_in_sql = new QAction(QIcon(":/sql.png"), "use in SQL", this);
+  m_use_in_sql = new QAction(QIcon(":/res/sql.png"), "use in SQL", this);
   m_use_in_sql->setIconVisibleInMenu(true);
   connect(m_use_in_sql, SIGNAL(triggered()), this, SLOT(use_in_sql()));
 
-  m_paste_layer = new QAction(QIcon(":/paste.png"), "paste layer", this);
+  m_paste_layer = new QAction(QIcon(":/res/paste.png"), "paste layer", this);
   m_paste_layer->setIconVisibleInMenu(true);
   connect(m_paste_layer, SIGNAL(triggered()), this, SLOT(paste_layer()));
 
-  m_disconnect = new QAction(QIcon(":/disconnect.png"), "disconnect", this);
+  m_disconnect = new QAction(QIcon(":/res/disconnect.png"), "disconnect", this);
   m_disconnect->setIconVisibleInMenu(true);
   connect(m_disconnect, SIGNAL(triggered()), this, SLOT(disconnect()));
 
-  m_zoom_to_fit = new QAction(QIcon(":/zoom.png"), "zoom to fit", this);
+  m_zoom_to_fit = new QAction(QIcon(":/res/zoom.png"), "zoom to fit", this);
   m_zoom_to_fit->setIconVisibleInMenu(true);
   connect(m_zoom_to_fit, SIGNAL(triggered()), this, SLOT(zoom_to_fit()));
 
-  m_use_projection = new QAction(QIcon(":/map.png"), "use the projection", this);
+  m_use_projection = new QAction(QIcon(":/res/map.png"), "use the projection", this);
   m_use_projection->setIconVisibleInMenu(true);
   connect(m_use_projection, SIGNAL(triggered()), this, SLOT(use_projection()));
 
-  m_attributes = new QAction(QIcon(":/sql.png"), "attributes", this);
+  m_attributes = new QAction(QIcon(":/res/sql.png"), "attributes", this);
   m_attributes->setIconVisibleInMenu(true);
   connect(m_attributes, SIGNAL(triggered()), this, SLOT(attributes()));
 
-  m_copy = new QAction(QIcon(":/copy.png"), "copy", this);
+  m_copy = new QAction(QIcon(":/res/copy.png"), "copy", this);
   m_copy->setIconVisibleInMenu(true);
   connect(m_copy, SIGNAL(triggered()), this, SLOT(copy()));
 
-  m_paste_rows = new QAction(QIcon(":/paste.png"), "paste rows", this);
+  m_paste_rows = new QAction(QIcon(":/res/paste.png"), "paste rows", this);
   m_paste_rows->setIconVisibleInMenu(true);
   connect(m_paste_rows, SIGNAL(triggered()), this, SLOT(paste_rows()));
 
-  m_drop = new QAction(QIcon(":/delete.png"), "drop", this);
+  m_drop = new QAction(QIcon(":/res/delete.png"), "drop", this);
   m_drop->setIconVisibleInMenu(true);
   connect(m_drop, SIGNAL(triggered()), this, SLOT(drop()));
 
@@ -310,15 +310,14 @@ void tree_view::copy_shp()
     std::string charset(qvariant_cast<QString>(charset_combo->itemData(charset_combo->currentIndex())).toUtf8().constData());
 
     auto allocator(std::make_shared<brig::database::sqlite::command_allocator>(":memory:"));
-    connection_link dbc;
-    dbc.link->dbc = new connection(allocator, ":memory:");
+    connection_link dbc(new connection(allocator, ":memory:"));
     dbc->get_command()->exec("CREATE VIRTUAL TABLE \"" + base + "\" USING VirtualShape('" + path + "', '" + charset + "', " + std::string(epsg_edit->text().toUtf8().constData()) + ")");
 
     brig::database::identifier id; id.name = base;
     auto tbl(dbc->get_table_definition(id));
-    auto col_key = std::find_if(std::begin(tbl.columns), std::end(tbl.columns), [](const brig::database::column_definition& col){ return "PK_UID" == col.name; });
-    if (col_key == std::end(tbl.columns)) col_key = std::find_if(std::begin(tbl.columns), std::end(tbl.columns), [](const brig::database::column_definition& col){ return "PKUID" == col.name; });
-    auto col_geo = std::find_if(std::begin(tbl.columns), std::end(tbl.columns), [](const brig::database::column_definition& col){ return "Geometry" == col.name; });
+    auto col_key = std::find_if(std::begin(tbl.columns), std::end(tbl.columns), [](const brig::database::column_definition& c){ return "PK_UID" == c.name; });
+    if (col_key == std::end(tbl.columns)) col_key = std::find_if(std::begin(tbl.columns), std::end(tbl.columns), [](const brig::database::column_definition& c){ return "PKUID" == c.name; });
+    auto col_geo = std::find_if(std::begin(tbl.columns), std::end(tbl.columns), [](const brig::database::column_definition& c){ return "Geometry" == c.name; });
     if (col_key == std::end(tbl.columns) || col_geo == std::end(tbl.columns)) return;
 
     col_geo->type = brig::database::Geometry;
@@ -337,7 +336,7 @@ void tree_view::copy_shp()
     idx.columns.push_back(col_geo->name);
     tbl.indexes.push_back(idx);
 
-    m_lr_copy.link->lr = new layer_geometry(dbc, id, tbl);
+    m_lr_copy = layer_link(new layer_geometry(dbc, id, tbl));
   }
   catch (const std::exception& e)  { show_message(e.what()); }
 }
@@ -350,10 +349,9 @@ void tree_view::copy()
 
 void tree_view::on_update()
 {
-  if (m_mdl.is_connection(m_idx_menu))
-    m_paste_layer->setEnabled(m_lr_copy.link != 0);
-  else if (m_mdl.is_layer(m_idx_menu))
-    m_paste_rows->setEnabled(m_lr_copy.link != 0);
+  m_drop->setEnabled(m_mdl.is_layer(m_idx_menu) && m_mdl.get_layer(m_idx_menu)->is_writable());
+  m_paste_rows->setEnabled(m_drop->isEnabled() && m_lr_copy && m_mdl.get_layer(m_idx_menu)->get_levels() == m_lr_copy->get_levels());
+  m_paste_layer->setEnabled(m_mdl.is_connection(m_idx_menu) && m_lr_copy);
 }
 
 void tree_view::show_menu(const QPoint& pnt)
@@ -411,7 +409,7 @@ void tree_view::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int e
   on_remove(parent, start, end, m_idx_menu);
   const bool valid(m_idx_copy.isValid());
   on_remove(parent, start, end, m_idx_copy);
-  if (valid && !m_idx_copy.isValid()) m_lr_copy.link.reset();
+  if (valid && !m_idx_copy.isValid()) m_lr_copy = layer_link();
   on_update();
   QTreeView::rowsAboutToBeRemoved(parent, start, end);
 }

@@ -6,19 +6,23 @@
 #include "layer.h"
 
 class layer_raster : public layer {
-  brig::database::raster_pyramid m_raster;
+  const brig::database::raster_pyramid m_raster;
 
   size_t get_level(const frame& fr) const;
   std::string get_raster_column(size_t level) const;
 
 public:
   layer_raster(connection_link dbc, const brig::database::raster_pyramid& raster) : layer(dbc), m_raster(raster)  {}
-  virtual QString get_string();
-  virtual QString get_icon()  { return ":/palette.png"; }
+  virtual QString get_icon()  { return ":/res/palette.png"; }
 
+  virtual brig::database::identifier get_identifier()  { return m_raster.id; }
+  virtual brig::database::identifier get_geometry()  { return m_raster.levels[0].geometry_layer; }
   virtual size_t get_levels()  { return m_raster.levels.size(); }
-  virtual brig::database::identifier get_geometry_column(size_t level)  { return m_raster.levels[level].geometry_layer; }
   virtual brig::database::table_definition get_table_definition(size_t level);
+
+  virtual bool is_writable();
+  virtual layer* clone_finish(connection_link dbc, const std::string& tbl, std::vector<std::string>& sql);
+  virtual void drop_start(std::vector<std::string>& sql);
 
   virtual size_t limit()  { return 100; }
   virtual std::shared_ptr<brig::database::rowset> attributes(const frame& fr);

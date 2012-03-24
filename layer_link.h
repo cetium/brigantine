@@ -8,19 +8,23 @@
 
 class layer; // https://svn.boost.org/trac/boost/ticket/6687
 
-struct layer_link {
+class layer_link
+{
   struct resource {
-    layer* lr;
-    resource();
+    layer* m_lr;
+    explicit resource(layer* lr);
     ~resource();
   }; // resource
 
-  std::shared_ptr<resource> link;
+  std::shared_ptr<resource> m_link;
+
+public:
   Qt::CheckState m_state;
   size_t m_order;
 
-  layer_link();
+  explicit layer_link(layer* lr = 0);
   layer* operator ->() const;
+  operator bool() const;
 }; // layer_link
 
 #endif // LAYER_LINK_H

@@ -4,9 +4,9 @@
 #include <QApplication>
 #include <QFileDialog>
 #include "dialog_odbc.h"
-#include "ui_odbc.h"
+#include "ui_dialog_odbc.h"
 
-dialog_odbc::dialog_odbc() : QDialog(QApplication::activeWindow()), ui(new Ui::odbc)
+dialog_odbc::dialog_odbc() : QDialog(QApplication::activeWindow()), ui(new Ui::dialog_odbc)
 {
   ui->setupUi(this);
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);

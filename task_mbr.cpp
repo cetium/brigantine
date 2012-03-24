@@ -10,7 +10,7 @@
 void task_mbr::run(progress* prg)
 {
   auto dbc(m_lr->get_connection());
-  auto id(m_lr->get_geometry_column(0));
+  auto id(m_lr->get_geometry());
   auto col(dbc->get_column_definition( id ));
   auto box(dbc->get_mbr(id, col));
   dbc->set_mbr(id, box);

@@ -6,11 +6,11 @@
 #include <QDialog>
 #include <QString>
 
-namespace Ui { class oci; }
+namespace Ui { class dialog_oci; }
 
 class dialog_oci : public QDialog {
   Q_OBJECT
-  Ui::oci* ui;
+  Ui::dialog_oci* ui;
 private slots:
   void on_cancel_button_clicked()  { reject(); }
   void on_connect_button_clicked()  { accept(); }

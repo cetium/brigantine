@@ -6,18 +6,21 @@
 #include "layer.h"
 
 class layer_geometry : public layer {
-  brig::database::identifier m_id;
-  brig::database::table_definition m_tbl;
+  const brig::database::identifier m_id;
+  const brig::database::table_definition m_tbl;
 
 public:
-  layer_geometry(connection_link dbc, const brig::database::identifier& id) : layer(dbc), m_id(id)  {}
-  layer_geometry(connection_link dbc, const brig::database::identifier& id, const brig::database::table_definition& tbl) : layer(dbc), m_id(id), m_tbl(tbl)  {}
-  virtual QString get_string();
-  virtual QString get_icon()  { return ":/compasses.png"; }
+  layer_geometry(connection_link dbc, const brig::database::identifier& id, const brig::database::table_definition& tbl = brig::database::table_definition());
+  virtual QString get_icon()  { return ":/res/compasses.png"; }
 
+  virtual brig::database::identifier get_identifier()  { return m_id; }
+  virtual brig::database::identifier get_geometry()  { return m_id; }
   virtual size_t get_levels()  { return 1; }
-  virtual brig::database::identifier get_geometry_column(size_t)  { return m_id; }
-  virtual brig::database::table_definition get_table_definition(size_t);
+  virtual brig::database::table_definition get_table_definition(size_t level);
+
+  virtual bool is_writable()  {return true; }
+  virtual layer* clone_finish(connection_link dbc, const std::string& tbl, std::vector<std::string>& sql);
+  virtual void drop_start(std::vector<std::string>&)  {}
 
   virtual size_t limit()  { return 1000; }
   virtual std::shared_ptr<brig::database::rowset> attributes(const frame& fr);

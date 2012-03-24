@@ -6,11 +6,11 @@
 #include <QDialog>
 #include <QString>
 
-namespace Ui { class odbc; }
+namespace Ui { class dialog_odbc; }
 
 class dialog_odbc : public QDialog {
   Q_OBJECT
-  Ui::odbc* ui;
+  Ui::dialog_odbc* ui;
 private slots:
   void on_cancel_button_clicked()  { reject(); }
   void on_connect_button_clicked()  { accept(); }
