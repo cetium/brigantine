@@ -13,6 +13,7 @@
 #include <string>
 #include "frame.h"
 
+const int BatchInterval = 3000;
 const int SignalInterval = 750;
 const int TimeOut = 3000;
 

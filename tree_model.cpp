@@ -13,13 +13,13 @@
 #include <QTextStream>
 #include <vector>
 #include "connection.h"
-#include "dialog_clone.h"
+#include "dialog_create.h"
 #include "dialog_drop.h"
 #include "dialog_insert.h"
 #include "layer.h"
 #include "layer_geometry.h"
 #include "layer_raster.h"
-#include "task_clone.h"
+#include "task_create.h"
 #include "task_exec.h"
 #include "task_insert.h"
 #include "task_mbr.h"
@@ -85,9 +85,9 @@ QVariant tree_model::data(const QModelIndex& idx, int role) const
 void tree_model::emit_layers()
 {
   std::vector<layer_link> lrs;
-  for (auto i = std::begin(m_root.m_children); i != std::end(m_root.m_children); ++i)
+  for (auto i(std::begin(m_root.m_children)); i != std::end(m_root.m_children); ++i)
   {
-    for (auto j = std::begin((*i)->m_children); j != std::end((*i)->m_children); ++j)
+    for (auto j(std::begin((*i)->m_children)); j != std::end((*i)->m_children); ++j)
     {
       layer_link lr((*j)->get_layer());
       switch (lr.m_state)
@@ -203,7 +203,7 @@ void tree_model::disconnect(const QModelIndex& idx)
   emit signal_disconnect(dbc_itm->get_connection());
 
   beginRemoveRows(QModelIndex(), idx.row(), idx.row());
-  auto iter = std::begin(m_root.m_children);
+  auto iter(std::begin(m_root.m_children));
   std::advance(iter, idx.row());
   m_root.m_children.erase(iter);
   endRemoveRows();
@@ -231,7 +231,7 @@ void tree_model::refresh(const QModelIndex& idx)
   catch (const std::exception& e)  { show_message(e.what()); }
 
   bool render(false);
-  for (auto old_iter = std::begin(dbc_itm->m_children); old_iter != std::end(dbc_itm->m_children); ++old_iter)
+  for (auto old_iter(std::begin(dbc_itm->m_children)); old_iter != std::end(dbc_itm->m_children); ++old_iter)
   {
     auto old_name((*old_iter)->get_string());
     auto new_iter(std::find_if(std::begin(children), std::end(children), [&](std::unique_ptr<tree_item>& itm){ return old_name  == itm->get_string(); }));
@@ -313,13 +313,13 @@ void tree_model::paste_layer(layer_link lr_copy, const QModelIndex& idx_paste)
   if (!is_connection(idx_paste)) return;
   const tree_item* dbc_itm(static_cast<tree_item*>(idx_paste.internalPointer()));
   auto dbc(dbc_itm->get_connection());
-  dialog_clone dlg(lr_copy->get_identifier().name);
+  dialog_create dlg(lr_copy->get_identifier().name);
   if (dlg.exec() != QDialog::Accepted) return;
   if (dlg.sql())
   {
     qRegisterMetaType<connection_link>("connection_link");
     qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
-    task_clone* tsk(new task_clone(lr_copy, dbc, dlg.tbl(), true));
+    task_create* tsk(new task_create(lr_copy, dbc, dlg.tbl(), true));
     connect
       ( tsk, SIGNAL(signal_commands(connection_link, std::vector<std::string>))
       , this, SLOT(emit_commands(connection_link, std::vector<std::string>))
@@ -329,7 +329,7 @@ void tree_model::paste_layer(layer_link lr_copy, const QModelIndex& idx_paste)
   else
   {
     qRegisterMetaType<connection_link>("connection_link");
-    task_clone* tsk(new task_clone(lr_copy, dbc, dlg.tbl(), false));
+    task_create* tsk(new task_create(lr_copy, dbc, dlg.tbl(), false));
     connect(tsk, SIGNAL(signal_refresh(connection_link)), this, SLOT(refresh(connection_link)));
     emit signal_task(std::shared_ptr<task>(tsk));
   }
@@ -344,7 +344,7 @@ void tree_model::paste_rows(layer_link lr_copy, const QModelIndex& idx_paste)
 
   dialog_insert dlg(lr_copy, lr_paste);
   if (dlg.exec() != QDialog::Accepted) return;
-  task_insert* tsk(new task_insert(lr_copy, lr_paste, dlg.get_insert_map()));
+  task_insert* tsk(new task_insert(lr_copy, lr_paste, dlg.get_items()));
   emit signal_task(std::shared_ptr<task>(tsk));
 }
 
@@ -356,7 +356,7 @@ void tree_model::drop(const QModelIndex& idx)
   auto dbc(lr_itm->m_parent->get_connection());
 
   std::vector<std::string> sql;
-  lr->drop_start(sql);
+  lr->drop_meta(sql);
   for (size_t level(0); level < lr->get_levels(); ++level)
     dbc->drop(lr->get_table_definition(level), sql);
 

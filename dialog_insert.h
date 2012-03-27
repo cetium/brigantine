@@ -6,7 +6,8 @@
 #include <QDialog>
 #include <QRegExpValidator>
 #include <string>
-#include "insert_map.h"
+#include <vector>
+#include "insert_item.h"
 #include "layer_link.h"
 
 class dialog_insert : public QDialog {
@@ -14,7 +15,7 @@ class dialog_insert : public QDialog {
   QRegExpValidator m_vlr;
 public:
   dialog_insert(layer_link lr_from, layer_link lr_to);
-  insert_map get_insert_map() const;
+  std::vector<insert_item> get_items() const;
 }; // dialog_insert
 
 #endif // DIALOG_INSERT_H

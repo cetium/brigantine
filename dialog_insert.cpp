@@ -86,16 +86,16 @@ dialog_insert::dialog_insert(layer_link lr_from, layer_link lr_to)
   setLayout(layout);
 }
 
-insert_map dialog_insert::get_insert_map() const
+std::vector<insert_item> dialog_insert::get_items() const
 {
-  insert_map res;
+  std::vector<insert_item> res;
   QTabWidget* tab = static_cast<QTabWidget*>(layout()->itemAt(0)->widget());
   for (int level(0); level < tab->count(); ++level)
   {
     QGridLayout* grid = static_cast<QGridLayout*>(tab->widget(level)->layout());
     for (int row(0); row < grid->rowCount(); ++row)
     {
-      insert_map_item item;
+      insert_item item;
       item.level = level;
       item.column_to = static_cast<QLabel*>(grid->itemAtPosition(row, 0)->widget())->text().toUtf8().constData();
       item.column_from = static_cast<QComboBox*>(grid->itemAtPosition(row, 1)->widget())->currentText().toUtf8().constData();

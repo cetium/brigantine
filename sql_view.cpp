@@ -69,12 +69,12 @@ void sql_view::fetch()
       cmd->exec(sql);
       prg->init(cmd->columns());
       std::vector<brig::database::variant> row;
-      while (cmd->fetch(row))
+      for (size_t counter(1); cmd->fetch(row); ++counter)
       {
         std::vector<std::string> str_row;
         for (auto iter(std::begin(row)); iter != std::end(row); ++iter)
           str_row.push_back(brig::string_cast<char>(*iter));
-        if (!prg->step(1, str_row)) return;
+        if (!prg->step(counter, str_row)) return;
       }
     }
   }; // select
@@ -108,7 +108,7 @@ void sql_view::on_commands(connection_link dbc, std::vector<std::string> sqls)
   m_fetch->setDisabled(m_cancel->isEnabled());
   m_run->setDisabled(m_cancel->isEnabled());
   if (!sqls.empty()) m_sql->append("");
-  for (auto sql = sqls.begin(); sql != sqls.end(); ++sql)
+  for (auto sql(std::begin(sqls)); sql != std::end(sqls); ++sql)
     m_sql->append("-- " + QString::fromUtf8(sql->c_str()));
   emit signal_commands();
 }

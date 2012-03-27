@@ -21,8 +21,8 @@ public:
   virtual brig::database::table_definition get_table_definition(size_t level);
 
   virtual bool is_writable();
-  virtual layer* clone_finish(connection_link dbc, const std::string& tbl, std::vector<std::string>& sql);
-  virtual void drop_start(std::vector<std::string>& sql);
+  virtual layer* create_result(connection_link dbc, const std::string& tbl, std::vector<std::string>& sql);
+  virtual void drop_meta(std::vector<std::string>& sql);
 
   virtual size_t limit()  { return 100; }
   virtual std::shared_ptr<brig::database::rowset> attributes(const frame& fr);

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>dialog_clone</class>
- <widget class="QDialog" name="dialog_clone">
+ <class>dialog_create</class>
+ <widget class="QDialog" name="dialog_create">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>layer cloning</string>
+   <string>layer creation</string>
   </property>
   <property name="windowIcon">
    <iconset resource="resource.qrc">
@@ -47,9 +47,9 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_2">
        <item>
-        <widget class="QPushButton" name="clone_button">
+        <widget class="QPushButton" name="create_button">
          <property name="text">
-          <string>clone</string>
+          <string>create</string>
          </property>
         </widget>
        </item>
@@ -75,7 +75,7 @@
  </widget>
  <tabstops>
   <tabstop>table_edit</tabstop>
-  <tabstop>clone_button</tabstop>
+  <tabstop>create_button</tabstop>
   <tabstop>cancel_button</tabstop>
   <tabstop>sql_button</tabstop>
  </tabstops>

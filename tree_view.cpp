@@ -315,9 +315,9 @@ void tree_view::copy_shp()
 
     brig::database::identifier id; id.name = base;
     auto tbl(dbc->get_table_definition(id));
-    auto col_key = std::find_if(std::begin(tbl.columns), std::end(tbl.columns), [](const brig::database::column_definition& c){ return "PK_UID" == c.name; });
+    auto col_key(std::find_if(std::begin(tbl.columns), std::end(tbl.columns), [](const brig::database::column_definition& c){ return "PK_UID" == c.name; }));
     if (col_key == std::end(tbl.columns)) col_key = std::find_if(std::begin(tbl.columns), std::end(tbl.columns), [](const brig::database::column_definition& c){ return "PKUID" == c.name; });
-    auto col_geo = std::find_if(std::begin(tbl.columns), std::end(tbl.columns), [](const brig::database::column_definition& c){ return "Geometry" == c.name; });
+    auto col_geo(std::find_if(std::begin(tbl.columns), std::end(tbl.columns), [](const brig::database::column_definition& c){ return "Geometry" == c.name; }));
     if (col_key == std::end(tbl.columns) || col_geo == std::end(tbl.columns)) return;
 
     col_geo->type = brig::database::Geometry;

@@ -1,7 +1,7 @@
 // Andrew Naplavkov
 
-#ifndef TASK_CLONE_H
-#define TASK_CLONE_H
+#ifndef TASK_CREATE_H
+#define TASK_CREATE_H
 
 #include <QString>
 #include <string>
@@ -10,7 +10,7 @@
 #include "layer_link.h"
 #include "task.h"
 
-class task_clone : public task {
+class task_create : public task {
   Q_OBJECT
   layer_link m_lr_from;
   connection_link m_dbc_to;
@@ -22,8 +22,8 @@ signals:
   void signal_refresh(connection_link dbc);
 
 public:
-  task_clone(layer_link lr_from, connection_link dbc_to, const std::string& tbl, bool sql);
+  task_create(layer_link lr_from, connection_link dbc_to, const std::string& tbl, bool sql);
   virtual void run(progress* prg);
-}; // task_clone
+}; // task_create
 
-#endif // TASK_CLONE_H
+#endif // TASK_CREATE_H

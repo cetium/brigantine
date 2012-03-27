@@ -5,13 +5,13 @@ QT +=\
 HEADERS +=\
   connection.h\
   connection_link.h\
-  dialog_clone.h\
+  dialog_create.h\
   dialog_drop.h\
   dialog_insert.h\
   dialog_oci.h\
   dialog_odbc.h\
   frame.h\
-  insert_map.h\
+  insert_item.h\
   layer.h\
   layer_geometry.h\
   layer_link.h\
@@ -26,7 +26,7 @@ HEADERS +=\
   sql_view.h\
   task.h\
   task_attributes.h\
-  task_clone.h\
+  task_create.h\
   task_exec.h\
   task_insert.h\
   task_mbr.h\
@@ -38,7 +38,7 @@ HEADERS +=\
 SOURCES +=\
   connection.cpp\
   connection_link.cpp\
-  dialog_clone.cpp\
+  dialog_create.cpp\
   dialog_drop.cpp\
   dialog_insert.cpp\
   dialog_oci.cpp\
@@ -57,7 +57,7 @@ SOURCES +=\
   sql_thread.cpp\
   sql_view.cpp\
   task_attributes.cpp\
-  task_clone.cpp\
+  task_create.cpp\
   task_exec.cpp\
   task_insert.cpp\
   task_mbr.cpp\
@@ -67,7 +67,7 @@ SOURCES +=\
   utilities.cpp
 
 FORMS +=\
-  dialog_clone.ui\
+  dialog_create.ui\
   dialog_drop.ui\
   dialog_oci.ui\
   dialog_odbc.ui

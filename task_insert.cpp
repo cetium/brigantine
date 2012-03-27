@@ -1,6 +1,7 @@
 // Andrew Naplavkov
 
 #include <brig/database/threaded_rowset.hpp>
+#include <QTime>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -11,21 +12,19 @@
 #include "task_insert.h"
 #include "utilities.h"
 
-void task_insert::run(layer_link lr_from, layer_link lr_to, const insert_map& i_map, progress* prg)
+void task_insert::run(layer_link lr_from, layer_link lr_to, const std::vector<insert_item>& insert_items, progress* prg)
 {
-  const int BatchInsert = 10000;
-
   if (lr_from->get_levels() != lr_to->get_levels()) throw std::runtime_error("insert error");
 
-  size_t counter(0), batch(0);
+  size_t counter(0);
   for (size_t level(0); level < lr_from->get_levels(); ++level)
   {
     auto tbl_from(lr_from->get_table_definition(level));
     auto tbl_to(lr_to->get_table_definition(level));
-    reproject_map r_map;
+    std::vector<reproject_item> reproject_items;
     std::vector<brig::database::column_definition> param_cols;
 
-    for (auto iter(std::begin(i_map)); iter != std::end(i_map); ++iter)
+    for (auto iter(std::begin(insert_items)); iter != std::end(insert_items); ++iter)
     {
       if (iter->level != level) continue;
 
@@ -58,49 +57,41 @@ void task_insert::run(layer_link lr_from, layer_link lr_to, const insert_map& i_
         col_to->epsg = col_from->epsg;
       }
 
-      reproject_map_item item;
+      reproject_item item;
       item.column = int(param_cols.size());
       if (col_from->epsg != col_to->epsg)
       {
         item.pj_from = get_epsg(col_from->epsg);
         item.pj_to = get_epsg(col_to->epsg);
-        r_map.push_back(item);
+        reproject_items.push_back(item);
       }
 
       param_cols.push_back(*col_to);
     }
 
-    auto rowset(lr_from->get_connection()->get_rowset(tbl_from));
-    if (!r_map.empty()) rowset = std::make_shared<brig::database::threaded_rowset>(std::make_shared<reproject>(rowset, r_map));
+    auto rowset(lr_from->get_connection()->select(tbl_from));
+    if (!reproject_items.empty()) rowset = std::make_shared<brig::database::threaded_rowset>(std::make_shared<reproject>(rowset, reproject_items));
 
     auto dbc_to(lr_to->get_connection());
     const std::string sql(dbc_to->insert(tbl_to));
     auto command(dbc_to->get_command());
     command->set_autocommit(false);
     std::vector<brig::database::variant> row;
+    QTime time; time.start();
 
-    while (rowset->fetch(row))
+    for (; rowset->fetch(row); ++counter)
     {
-      ++counter;
-      ++batch;
-
       if (!prg->step(counter)) return;
       command->exec(sql, row, param_cols);
-
-      if (batch >= BatchInsert)
+      if (time.elapsed() > BatchInterval)
       {
         command->commit();
         if (!prg->step(counter)) return;
-        batch = 0;
+        time.restart();
       }
     }
-
-    if (batch > 0)
-    {
-      command->commit();
-      if (!prg->step(counter)) return;
-    }
-    batch = 0;
+    command->commit();
+    prg->step(counter);
 
     dbc_to->reset_table_definition(tbl_to.id);
   }

@@ -15,6 +15,23 @@ brig::database::table_definition layer_raster::get_table_definition(size_t level
   auto tbl(get_connection()->get_table_definition(m_raster.levels[level].geometry_layer));
   if (typeid(brig::database::column_definition) == m_raster.levels[level].raster_column.type())
     tbl.columns.push_back( boost::get<brig::database::column_definition>(m_raster.levels[level].raster_column) );
+
+  bool create_index(true);
+  for (auto idx(std::begin(tbl.indexes)); idx != std::end(tbl.indexes); ++idx)
+    if ( brig::database::Spatial == idx->type
+      && 1 == idx->columns.size()
+      && idx->columns.front() == m_raster.levels[level].geometry_layer.qualifier
+       )
+       create_index = false;
+
+  if (create_index)
+  {
+    brig::database::index_definition idx;
+    idx.type = brig::database::Spatial;
+    idx.columns.push_back(m_raster.levels[level].geometry_layer.qualifier);
+    tbl.indexes.push_back(idx);
+  }
+
   tbl.select_sql_condition = m_raster.levels[level].sql_condition;
   tbl.select_parameters = m_raster.levels[level].parameters;
   return tbl;
@@ -22,21 +39,21 @@ brig::database::table_definition layer_raster::get_table_definition(size_t level
 
 bool layer_raster::is_writable()
 {
-  return typeid(std::string) == m_raster.levels[0].raster_column.type();
+  return !m_raster.levels.empty() && typeid(std::string) == m_raster.levels[0].raster_column.type();
 }
 
-layer* layer_raster::clone_finish(connection_link dbc, const std::string& tbl, std::vector<std::string>& sql)
+layer* layer_raster::create_result(connection_link dbc, const std::string& tbl, std::vector<std::string>& sql)
 {
   brig::database::raster_pyramid raster(m_raster);
   for (size_t level(0); level < raster.levels.size(); ++level)
     raster.levels[level].geometry_layer.name = get_table_name(tbl, level);
-  dbc->clone_finish(raster, sql);
+  dbc->create_result(raster, sql);
   return new layer_raster(dbc, raster);
 }
 
-void layer_raster::drop_start(std::vector<std::string>& sql)
+void layer_raster::drop_meta(std::vector<std::string>& sql)
 {
-  get_connection()->drop_start(m_raster, sql);
+  get_connection()->drop_meta(m_raster, sql);
 }
 
 size_t layer_raster::get_level(const frame& fr) const
@@ -66,7 +83,7 @@ std::shared_ptr<brig::database::rowset> layer_raster::attributes(const frame& fr
       && tbl.columns[i].name != get_raster_column(level) )
       tbl.select_columns.push_back(tbl.columns[i].name);
   tbl.select_rows = int(limit());
-  return get_connection()->get_rowset(tbl);
+  return get_connection()->select(tbl);
 }
 
 std::shared_ptr<brig::database::rowset> layer_raster::drawing(const frame& fr, bool limited)
@@ -79,7 +96,7 @@ std::shared_ptr<brig::database::rowset> layer_raster::drawing(const frame& fr, b
   tbl.select_columns.push_back(m_raster.levels[level].geometry_layer.qualifier);
   tbl.select_columns.push_back(get_raster_column(level));
   if (limited) tbl.select_rows = int(limit());
-  return get_connection()->get_rowset(tbl);
+  return get_connection()->select(tbl);
 }
 
 void layer_raster::draw(const std::vector<brig::database::variant>& row, const frame& fr, QPainter& painter)

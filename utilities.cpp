@@ -65,8 +65,8 @@ QRectF transform(const QRectF& rect, const brig::proj::epsg& from, const brig::p
   if (xs.empty() || ys.empty()) throw std::runtime_error("projection error");;
 
   return QRectF
-    ( QPointF(*std::min_element(xs.begin(), xs.end()), *std::min_element(ys.begin(), ys.end()))
-    , QPointF(*std::max_element(xs.begin(), xs.end()), *std::max_element(ys.begin(), ys.end()))
+    ( QPointF(*std::min_element(std::begin(xs), std::end(xs)), *std::min_element(std::begin(ys), std::end(ys)))
+    , QPointF(*std::max_element(std::begin(xs), std::end(xs)), *std::max_element(std::begin(ys), std::end(ys)))
     );
 }
 

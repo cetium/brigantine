@@ -8,19 +8,17 @@
 #ifndef REPROJECT_H
 #define REPROJECT_H
 
-struct reproject_map_item {
+struct reproject_item {
   int column;
   brig::proj::epsg pj_from, pj_to;
-  reproject_map_item() : column(-1)  {}
-}; // reproject_map_item
-
-typedef std::vector<reproject_map_item> reproject_map;
+  reproject_item() : column(-1)  {}
+}; // reproject_item
 
 class reproject : public brig::database::rowset {
   std::shared_ptr<brig::database::rowset> m_rs;
-  reproject_map m_map;
+  std::vector<reproject_item> m_items;
 public:
-  reproject(std::shared_ptr<brig::database::rowset> rs, const reproject_map& map) : m_rs(rs), m_map(map)  {}
+  reproject(std::shared_ptr<brig::database::rowset> rs, const std::vector<reproject_item>& items) : m_rs(rs), m_items(items)  {}
   virtual std::vector<std::string> columns()  { return m_rs->columns(); }
   virtual bool fetch(std::vector<brig::database::variant>& row);
 }; // reproject
