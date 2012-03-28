@@ -26,7 +26,7 @@ void task_insert::run(layer_link lr_from, layer_link lr_to, const std::vector<in
 
     for (auto iter(std::begin(insert_items)); iter != std::end(insert_items); ++iter)
     {
-      if (iter->level != level) continue;
+      if (size_t(iter->level) != level) continue;
 
       auto col_from(std::find_if
         ( std::begin(tbl_from.columns)
