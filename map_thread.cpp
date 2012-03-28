@@ -77,10 +77,7 @@ void map_thread::render_layer(layer_link lr, const frame& fr, QImage& img, QStri
 
     if (counter >= counter_end) painter.setOpacity(painter.opacity() / 6.);
     painter.drawImage(0, 0, lr_img);
-
-    emit signal_process(fr, img);
     emit signal_process((msg.isEmpty()? to_string(counter): msg));
-    time.restart();
   }
   catch (const std::exception& e)  { if (msg.isEmpty()) msg = QString::fromUtf8(e.what()); }
 }

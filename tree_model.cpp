@@ -125,6 +125,12 @@ void tree_model::connect_to(connection_link dbc)
   for (auto iter(std::begin(rasters)); iter != std::end(rasters); ++iter)
     dbc_itm->m_children.emplace_back(new tree_item(dbc_itm.get(), layer_link(new layer_raster(dbc, *iter))));
 
+  std::sort
+    ( std::begin(dbc_itm->m_children)
+    , std::end(dbc_itm->m_children)
+    , [](std::unique_ptr<tree_item>& a, std::unique_ptr<tree_item>& b){ return a->get_string() < b->get_string(); }
+    );
+
   beginInsertRows(QModelIndex(), int(m_root.m_children.size()), int(m_root.m_children.size()));
   m_root.m_children.push_back(std::move(dbc_itm));
   endInsertRows();
