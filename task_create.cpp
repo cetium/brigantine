@@ -57,13 +57,13 @@ void task_create::run(progress* prg)
       auto tbl_to(lr_to->get_table_definition(level));
       for (auto col_to(std::begin(tbl_to.columns)); col_to != std::end(tbl_to.columns); ++col_to)
       {
-        if (brig::database::VoidColumn == col_to->type) throw std::runtime_error("create error");
+        if (brig::database::VoidColumn == col_to->type) continue;
         auto col_from(std::find_if(std::begin(tbl_from.columns), std::end(tbl_from.columns), [&](const brig::database::column_definition& c){ return c.name == col_to->name; }));
         if (col_from == std::end(tbl_from.columns))
         {
           const QString name(QString::fromUtf8(col_to->name.c_str()));
           col_from = std::find_if(std::begin(tbl_from.columns), std::end(tbl_from.columns), [&](const brig::database::column_definition& c){ return 0 == name.compare(QString::fromUtf8(c.name.c_str()), Qt::CaseInsensitive); });
-          if (col_from == std::end(tbl_from.columns)) throw std::runtime_error("create error");
+          if (col_from == std::end(tbl_from.columns)) continue;
         }
 
         insert_item item;

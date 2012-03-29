@@ -233,6 +233,12 @@ void tree_model::refresh(const QModelIndex& idx)
     auto rasters(dbc->get_raster_layers());
     for (auto iter(std::begin(rasters)); iter != std::end(rasters); ++iter)
       children.emplace_back(new tree_item(dbc_itm, layer_link(new layer_raster(dbc, *iter))));
+
+    std::sort
+      ( std::begin(children)
+      , std::end(children)
+      , [](const std::unique_ptr<tree_item>& a, const std::unique_ptr<tree_item>& b){ return a->get_string() < b->get_string(); }
+      );
   }
   catch (const std::exception& e)  { show_message(e.what()); }
 
