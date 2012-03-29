@@ -128,7 +128,7 @@ void tree_model::connect_to(connection_link dbc)
   std::sort
     ( std::begin(dbc_itm->m_children)
     , std::end(dbc_itm->m_children)
-    , [](std::unique_ptr<tree_item>& a, std::unique_ptr<tree_item>& b){ return a->get_string() < b->get_string(); }
+    , [](const std::unique_ptr<tree_item>& a, const std::unique_ptr<tree_item>& b){ return a->get_string() < b->get_string(); }
     );
 
   beginInsertRows(QModelIndex(), int(m_root.m_children.size()), int(m_root.m_children.size()));
