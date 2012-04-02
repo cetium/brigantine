@@ -7,15 +7,8 @@
 
 class connection; // https://svn.boost.org/trac/boost/ticket/6687
 
-class connection_link
-{
-  struct resource {
-    connection* m_dbc;
-    explicit resource(connection* dbc);
-    ~resource();
-  }; // resource
-
-  std::shared_ptr<resource> m_link;
+class connection_link {
+  std::shared_ptr<connection> m_dbc;
 
 public:
   explicit connection_link(connection* dbc = 0);

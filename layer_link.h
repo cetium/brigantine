@@ -8,15 +8,8 @@
 
 class layer; // https://svn.boost.org/trac/boost/ticket/6687
 
-class layer_link
-{
-  struct resource {
-    layer* m_lr;
-    explicit resource(layer* lr);
-    ~resource();
-  }; // resource
-
-  std::shared_ptr<resource> m_link;
+class layer_link {
+  std::shared_ptr<layer> m_lr;
 
 public:
   Qt::CheckState m_state;
