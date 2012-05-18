@@ -68,7 +68,7 @@ private slots:
   void on_task(std::shared_ptr<task> tsk)  { emit signal_task(tsk); }
 
 signals:
-  void signal_layers(std::vector<layer_link> lim);
+  void signal_layers(std::vector<layer_link> lrs);
   void signal_view(const QRectF& rect, const brig::proj::epsg& pj);
   void signal_proj(const brig::proj::epsg& pj);
   void signal_commands(connection_link dbc, std::vector<std::string> sqls);

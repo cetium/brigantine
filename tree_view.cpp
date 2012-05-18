@@ -325,6 +325,7 @@ void tree_view::copy_shp()
     col_geo->lower_case_type.name = "geometry";
     col_geo->srid = epsg_edit->text().toInt();
     col_geo->epsg = epsg_edit->text().toInt();
+    col_geo->sql_expression = "AsBinary(\"GEOMETRY\")";
 
     brig::database::index_definition pk;
     pk.type = brig::database::Primary;
