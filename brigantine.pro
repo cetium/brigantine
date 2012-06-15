@@ -75,44 +75,9 @@ FORMS +=\
 RESOURCES +=\
   resource.qrc
 
-INCLUDEPATH +=\
-  ../boost_1_49_0/\
-  ../include/oci/\
-  ../include/
+INCLUDEPATH +=\ # boost, brig, ...
+  ../include/\
+  ../include/oci/
 
-
-
-win32 {
-
-  Release:LIBS +=\
-    ../boost_1_49_0/stage/lib/libboost_date_time-vc100-mt-1_49.lib\
-    ../boost_1_49_0/stage/lib/libboost_thread-vc100-mt-1_49.lib
-
-  Debug:LIBS +=\
-    ../boost_1_49_0/stage/lib/libboost_date_time-vc100-mt-gd-1_49.lib\
-    ../boost_1_49_0/stage/lib/libboost_thread-vc100-mt-gd-1_49.lib
-
-}
-
-
-
-unix {
-
-  DEFINES +=\
-    BOOST_THREAD_USE_LIB
-
-  QMAKE_CXXFLAGS +=\
-    -std=c++0x
-
-  QMAKE_LFLAGS +=\
-    -Wl,-rpath,${ORIGIN}
-
-  release:LIBS +=\
-    ../boost_1_49_0/stage/lib/libboost_date_time-gcc46-mt-1_49.a\
-    ../boost_1_49_0/stage/lib/libboost_thread-gcc46-mt-1_49.a -lpthread
-
-  debug:LIBS +=\
-    ../boost_1_49_0/stage/lib/libboost_date_time-gcc46-mt-d-1_49.a\
-    ../boost_1_49_0/stage/lib/libboost_thread-gcc46-mt-d-1_49.a -lpthread
-
-}
+QMAKE_CXXFLAGS +=\
+  -std=c++0x
