@@ -1,8 +1,9 @@
 // Andrew Naplavkov
 
-#include <stdexcept>
+#include <brig/boost/as_binary.hpp>
 #include <QString>
 #include <Qt>
+#include <stdexcept>
 #include <vector>
 #include "connection.h"
 #include "layer.h"
@@ -25,15 +26,18 @@ void task_create::run(progress* prg)
     auto tbl(m_lr_from->get_table_definition(level));
     m_dbc_to->create_check_mbr(tbl);
     for (auto col(std::begin(tbl.columns)); col != std::end(tbl.columns); ++col)
-      if (typeid(bool) == col->mbr.type() && boost::get<bool>(col->mbr))
+      if ( brig::database::Geometry == col->type
+        && typeid(brig::blob_t) == col->query_condition.type()
+        && boost::get<brig::blob_t>(col->query_condition).empty()
+         )
       {
-        brig::database::identifier id(tbl.id); id.qualifier = col->name;
+        brig::database::identifier id(tbl); id.qualifier = col->name;
         auto box(dbc_from->get_mbr(id, *col));
         dbc_from->set_mbr(id, box);
         if (!prg->step()) return;
-        col->mbr = box;
+        col->query_condition = brig::boost::as_binary(box);
       }
-    tbl.id.name = get_table_name(m_tbl, level);
+    tbl.name = get_table_name(m_tbl, level);
     m_dbc_to->create(tbl, sql);
   }
   layer_link lr_to(m_lr_from->create_result(m_dbc_to, m_tbl, sql));

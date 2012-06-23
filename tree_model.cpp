@@ -153,20 +153,13 @@ void tree_model::connect_odbc(QString dsn)
 
 void tree_model::connect_sqlite(QString file, bool init)
 {
-  class deleter {
-    std::shared_ptr<brig::database::command_allocator> m_allocator;
-  public:
-    explicit deleter(std::shared_ptr<brig::database::command_allocator> allocator) : m_allocator(allocator)  {}
-    void operator()(brig::database::command* cmd) const  { m_allocator->deallocate(cmd); }
-  }; // deleter
-
   auto allocator(std::make_shared<brig::database::sqlite::command_allocator>(file.toUtf8().constData()));
   if (init)
   {
     QFile file(":/res/init_spatialite.sql");
     file.open(QIODevice::ReadOnly|QIODevice::Text);
     QTextStream stream(&file);
-    std::unique_ptr<brig::database::command, deleter> cmd(allocator->allocate(), deleter(allocator));
+    std::unique_ptr<brig::database::command> cmd(allocator->allocate());
     while (!stream.atEnd())
     {
       const QString sql(stream.readLine());

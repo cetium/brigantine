@@ -28,21 +28,26 @@ layer* layer_geometry::create_result(connection_link dbc, const std::string& tbl
 std::shared_ptr<brig::database::rowset> layer_geometry::attributes(const frame& fr)
 {
   auto tbl(get_table_definition(0));
-  tbl.select_box_column = m_id.qualifier;
-  tbl.select_box = prepare_box(fr);
   for (size_t i(0); i < tbl.columns.size(); ++i)
-    if (tbl.columns[i].name != m_id.qualifier) tbl.select_columns.push_back(tbl.columns[i].name);
-  tbl.select_rows = int(limit());
+  {
+    if (tbl.columns[i].name == m_id.qualifier)
+      tbl.columns[i].query_condition = prepare_box(fr);
+    else
+      tbl.query_columns.push_back(tbl.columns[i].name);
+  }
+  tbl.query_rows = int(limit());
   return get_connection()->select(tbl);
 }
 
 std::shared_ptr<brig::database::rowset> layer_geometry::drawing(const frame& fr, bool limited)
 {
   auto tbl(get_table_definition(0));
-  tbl.select_box_column = m_id.qualifier;
-  tbl.select_box = prepare_box(fr);
-  tbl.select_columns.push_back(m_id.qualifier);
-  if (limited) tbl.select_rows = int(limit());
+  for (size_t i(0); i < tbl.columns.size(); ++i)
+    if (tbl.columns[i].name == m_id.qualifier)
+      tbl.columns[i].query_condition = prepare_box(fr);
+  tbl.query_columns.push_back(m_id.qualifier);
+  if (limited) tbl.query_rows = int(limit());
+
   auto rs(get_connection()->select(tbl));
   reproject_item item;
   item.column = 0;

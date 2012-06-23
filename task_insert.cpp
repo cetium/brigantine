@@ -42,8 +42,8 @@ void task_insert::run(layer_link lr_from, layer_link lr_to, const std::vector<in
 
       if (col_from == std::end(tbl_from.columns) || col_to == std::end(tbl_to.columns)) throw std::runtime_error("insert error");
 
-      tbl_from.select_columns.push_back(col_from->name);
-      tbl_to.select_columns.push_back(col_to->name);
+      tbl_from.query_columns.push_back(col_from->name);
+      tbl_to.query_columns.push_back(col_to->name);
 
       if (iter->epsg > 0)
       {
@@ -93,6 +93,6 @@ void task_insert::run(layer_link lr_from, layer_link lr_to, const std::vector<in
     command->commit();
     prg->step(counter);
 
-    dbc_to->reset_table_definition(tbl_to.id);
+    dbc_to->reset_table_definition(tbl_to);
   }
 }

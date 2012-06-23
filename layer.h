@@ -17,6 +17,9 @@
 class layer {
   connection_link m_dbc;
 
+protected:
+  brig::database::variant prepare_box(const frame& fr);
+
 public:
   layer()  {}
   explicit layer(connection_link dbc) : m_dbc(dbc)  {}
@@ -41,7 +44,6 @@ public:
   QString get_string();
   brig::proj::epsg get_epsg();
   bool get_mbr(brig::boost::box& box);
-  brig::boost::box prepare_box(const frame& fr);
 }; // layer
 
 #endif // LAYER_H
