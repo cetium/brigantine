@@ -15,7 +15,7 @@ public:
   layer_raster(connection_link dbc, const brig::database::raster_pyramid& raster) : layer(dbc), m_raster(raster)  {}
   virtual QString get_icon()  { return ":/res/palette.png"; }
 
-  virtual brig::database::identifier get_identifier()  { return m_raster; }
+  virtual brig::database::identifier get_identifier()  { return m_raster.id; }
   virtual brig::database::identifier get_geometry()  { return m_raster.levels[0].geometry; }
   virtual size_t get_levels()  { return m_raster.levels.size(); }
   virtual brig::database::table_definition get_table_definition(size_t level);

@@ -31,13 +31,13 @@ void task_create::run(progress* prg)
         && boost::get<brig::blob_t>(col->query_condition).empty()
          )
       {
-        brig::database::identifier id(tbl); id.qualifier = col->name;
+        brig::database::identifier id(tbl.id); id.qualifier = col->name;
         auto box(dbc_from->get_mbr(id, *col));
         dbc_from->set_mbr(id, box);
         if (!prg->step()) return;
         col->query_condition = brig::boost::as_binary(box);
       }
-    tbl.name = get_table_name(m_tbl, level);
+    tbl.id.name = get_table_name(m_tbl, level);
     m_dbc_to->create(tbl, sql);
   }
   layer_link lr_to(m_lr_from->create_result(m_dbc_to, m_tbl, sql));

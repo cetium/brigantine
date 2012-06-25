@@ -93,6 +93,6 @@ void task_insert::run(layer_link lr_from, layer_link lr_to, const std::vector<in
     command->commit();
     prg->step(counter);
 
-    dbc_to->reset_table_definition(tbl_to);
+    dbc_to->reset_table_definition(tbl_to.id);
   }
 }

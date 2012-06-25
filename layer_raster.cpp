@@ -41,11 +41,11 @@ brig::database::table_definition layer_raster::get_table_definition(size_t level
   for (size_t i(0); i < m_raster.levels[level].query_conditions.size(); ++i)
   {
     auto cnd(m_raster.levels[level].query_conditions[i]);
-    auto col(std::find_if(std::begin(tbl.columns), std::end(tbl.columns), [&](const brig::database::column_definition& col_){ return col_.name == cnd.first.name; }));
+    auto col(std::find_if(std::begin(tbl.columns), std::end(tbl.columns), [&](const brig::database::column_definition& col_){ return col_.name == cnd.name; }));
     if (col != std::end(tbl.columns))
     {
-      if (!cnd.first.query_expression.empty()) col->query_expression = cnd.first.query_expression;
-      col->query_condition = cnd.second;
+      if (!cnd.query_expression.empty()) col->query_expression = cnd.query_expression;
+      col->query_condition = cnd.query_condition;
     }
   }
   return tbl;
