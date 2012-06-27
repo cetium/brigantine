@@ -28,19 +28,8 @@ void task_insert::run(layer_link lr_from, layer_link lr_to, const std::vector<in
     {
       if (size_t(iter->level) != level) continue;
 
-      auto col_from(std::find_if
-        ( std::begin(tbl_from.columns)
-        , std::end(tbl_from.columns)
-        , [&](const brig::database::column_definition& c){ return c.name == iter->column_from; })
-        );
-
-      auto col_to(std::find_if
-        ( std::begin(tbl_to.columns)
-        , std::end(tbl_to.columns)
-        , [&](const brig::database::column_definition& c){ return c.name == iter->column_to; })
-        );
-
-      if (col_from == std::end(tbl_from.columns) || col_to == std::end(tbl_to.columns)) throw std::runtime_error("insert error");
+      auto col_from(tbl_from[iter->column_from]);
+      auto col_to(tbl_to[iter->column_to]);
 
       tbl_from.query_columns.push_back(col_from->name);
       tbl_to.query_columns.push_back(col_to->name);
