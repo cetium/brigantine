@@ -31,7 +31,7 @@ std::shared_ptr<brig::database::rowset> layer_geometry::attributes(const frame& 
   for (size_t i(0); i < tbl.columns.size(); ++i)
   {
     if (tbl.columns[i].name == m_id.qualifier)
-      tbl.columns[i].query_condition = prepare_box(fr);
+      tbl.columns[i].query_value = prepare_box(fr);
     else
       tbl.query_columns.push_back(tbl.columns[i].name);
   }
@@ -44,7 +44,7 @@ std::shared_ptr<brig::database::rowset> layer_geometry::drawing(const frame& fr,
   auto tbl(get_table_definition(0));
   for (size_t i(0); i < tbl.columns.size(); ++i)
     if (tbl.columns[i].name == m_id.qualifier)
-      tbl.columns[i].query_condition = prepare_box(fr);
+      tbl.columns[i].query_value = prepare_box(fr);
   tbl.query_columns.push_back(m_id.qualifier);
   if (limited) tbl.query_rows = int(limit());
 

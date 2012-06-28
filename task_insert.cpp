@@ -22,7 +22,7 @@ void task_insert::run(layer_link lr_from, layer_link lr_to, const std::vector<in
     auto tbl_from(lr_from->get_table_definition(level));
     auto tbl_to(lr_to->get_table_definition(level));
     std::vector<reproject_item> reproject_items;
-    std::vector<brig::database::column_definition> param_cols;
+    std::vector<brig::database::column_definition> params;
 
     for (auto iter(std::begin(insert_items)); iter != std::end(insert_items); ++iter)
     {
@@ -47,7 +47,7 @@ void task_insert::run(layer_link lr_from, layer_link lr_to, const std::vector<in
       }
 
       reproject_item item;
-      item.column = int(param_cols.size());
+      item.column = int(params.size());
       if (col_from->epsg != col_to->epsg)
       {
         item.pj_from = get_epsg(col_from->epsg);
@@ -55,7 +55,7 @@ void task_insert::run(layer_link lr_from, layer_link lr_to, const std::vector<in
         reproject_items.push_back(item);
       }
 
-      param_cols.push_back(*col_to);
+      params.push_back(*col_to);
     }
 
     auto rowset(lr_from->get_connection()->select(tbl_from));
@@ -71,7 +71,10 @@ void task_insert::run(layer_link lr_from, layer_link lr_to, const std::vector<in
     for (; rowset->fetch(row); ++counter)
     {
       if (!prg->step(counter)) return;
-      command->exec(sql, row, param_cols);
+      if (row.size() != params.size()) throw std::runtime_error("insert error");
+      for (size_t i(0); i < params.size(); ++ i)
+        boost::swap(row[i], params[i].query_value);
+      command->exec(sql, params);
       if (time.elapsed() > BatchInterval)
       {
         command->commit();

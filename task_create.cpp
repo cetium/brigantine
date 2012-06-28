@@ -27,15 +27,15 @@ void task_create::run(progress* prg)
     m_dbc_to->create_check_mbr(tbl);
     for (auto col(std::begin(tbl.columns)); col != std::end(tbl.columns); ++col)
       if ( brig::database::Geometry == col->type
-        && typeid(brig::blob_t) == col->query_condition.type()
-        && boost::get<brig::blob_t>(col->query_condition).empty()
+        && typeid(brig::blob_t) == col->query_value.type()
+        && boost::get<brig::blob_t>(col->query_value).empty()
          )
       {
         brig::database::identifier id(tbl.id); id.qualifier = col->name;
         auto box(dbc_from->get_mbr(id, *col));
         dbc_from->set_mbr(id, box);
         if (!prg->step()) return;
-        col->query_condition = brig::boost::as_binary(box);
+        col->query_value = brig::boost::as_binary(box);
       }
     tbl.id.name = get_table_name(m_tbl, level);
     m_dbc_to->create(tbl, sql);

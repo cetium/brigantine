@@ -24,8 +24,8 @@ brig::proj::epsg layer::get_epsg()
 bool layer::get_mbr(brig::boost::box& box)
 {
   auto col(get_connection()->get_column_definition(get_geometry()));
-  if (col.query_condition.type() != typeid(brig::blob_t)) return false;
-  const brig::blob_t& blob(boost::get<brig::blob_t>(col.query_condition));
+  if (col.query_value.type() != typeid(brig::blob_t)) return false;
+  const brig::blob_t& blob(boost::get<brig::blob_t>(col.query_value));
   if (blob.empty()) return false;
   box = brig::boost::envelope(brig::boost::geom_from_wkb(blob));
   return true;

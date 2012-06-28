@@ -38,14 +38,14 @@ brig::database::table_definition layer_raster::get_table_definition(size_t level
     tbl.indexes.push_back(idx);
   }
 
-  for (size_t i(0); i < m_raster.levels[level].query_conditions.size(); ++i)
+  for (size_t i(0); i < m_raster.levels[level].query_values.size(); ++i)
   {
-    auto cnd(m_raster.levels[level].query_conditions[i]);
-    auto col(std::find_if(std::begin(tbl.columns), std::end(tbl.columns), [&](const brig::database::column_definition& col_){ return col_.name == cnd.name; }));
+    auto val(m_raster.levels[level].query_values[i]);
+    auto col(std::find_if(std::begin(tbl.columns), std::end(tbl.columns), [&](const brig::database::column_definition& col_){ return col_.name == val.name; }));
     if (col != std::end(tbl.columns))
     {
-      if (!cnd.query_expression.empty()) col->query_expression = cnd.query_expression;
-      col->query_condition = cnd.query_condition;
+      if (!val.query_expression.empty()) col->query_expression = val.query_expression;
+      col->query_value = val.query_value;
     }
   }
   return tbl;
@@ -90,7 +90,7 @@ std::shared_ptr<brig::database::rowset> layer_raster::attributes(const frame& fr
   for (size_t i(0); i < tbl.columns.size(); ++i)
   {
     if (tbl.columns[i].name == m_raster.levels[level].geometry.qualifier)
-      tbl.columns[i].query_condition = prepare_box(fr);
+      tbl.columns[i].query_value = prepare_box(fr);
     else if (tbl.columns[i].name != get_raster_column(level))
       tbl.query_columns.push_back(tbl.columns[i].name);
   }
@@ -105,7 +105,7 @@ std::shared_ptr<brig::database::rowset> layer_raster::drawing(const frame& fr, b
   auto tbl(get_table_definition(level));
   for (size_t i(0); i < tbl.columns.size(); ++i)
     if (tbl.columns[i].name == m_raster.levels[level].geometry.qualifier)
-      tbl.columns[i].query_condition = prepare_box(fr);
+      tbl.columns[i].query_value = prepare_box(fr);
   tbl.query_columns.push_back(m_raster.levels[level].geometry.qualifier);
   tbl.query_columns.push_back(get_raster_column(level));
   if (limited) tbl.query_rows = int(limit());

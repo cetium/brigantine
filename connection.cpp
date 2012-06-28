@@ -70,5 +70,5 @@ brig::database::column_definition connection::get_column_definition(const brig::
 void connection::set_mbr(const brig::database::identifier& col, const brig::boost::box& box)
 {
   QMutexLocker locker(&m_mutex);
-  get_column_definition_iterator(col)->query_condition = brig::boost::as_binary(box);
+  get_column_definition_iterator(col)->query_value = brig::boost::as_binary(box);
 }
