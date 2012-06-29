@@ -38,14 +38,14 @@ brig::database::table_definition layer_raster::get_table_definition(size_t level
     tbl.indexes.push_back(idx);
   }
 
-  for (size_t i(0); i < m_raster.levels[level].query_values.size(); ++i)
+  for (size_t i(0); i < m_raster.levels[level].query_conditions.size(); ++i)
   {
-    auto val(m_raster.levels[level].query_values[i]);
-    auto col(std::find_if(std::begin(tbl.columns), std::end(tbl.columns), [&](const brig::database::column_definition& col_){ return col_.name == val.name; }));
+    auto cnd(m_raster.levels[level].query_conditions[i]);
+    auto col(std::find_if(std::begin(tbl.columns), std::end(tbl.columns), [&](const brig::database::column_definition& col_){ return col_.name == cnd.name; }));
     if (col != std::end(tbl.columns))
     {
-      if (!val.query_expression.empty()) col->query_expression = val.query_expression;
-      col->query_value = val.query_value;
+      if (!cnd.query_expression.empty()) col->query_expression = cnd.query_expression;
+      col->query_value = cnd.query_value;
     }
   }
   return tbl;
