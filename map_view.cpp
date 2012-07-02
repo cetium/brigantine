@@ -1,6 +1,7 @@
 // Andrew Naplavkov
 
 #include <algorithm>
+#include <cfloat>
 #include <exception>
 #include <memory>
 #include <QImage>
@@ -213,7 +214,7 @@ void map_view::set_view(const QRectF& rect, const brig::proj::epsg& pj)
     if (size().width() == 0 || size().height() == 0 || !rect.isValid()) return;
     const QRectF box(proj_to_pixel(transform(rect, pj, m_view_fr.get_epsg()), m_view_fr));
     const double zoom_factor(std::max<>(box.width() / size().width(), box.height() / size().height()));
-    const double scale(m_view_fr.scale() * zoom_factor);
+    const double scale(m_view_fr.scale() * zoom_factor + DBL_EPSILON); // "zoom to fit" workaround
     const QPointF center(m_view_fr.pixel_to_proj(box.center()));
 
     frame view_fr(center, scale, m_view_fr.size(), m_view_fr.get_epsg());

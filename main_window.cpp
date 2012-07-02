@@ -15,7 +15,6 @@
 #include <QSplitter>
 #include <QStatusBar>
 #include <QStringList>
-#include <QTimer>
 #include <QtGlobal>
 #include "main_window.h"
 #include "map_view.h"
@@ -116,9 +115,7 @@ main_window::main_window(QWidget* parent) : QMainWindow(parent)
   try  { on_map_scene(latlon()); }
   catch (const std::exception&)  {}
 
-  QTimer* timer(new QTimer(this));
-  timer->start(100);
-  connect(timer, SIGNAL(timeout()), this, SLOT(on_timer()));
+  startTimer(100);
 }
 
 void main_window::on_map_scene(brig::proj::epsg pj)
@@ -175,7 +172,7 @@ void main_window::on_sql_idle()
   m_sql_stat->setToolTip(m_sql_msg);
 }
 
-void main_window::on_timer()
+void main_window::timerEvent(QTimerEvent*)
 {
   if (m_map_stat->isEnabled()) m_map_stat->setText(rich_text(":/res/map.png", status(m_map_time, m_map_msg)));
   if (m_sql_stat->isEnabled()) m_sql_stat->setText(rich_text(":/res/sql.png", status(m_sql_time, m_sql_msg)));

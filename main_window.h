@@ -23,9 +23,6 @@ class main_window : public QMainWindow {
   QTime m_map_time, m_sql_time;
   QAction *m_copy_map_stat, *m_copy_sql_stat;
 
-protected:
-  virtual void keyPressEvent(QKeyEvent* event);
-
 private slots:
   void on_map_coords(const QString& msg);
   void on_map_start();
@@ -36,10 +33,13 @@ private slots:
   void on_sql_process(const QString& msg)  { m_sql_msg = msg; }
   void on_sql_idle();
   void on_sql_commands()  { m_tab->setCurrentIndex(m_sql_tab); }
-  void on_timer();
   void show_stat_menu(const QPoint&);
   void copy_map_stat();
   void copy_sql_stat();
+
+protected:
+  virtual void keyPressEvent(QKeyEvent* event);
+  virtual void timerEvent(QTimerEvent* event);
 
 public:
   explicit main_window(QWidget* parent = 0);
