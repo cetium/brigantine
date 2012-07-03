@@ -28,5 +28,7 @@
         <file>res/add_folder.png</file>
         <file>res/compasses.png</file>
         <file>res/palette.png</file>
+        <file>res/cubrid.png</file>
+        <file>res/info.png</file>
     </qresource>
 </RCC>

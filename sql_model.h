@@ -30,7 +30,7 @@ public:
   void clear();
   void init(const std::vector<std::string>& columns);
   void push_back(const std::vector<std::string>& row);
-  void update();
+  void update()  { reset(); }
 }; // sql_model
 
 #endif // SQL_MODEL_H

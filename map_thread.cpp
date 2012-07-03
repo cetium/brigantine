@@ -51,7 +51,7 @@ void map_thread::render_layer(layer_link lr, const frame& fr, QImage& img, QStri
     painter.setCompositionMode(QPainter::CompositionMode_Darken);
     QImage lr_img(img.size(), QImage::Format_ARGB32_Premultiplied);
     QPainter lr_painter(&lr_img);
-    // lr_painter.setRenderHint(QPainter::Antialiasing);
+    // todo: lr_painter.setRenderHint(QPainter::Antialiasing);
     lr_painter.eraseRect(lr_img.rect());
     lr_painter.setBrush(QColor(0, 0, 0, 24));
     const bool limited(lr.m_state == Qt::PartiallyChecked);
@@ -105,7 +105,7 @@ void map_thread::run()
       painter.eraseRect(img.rect());
     }
 
-    for (int i(0); i < (int)lrs.size(); ++i)
+    for (int i(0); i < int(lrs.size()); ++i)
     {
       if (m_abort) return;
       if (m_restart) break;

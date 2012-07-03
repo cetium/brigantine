@@ -4,7 +4,6 @@
 #include <brig/proj/transform.hpp>
 #include <brig/string_cast.hpp>
 #include <cmath>
-#include <exception>
 #include <map>
 #include <QIcon>
 #include <QMessageBox>

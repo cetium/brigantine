@@ -140,7 +140,7 @@ void tree_view::open_sqlite()
 {
   try
   {
-    QFileDialog dlg(this, "open SQLite file", QDir::currentPath(), "SQLite files (*.sqlite);;All files (*.*)");
+    QFileDialog dlg(this, "open SQLite files", QDir::currentPath(), "SQLite files (*.sqlite);;All files (*.*)");
     dlg.setAcceptMode(QFileDialog::AcceptOpen);
     dlg.setFileMode(QFileDialog::ExistingFiles);
     dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);

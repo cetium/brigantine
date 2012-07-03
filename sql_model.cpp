@@ -55,8 +55,6 @@ void sql_model::push_back(const std::vector<std::string>& row)
   m_rows.push_back(row);
 }
 
-void sql_model::update()  { reset(); }
-
 void sql_model::clear()
 {
   {

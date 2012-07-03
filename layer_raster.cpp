@@ -14,13 +14,7 @@ brig::database::table_definition layer_raster::get_table_definition(size_t level
 {
   auto tbl(get_connection()->get_table_definition(m_raster.levels[level].geometry));
   if (!m_raster.levels[level].raster.query_expression.empty())
-  {
-    brig::database::column_definition col;
-    col.name =  m_raster.levels[level].raster.name;
-    col.query_expression = m_raster.levels[level].raster.query_expression;
-    col.type = brig::database::Blob;
-    tbl.columns.push_back(col);
-  }
+    tbl.columns.push_back(m_raster.levels[level].raster);
 
   bool create_index(true);
   for (auto idx(std::begin(tbl.indexes)); idx != std::end(tbl.indexes); ++idx)
@@ -38,15 +32,11 @@ brig::database::table_definition layer_raster::get_table_definition(size_t level
     tbl.indexes.push_back(idx);
   }
 
-  for (size_t i(0); i < m_raster.levels[level].query_conditions.size(); ++i)
+  for (auto cnd(std::begin(m_raster.levels[level].query_conditions)); cnd != std::end(m_raster.levels[level].query_conditions); ++cnd)
   {
-    auto cnd(m_raster.levels[level].query_conditions[i]);
-    auto col(std::find_if(std::begin(tbl.columns), std::end(tbl.columns), [&](const brig::database::column_definition& col_){ return col_.name == cnd.name; }));
-    if (col != std::end(tbl.columns))
-    {
-      if (!cnd.query_expression.empty()) col->query_expression = cnd.query_expression;
-      col->query_value = cnd.query_value;
-    }
+    auto col(tbl[cnd->name]);
+    if (!cnd->query_expression.empty()) col->query_expression = cnd->query_expression;
+    col->query_value = cnd->query_value;
   }
   return tbl;
 }
@@ -56,11 +46,11 @@ bool layer_raster::is_writable()
   return !m_raster.levels.empty() && m_raster.levels[0].raster.query_expression.empty();
 }
 
-layer* layer_raster::create_result(connection_link dbc, const std::string& tbl, std::vector<std::string>& sql)
+layer* layer_raster::create_result(connection_link dbc, const std::string& name, std::vector<std::string>& sql)
 {
   brig::database::raster_pyramid raster(m_raster);
   for (size_t level(0); level < raster.levels.size(); ++level)
-    raster.levels[level].geometry.name = get_table_name(tbl, level);
+    raster.levels[level].geometry.name = get_table_name(name, level);
   dbc->create_result(raster, sql);
   return new layer_raster(dbc, raster);
 }
@@ -114,13 +104,9 @@ std::shared_ptr<brig::database::rowset> layer_raster::drawing(const frame& fr, b
 
 void layer_raster::draw(const std::vector<brig::database::variant>& row, const frame& fr, QPainter& painter)
 {
-  try
-  {
-    if (row.size() < 2 || row[0].type() != typeid(brig::blob_t) || row[1].type() != typeid(brig::blob_t)) return;
-    brig::blob_t g(boost::get<brig::blob_t>(row[0])), r(boost::get<brig::blob_t>(row[1]));
-    QRectF rect(proj_to_pixel(box_to_rect(brig::boost::envelope(brig::boost::geom_from_wkb(g))), fr));
-    QImage img;
-    if (img.loadFromData(r.data(), uint(r.size()))) painter.drawImage(rect.toAlignedRect(), img);
-  }
-  catch (const std::exception&)  {}
+  if (row.size() < 2 || row[0].type() != typeid(brig::blob_t) || row[1].type() != typeid(brig::blob_t)) return;
+  brig::blob_t g(boost::get<brig::blob_t>(row[0])), r(boost::get<brig::blob_t>(row[1]));
+  QRectF rect(proj_to_pixel(box_to_rect(brig::boost::envelope(brig::boost::geom_from_wkb(g))), fr));
+  QImage img;
+  if (img.loadFromData(r.data(), uint(r.size()))) painter.drawImage(rect.toAlignedRect(), img);
 }

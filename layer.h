@@ -33,7 +33,7 @@ public:
   virtual brig::database::table_definition get_table_definition(size_t level) = 0;
 
   virtual bool is_writable() = 0;
-  virtual layer* create_result(connection_link dbc, const std::string& tbl, std::vector<std::string>& sql) = 0;
+  virtual layer* create_result(connection_link dbc, const std::string& name, std::vector<std::string>& sql) = 0;
   virtual void drop_meta(std::vector<std::string>& sql) = 0;
 
   virtual size_t limit() = 0;

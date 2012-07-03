@@ -1,7 +1,6 @@
 // Andrew Naplavkov
 
 #include <brig/string_cast.hpp>
-#include <stdexcept>
 #include "connection.h"
 #include "layer.h"
 #include "progress.h"

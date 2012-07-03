@@ -19,19 +19,20 @@ class sql_view : public QWidget {
   sql_thread m_trd;
   connection_link m_dbc;
   QLabel* m_title;
-  QAction *m_fetch, *m_run, *m_cancel;
+  QAction *m_fetch, *m_run, *m_info, *m_cancel;
   QTextEdit *m_sql;
 
 private slots:
   void fetch();
   void run();
-  void cancel();
+  void cancel()  { m_trd.cancel(); }
+  void info();
   void on_start();
-  void on_process(const QString& msg);
+  void on_process(const QString& msg)  { emit signal_process(msg); }
   void on_idle();
 
 public slots:
-  void push(std::shared_ptr<task> tsk);
+  void push(std::shared_ptr<task> tsk)  { m_trd.push(tsk); }
   void on_commands(connection_link dbc, std::vector<std::string> sqls);
   void on_disconnect(connection_link dbc);
 

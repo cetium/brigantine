@@ -1,13 +1,15 @@
 // Andrew Naplavkov
 
 #include <brig/string_cast.hpp>
+#include <exception>
+#include <iterator>
 #include <QHeaderView>
 #include <QSplitter>
 #include <QTableWidget>
 #include <QToolBar>
 #include <QVBoxLayout>
-#include <vector>
 #include <string>
+#include <vector>
 #include "connection.h"
 #include "progress.h"
 #include "sql_view.h"
@@ -29,6 +31,9 @@ sql_view::sql_view(QWidget* parent) : QWidget(parent), m_mdl(new sql_model()), m
 
   m_run = tool_bar->addAction(QIcon(":/res/run.png"), "run", this, SLOT(run()));
   m_run->setDisabled(true);
+
+  m_info = tool_bar->addAction(QIcon(":/res/info.png"), "info", this, SLOT(info()));
+  m_info->setDisabled(true);
 
   m_cancel = tool_bar->addAction(QIcon(":/res/delete.png"), "stop", this, SLOT(cancel()));
   m_cancel->setDisabled(true);
@@ -91,9 +96,33 @@ void sql_view::run()
   m_trd.push(std::shared_ptr<task>(tsk));
 }
 
-void sql_view::cancel()  { m_trd.cancel(); }
+void sql_view::info()
+{
+  struct tables : task {
+    connection_link dbc;
 
-void sql_view::push(std::shared_ptr<task> tsk)  { m_trd.push(tsk); }
+    virtual void run(progress* prg)
+    {
+      std::vector<std::string> row;
+      row.push_back("SCHEMA");
+      row.push_back("TABLE");
+      prg->init(row);
+
+      auto ids(dbc->get_tables());
+      size_t counter(1);
+      for (auto id(std::begin(ids)); id != std::end(ids); ++id, ++counter)
+      {
+        row[0] = id->schema;
+        row[1] = id->name;
+        if (!prg->step(counter, row)) return;
+      }
+    }
+  }; // tables
+
+  tables* tsk(new tables());
+  tsk->dbc = m_dbc;
+  m_trd.push(std::shared_ptr<task>(tsk));
+}
 
 void sql_view::on_commands(connection_link dbc, std::vector<std::string> sqls)
 {
@@ -107,6 +136,7 @@ void sql_view::on_commands(connection_link dbc, std::vector<std::string> sqls)
 
   m_fetch->setDisabled(m_cancel->isEnabled());
   m_run->setDisabled(m_cancel->isEnabled());
+  m_info->setDisabled(m_cancel->isEnabled());
   if (!sqls.empty()) m_sql->append("");
   for (auto sql(std::begin(sqls)); sql != std::end(sqls); ++sql)
     m_sql->append("-- " + QString::fromUtf8(sql->c_str()));
@@ -121,22 +151,23 @@ void sql_view::on_disconnect(connection_link dbc)
   m_title->setToolTip("");
   m_fetch->setDisabled(true);
   m_run->setDisabled(true);
+  m_info->setDisabled(true);
 }
 
 void sql_view::on_start()
 {
   m_fetch->setDisabled(true);
   m_run->setDisabled(true);
+  m_info->setDisabled(true);
   m_cancel->setEnabled(true);
   emit signal_start();
 }
-
-void sql_view::on_process(const QString& msg)  { emit signal_process(msg); }
 
 void sql_view::on_idle()
 {
   m_fetch->setEnabled(m_dbc);
   m_run->setEnabled(m_dbc);
+  m_info->setEnabled(m_dbc);
   m_cancel->setDisabled(true);
   emit signal_idle();
 }

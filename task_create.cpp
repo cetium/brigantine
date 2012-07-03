@@ -3,7 +3,6 @@
 #include <brig/boost/as_binary.hpp>
 #include <QString>
 #include <Qt>
-#include <stdexcept>
 #include <vector>
 #include "connection.h"
 #include "layer.h"
@@ -12,8 +11,8 @@
 #include "task_insert.h"
 #include "utilities.h"
 
-task_create::task_create(layer_link lr_from, connection_link dbc_to, const std::string& tbl, bool sql)
-  : m_lr_from(lr_from), m_dbc_to(dbc_to), m_tbl(tbl), m_sql(sql)
+task_create::task_create(layer_link lr_from, connection_link dbc_to, const std::string& name, bool sql)
+  : m_lr_from(lr_from), m_dbc_to(dbc_to), m_name(name), m_sql(sql)
 {
 }
 
@@ -37,10 +36,10 @@ void task_create::run(progress* prg)
         if (!prg->step()) return;
         col->query_value = brig::boost::as_binary(box);
       }
-    tbl.id.name = get_table_name(m_tbl, level);
+    tbl.id.name = get_table_name(m_name, level);
     m_dbc_to->create(tbl, sql);
   }
-  layer_link lr_to(m_lr_from->create_result(m_dbc_to, m_tbl, sql));
+  layer_link lr_to(m_lr_from->create_result(m_dbc_to, m_name, sql));
 
   if (m_sql) emit signal_commands(m_dbc_to, sql);
   else

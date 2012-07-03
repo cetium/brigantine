@@ -2,7 +2,6 @@
 
 #include <brig/database/threaded_rowset.hpp>
 #include <brig/qt/draw.hpp>
-#include <exception>
 #include <vector>
 #include "layer_geometry.h"
 #include "reproject.h"
@@ -17,10 +16,10 @@ brig::database::table_definition layer_geometry::get_table_definition(size_t)
   return m_tbl.columns.empty()? get_connection()->get_table_definition(m_id): m_tbl;
 }
 
-layer* layer_geometry::create_result(connection_link dbc, const std::string& tbl, std::vector<std::string>&)
+layer* layer_geometry::create_result(connection_link dbc, const std::string& name, std::vector<std::string>&)
 {
   brig::database::identifier id(m_id);
-  id.name = tbl;
+  id.name = name;
   dbc->create_result(id);
   return new layer_geometry(dbc, id);
 }

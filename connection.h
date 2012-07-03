@@ -20,7 +20,7 @@ class connection : public brig::database::connection<true>
   QMutex m_mutex;
   std::map<brig::database::identifier, brig::database::table_definition, compare> m_tables;
 
-  std::vector<brig::database::column_definition>::iterator get_column_definition_iterator(const brig::database::identifier& col);
+  brig::database::column_definition* get_column_definition_ptr(const brig::database::identifier& col);
 
 public:
   connection(std::shared_ptr<brig::database::command_allocator> allocator, QString str);
