@@ -11,11 +11,11 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>ODBC connection</string>
+   <string>ODBC</string>
   </property>
   <property name="windowIcon">
    <iconset resource="resource.qrc">
-    <normaloff>:/res/wheel.png</normaloff>:/res/wheel.png</iconset>
+    <normaloff>:/res/odbc.png</normaloff>:/res/odbc.png</iconset>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_2">
    <item>

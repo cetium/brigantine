@@ -19,7 +19,7 @@
 #include <QStringList>
 #include <QtGlobal>
 #include "connection.h"
-#include "dialog_oci.h"
+#include "dialog_connect.h"
 #include "dialog_odbc.h"
 #include "layer.h"
 #include "layer_geometry.h"
@@ -33,13 +33,21 @@ tree_view::tree_view(QWidget* parent) : QTreeView(parent)
   setHeaderHidden(true);
   connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(show_menu(const QPoint&)));
 
-  m_connect_oci = new QAction(QIcon(":/res/oracle.png"), "connect to Oracle", this);
-  m_connect_oci->setIconVisibleInMenu(true);
-  connect(m_connect_oci, SIGNAL(triggered()), this, SLOT(connect_oci()));
+  m_connect_mysql = new QAction(QIcon(":/res/mysql.png"), "connect to MySQL", this);
+  m_connect_mysql->setIconVisibleInMenu(true);
+  connect(m_connect_mysql, SIGNAL(triggered()), this, SLOT(connect_mysql()));
 
   m_connect_odbc = new QAction(QIcon(":/res/odbc.png"), "connect using ODBC", this);
   m_connect_odbc->setIconVisibleInMenu(true);
   connect(m_connect_odbc, SIGNAL(triggered()), this, SLOT(connect_odbc()));
+
+  m_connect_oracle = new QAction(QIcon(":/res/oracle.png"), "connect to Oracle", this);
+  m_connect_oracle->setIconVisibleInMenu(true);
+  connect(m_connect_oracle, SIGNAL(triggered()), this, SLOT(connect_oracle()));
+
+  m_connect_postgres = new QAction(QIcon(":/res/postgres.png"), "connect to Postgres", this);
+  m_connect_postgres->setIconVisibleInMenu(true);
+  connect(m_connect_postgres, SIGNAL(triggered()), this, SLOT(connect_postgres()));
 
   m_open_sqlite = new QAction(QIcon(":/res/sqlite.png"), "open SQLite file", this);
   m_open_sqlite->setIconVisibleInMenu(true);
@@ -112,14 +120,14 @@ tree_view::tree_view(QWidget* parent) : QTreeView(parent)
   connect(&m_mdl, SIGNAL(signal_task(std::shared_ptr<task>)), this, SLOT(on_task(std::shared_ptr<task>)));
 }
 
-void tree_view::connect_oci()
+void tree_view::connect_mysql()
 {
   try
   {
-    dialog_oci dlg;
+    dialog_connect dlg(":/res/mysql.png", "192.168.1.56", 3306, "test", "root");
     if (dlg.exec() != QDialog::Accepted) return;
     wait_cursor w;
-    m_mdl.connect_oci(dlg.srv(), dlg.usr(), dlg.pwd());
+    m_mdl.connect_mysql(dlg.host(), dlg.port(), dlg.db(), dlg.usr(), dlg.pwd());
   }
   catch (const std::exception& e)  { show_message(e.what()); }
 }
@@ -132,6 +140,30 @@ void tree_view::connect_odbc()
     if (dlg.exec() != QDialog::Accepted) return;
     wait_cursor w;
     m_mdl.connect_odbc(dlg.str());
+  }
+  catch (const std::exception& e)  { show_message(e.what()); }
+}
+
+void tree_view::connect_oracle()
+{
+  try
+  {
+    dialog_connect dlg(":/res/oracle.png", "192.168.1.152", 1521, "XE", "SYSTEM");
+    if (dlg.exec() != QDialog::Accepted) return;
+    wait_cursor w;
+    m_mdl.connect_oracle(dlg.host(), dlg.port(), dlg.db(), dlg.usr(), dlg.pwd());
+  }
+  catch (const std::exception& e)  { show_message(e.what()); }
+}
+
+void tree_view::connect_postgres()
+{
+  try
+  {
+    dialog_connect dlg(":/res/postgres.png", "gis-lab.info", 5432, "osm_shp", "guest");
+    if (dlg.exec() != QDialog::Accepted) return;
+    wait_cursor w;
+    m_mdl.connect_postgres(dlg.host(), dlg.port(), dlg.db(), dlg.usr(), dlg.pwd());
   }
   catch (const std::exception& e)  { show_message(e.what()); }
 }
@@ -379,8 +411,10 @@ void tree_view::show_menu(const QPoint& pnt)
     actions.append(m_drop);
     actions.append(m_separator);
   }
-  actions.append(m_connect_oci);
+  actions.append(m_connect_mysql);
   actions.append(m_connect_odbc);
+  actions.append(m_connect_oracle);
+  actions.append(m_connect_postgres);
   actions.append(m_open_sqlite);
   actions.append(m_new_sqlite);
   actions.append(m_copy_shp);

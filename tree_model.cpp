@@ -1,8 +1,10 @@
 // Andrew Naplavkov
 
 #include <algorithm>
+#include <brig/database/mysql/command_allocator.hpp>
 #include <brig/database/odbc/command_allocator.hpp>
 #include <brig/database/oracle/command_allocator.hpp>
+#include <brig/database/postgres/command_allocator.hpp>
 #include <brig/database/sqlite/command_allocator.hpp>
 #include <exception>
 #include <memory>
@@ -136,11 +138,11 @@ void tree_model::connect_to(connection_link dbc)
   endInsertRows();
 }
 
-void tree_model::connect_oci(QString srv, QString usr, QString pwd)
+void tree_model::connect_mysql(QString host, int port, QString db, QString usr, QString pwd)
 {
   connect_to(connection_link(new connection
-    ( std::make_shared<brig::database::oracle::command_allocator>(srv.toUtf8().constData(), usr.toUtf8().constData(), pwd.toUtf8().constData())
-    , srv + ";UID=" + usr + ";"
+    ( std::make_shared<brig::database::mysql::command_allocator>(host.toUtf8().constData(), port, db.toUtf8().constData(), usr.toUtf8().constData(), pwd.toUtf8().constData())
+    , host + ":" + QString().setNum(port) + "/" + db
     )));
 }
 
@@ -149,6 +151,22 @@ void tree_model::connect_odbc(QString dsn)
   QString str(dsn);
   str.replace(QRegExp("PWD=\\w*;"), "");
   connect_to(connection_link(new connection(std::make_shared<brig::database::odbc::command_allocator>(dsn.toUtf8().constData()), str)));
+}
+
+void tree_model::connect_oracle(QString host, int port, QString db, QString usr, QString pwd)
+{
+  connect_to(connection_link(new connection
+    ( std::make_shared<brig::database::oracle::command_allocator>(host.toUtf8().constData(), port, db.toUtf8().constData(), usr.toUtf8().constData(), pwd.toUtf8().constData())
+    , host + ":" + QString().setNum(port) + "/" + db
+    )));
+}
+
+void tree_model::connect_postgres(QString host, int port, QString db, QString usr, QString pwd)
+{
+  connect_to(connection_link(new connection
+    ( std::make_shared<brig::database::postgres::command_allocator>(host.toUtf8().constData(), port, db.toUtf8().constData(), usr.toUtf8().constData(), pwd.toUtf8().constData())
+    , host + ":" + QString().setNum(port) + "/" + db
+    )));
 }
 
 void tree_model::connect_sqlite(QString file, bool init)

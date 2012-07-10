@@ -1,6 +1,9 @@
 // Andrew Naplavkov
 
 #include <algorithm>
+#include <brig/database/mysql/client_version.hpp>
+#include <brig/database/oracle/client_version.hpp>
+#include <brig/database/postgres/client_version.hpp>
 #include <brig/database/sqlite/version.hpp>
 #include <brig/proj/version.hpp>
 #include <exception>
@@ -208,10 +211,13 @@ void main_window::keyPressEvent(QKeyEvent* event)
     QStringList props;
     props.append(QString("brigantine: ") + __DATE__ + ", " + to_string(sizeof(void*) * 8) + "-bit");
     props.append(QString());
-    props.append(QString("qt: ") + qVersion());
-    if (!brig::proj::version().empty()) props.append(QString::fromStdString("proj: " + brig::proj::version()));
-    if (!brig::database::sqlite::sqlite3_libversion().empty()) props.append(QString::fromStdString("sqlite: " + brig::database::sqlite::sqlite3_libversion()));
-    if (!brig::database::sqlite::spatialite_version().empty()) props.append(QString::fromStdString("spatialite: " + brig::database::sqlite::spatialite_version()));
+    props.append(QString("Qt: ") + qVersion());
+    if (!brig::proj::version().empty()) props.append(QString::fromStdString("Proj: " + brig::proj::version()));
+    if (!brig::database::sqlite::sqlite3_libversion().empty()) props.append(QString::fromStdString("SQLite: " + brig::database::sqlite::sqlite3_libversion()));
+    if (!brig::database::sqlite::spatialite_version().empty()) props.append(QString::fromStdString("SpatiaLite: " + brig::database::sqlite::spatialite_version()));
+    if (!brig::database::mysql::client_version().empty()) props.append(QString::fromStdString("MySQL: " + brig::database::mysql::client_version()));
+    if (!brig::database::oracle::client_version().empty()) props.append(QString::fromStdString("Oracle: " + brig::database::oracle::client_version()));
+    if (!brig::database::postgres::client_version().empty()) props.append(QString::fromStdString("Postgres: " + brig::database::postgres::client_version()));
     props.append(QString());
     props.append("andrew.naplavkov@gmail.com");
     QMessageBox::about(this, "about", props.join("\n"));

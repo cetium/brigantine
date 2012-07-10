@@ -5,10 +5,10 @@ QT +=\
 HEADERS +=\
   connection.h\
   connection_link.h\
+  dialog_connect.h\
   dialog_create.h\
   dialog_drop.h\
   dialog_insert.h\
-  dialog_oci.h\
   dialog_odbc.h\
   frame.h\
   insert_item.h\
@@ -38,10 +38,10 @@ HEADERS +=\
 SOURCES +=\
   connection.cpp\
   connection_link.cpp\
+  dialog_connect.cpp\
   dialog_create.cpp\
   dialog_drop.cpp\
   dialog_insert.cpp\
-  dialog_oci.cpp\
   dialog_odbc.cpp\
   frame.cpp\
   layer.cpp\
@@ -67,9 +67,9 @@ SOURCES +=\
   utilities.cpp
 
 FORMS +=\
+  dialog_connect.ui\
   dialog_create.ui\
   dialog_drop.ui\
-  dialog_oci.ui\
   dialog_odbc.ui
 
 RESOURCES +=\
@@ -77,6 +77,8 @@ RESOURCES +=\
 
 INCLUDEPATH +=\ # boost, brig, ...
   ../include/\
+  ../include/libpq/\
+  ../include/mysql\
   ../include/oci/
 
 QMAKE_CXXFLAGS +=\

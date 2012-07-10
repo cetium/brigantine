@@ -20,8 +20,10 @@ class tree_view : public QTreeView {
   layer_link m_lr_copy;
 
   QAction
-    *m_connect_oci,
+    *m_connect_mysql,
     *m_connect_odbc,
+    *m_connect_oracle,
+    *m_connect_postgres,
     *m_open_sqlite,
     *m_new_sqlite,
     *m_copy_shp,
@@ -44,8 +46,10 @@ protected:
   virtual void rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end);
 
 private slots:
-  void connect_oci();
+  void connect_mysql();
   void connect_odbc();
+  void connect_oracle();
+  void connect_postgres();
   void open_sqlite();
   void new_sqlite();
   void copy_shp();
