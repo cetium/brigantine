@@ -1,8 +1,11 @@
 // Andrew Naplavkov
 
 #include <algorithm>
+#include <brig/database/odbc/drivers.hpp>
 #include <brig/proj/transform.hpp>
 #include <brig/string_cast.hpp>
+#include <brig/unicode/lower_case.hpp>
+#include <brig/unicode/transform.hpp>
 #include <cmath>
 #include <map>
 #include <QIcon>
@@ -124,4 +127,19 @@ std::string get_table_name(const std::string& tbl, size_t level)
   std::string str(tbl);
   if (level > 0) str += "_" + brig::string_cast<char>(level);
   return str;
+}
+
+std::string get_ibm_odbc_driver()
+{
+  using namespace std;
+  using namespace brig::unicode;
+  vector<string> drvs;
+  brig::database::odbc::drivers(drvs);
+  for (auto i(begin(drvs)); i != end(drvs); ++i)
+  {
+    const string drv(*i);
+    const string lcase(transform<string>(drv, lower_case));
+    if (lcase.find("ibm") != std::string::npos) return drv;
+  }
+  return "";
 }

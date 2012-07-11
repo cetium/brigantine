@@ -12,14 +12,14 @@ dialog_odbc::dialog_odbc() : QDialog(QApplication::activeWindow()), ui(new Ui::d
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   std::vector<std::string> dsns;
-  brig::database::odbc::data_sources(dsns);
+  brig::database::odbc::datasources(dsns);
   for (size_t i(0); i < dsns.size(); ++i)
     ui->comboBox->addItem("DSN=" + QString::fromUtf8(dsns[i].c_str()) + ";");
 }
 
 void dialog_odbc::on_file_button_clicked()
 {
-  QFileDialog dlg(this, "open DSN file", QDir::currentPath(), "DSN files (*.dsn)");
+  static QFileDialog dlg(this, "open DSN file", QDir::currentPath(), "DSN files (*.dsn)");
   dlg.setAcceptMode(QFileDialog::AcceptOpen);
   dlg.setFileMode(QFileDialog::ExistingFile);
   dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);

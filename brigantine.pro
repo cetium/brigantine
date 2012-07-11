@@ -10,6 +10,7 @@ HEADERS +=\
   dialog_drop.h\
   dialog_insert.h\
   dialog_odbc.h\
+  dialog_shape.h\
   frame.h\
   insert_item.h\
   layer.h\
@@ -43,6 +44,7 @@ SOURCES +=\
   dialog_drop.cpp\
   dialog_insert.cpp\
   dialog_odbc.cpp\
+  dialog_shape.cpp\
   frame.cpp\
   layer.cpp\
   layer_geometry.cpp\

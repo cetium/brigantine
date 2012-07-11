@@ -4,23 +4,19 @@
 #include <brig/database/sqlite/command_allocator.hpp>
 #include <exception>
 #include <QCheckBox>
-#include <QComboBox>
+#include <QDir>
 #include <QFile>
 #include <QFileDialog>
 #include <QFileInfo>
-#include <QGridLayout>
 #include <QIcon>
-#include <QLabel>
-#include <QLineEdit>
 #include <QList>
 #include <QMenu>
-#include <QRegExpValidator>
 #include <QString>
 #include <QStringList>
-#include <QtGlobal>
 #include "connection.h"
 #include "dialog_connect.h"
 #include "dialog_odbc.h"
+#include "dialog_shape.h"
 #include "layer.h"
 #include "layer_geometry.h"
 #include "tree_view.h"
@@ -32,6 +28,10 @@ tree_view::tree_view(QWidget* parent) : QTreeView(parent)
   setContextMenuPolicy(Qt::CustomContextMenu);
   setHeaderHidden(true);
   connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(show_menu(const QPoint&)));
+
+  m_connect_db2 = new QAction(QIcon(":/res/db2.png"), "connect to DB2", this);
+  m_connect_db2->setIconVisibleInMenu(true);
+  connect(m_connect_db2, SIGNAL(triggered()), this, SLOT(connect_db2()));
 
   m_connect_mysql = new QAction(QIcon(":/res/mysql.png"), "connect to MySQL", this);
   m_connect_mysql->setIconVisibleInMenu(true);
@@ -120,11 +120,23 @@ tree_view::tree_view(QWidget* parent) : QTreeView(parent)
   connect(&m_mdl, SIGNAL(signal_task(std::shared_ptr<task>)), this, SLOT(on_task(std::shared_ptr<task>)));
 }
 
+void tree_view::connect_db2()
+{
+  try
+  {
+    static dialog_connect dlg(":/res/db2.png", "192.168.1.152", 50000, "TEST", "DB2INST1");
+    if (dlg.exec() != QDialog::Accepted) return;
+    wait_cursor w;
+    m_mdl.connect_odbc("DRIVER=" + QString().fromUtf8(get_ibm_odbc_driver().c_str()) + ";HOSTNAME=" + dlg.host() + ";PORT=" + to_string(dlg.port()) + ";DATABASE=" + dlg.db() + ";UID=" + dlg.usr() + ";PWD=" + dlg.pwd() + ";");
+  }
+  catch (const std::exception& e)  { show_message(e.what()); }
+}
+
 void tree_view::connect_mysql()
 {
   try
   {
-    dialog_connect dlg(":/res/mysql.png", "192.168.1.56", 3306, "test", "root");
+    static dialog_connect dlg(":/res/mysql.png", "192.168.1.56", 3306, "test", "root");
     if (dlg.exec() != QDialog::Accepted) return;
     wait_cursor w;
     m_mdl.connect_mysql(dlg.host(), dlg.port(), dlg.db(), dlg.usr(), dlg.pwd());
@@ -136,7 +148,7 @@ void tree_view::connect_odbc()
 {
   try
   {
-    dialog_odbc dlg;
+    static dialog_odbc dlg;
     if (dlg.exec() != QDialog::Accepted) return;
     wait_cursor w;
     m_mdl.connect_odbc(dlg.str());
@@ -148,7 +160,7 @@ void tree_view::connect_oracle()
 {
   try
   {
-    dialog_connect dlg(":/res/oracle.png", "192.168.1.152", 1521, "XE", "SYSTEM");
+    static dialog_connect dlg(":/res/oracle.png", "192.168.1.152", 1521, "XE", "SYSTEM");
     if (dlg.exec() != QDialog::Accepted) return;
     wait_cursor w;
     m_mdl.connect_oracle(dlg.host(), dlg.port(), dlg.db(), dlg.usr(), dlg.pwd());
@@ -160,7 +172,7 @@ void tree_view::connect_postgres()
 {
   try
   {
-    dialog_connect dlg(":/res/postgres.png", "gis-lab.info", 5432, "osm_shp", "guest");
+    static dialog_connect dlg(":/res/postgres.png", "gis-lab.info", 5432, "osm_shp", "guest");
     if (dlg.exec() != QDialog::Accepted) return;
     wait_cursor w;
     m_mdl.connect_postgres(dlg.host(), dlg.port(), dlg.db(), dlg.usr(), dlg.pwd());
@@ -172,7 +184,7 @@ void tree_view::open_sqlite()
 {
   try
   {
-    QFileDialog dlg(this, "open SQLite files", QDir::currentPath(), "SQLite files (*.sqlite);;All files (*.*)");
+    static QFileDialog dlg(this, "open SQLite files", QDir::currentPath(), "SQLite files (*.sqlite);;All files (*.*)");
     dlg.setAcceptMode(QFileDialog::AcceptOpen);
     dlg.setFileMode(QFileDialog::ExistingFiles);
     dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -189,7 +201,7 @@ void tree_view::new_sqlite()
 {
   try
   {
-    QFileDialog dlg(this, "new SQLite file", QDir::currentPath(), "SQLite files (*.sqlite)");
+    static QFileDialog dlg(this, "new SQLite file", QDir::currentPath(), "SQLite files (*.sqlite)");
     dlg.setAcceptMode(QFileDialog::AcceptSave);
     dlg.setFileMode(QFileDialog::AnyFile);
     dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -209,141 +221,23 @@ void tree_view::new_sqlite()
 
 void tree_view::copy_shp()
 {
-  struct pair { const char *first, *second; };
-  static const pair Charsets[] = {
-  { "ARMSCII-8", "Armenian" },
-  { "ASCII", "US-ASCII" },
-  { "BIG5", "Chinese/Traditional" },
-  { "BIG5-HKSCS", "Chinese/Hong Kong" },
-  { "BIG5-HKSCS:1999", "Chinese/Hong Kong" },
-  { "BIG5-HKSCS:2001", "Chinese/Hong Kong" },
-  { "CP850", "DOS/OEM Western Europe" },
-  { "CP862", "DOS/OEM Hebrew" },
-  { "CP866", "DOS/OEM Cyrillic" },
-  { "CP874", "DOS/OEM Thai" },
-  { "CP932", "DOS/OEM Japanese" },
-  { "CP936", "DOS/OEM Chinese" },
-  { "CP949", "DOS/OEM Korean" },
-  { "CP950", "DOS/OEM Chinese/Big5" },
-  { "CP1133", "Laotian" },
-  { "CP1250", "Windows Central Europe" },
-  { "CP1251", "Windows Cyrillic" },
-  { "CP1252", "Windows Latin 1" },
-  { "CP1253", "Windows Greek" },
-  { "CP1254", "Windows Turkish" },
-  { "CP1255", "Windows Hebrew" },
-  { "CP1256", "Windows Arabic" },
-  { "CP1257", "Windows Baltic" },
-  { "CP1258", "Windows Vietnamese" },
-  { "EUC-CN", "Chinese" },
-  { "EUC-JP", "Japanese" },
-  { "EUC-KR", "Korean" },
-  { "EUC-TW", "Taiwan" },
-  { "GB18030", "Chinese/National Standard" },
-  { "GBK", "Chinese/Simplified" },
-  { "Georgian-Academy", "Georgian" },
-  { "Georgian-PS", "Georgian" },
-  { "HZ", "Chinese" },
-  { "ISO-2022-CN", "Chinese" },
-  { "ISO-2022-CN-EXT", "Chinese" },
-  { "ISO-2022-JP", "Japanese" },
-  { "ISO-2022-JP-1", "Japanese" },
-  { "ISO-2022-JP-2", "Japanese" },
-  { "ISO-2022-KR", "Korean" },
-  { "ISO-8859-1", "Latin-1 Western European" },
-  { "ISO-8859-2", "Latin-2 Central European" },
-  { "ISO-8859-3", "Latin-3 South European" },
-  { "ISO-8859-4", "Latin-4 North European" },
-  { "ISO-8859-5", "Latin/Cyrillic" },
-  { "ISO-8859-6", "Latin/Arabic" },
-  { "ISO-8859-7", "Latin/Greek" },
-  { "ISO-8859-8", "Latin/Hebrew" },
-  { "ISO-8859-9", "Latin-5 Turkish" },
-  { "ISO-8859-10", "Latin-6 Nordic" },
-  { "ISO-8859-11", "Latin/Thai" },
-  { "ISO-8859-13", "Latin-7 Baltic Rim" },
-  { "ISO-8859-14", "Latin-8 Celtic" },
-  { "ISO-8859-15", "Latin-9" },
-  { "ISO-8859-16", "Latin-10 South-Eastern European" },
-  { "JOHAB", "Korean" },
-  { "KOI8-R", "Russian" },
-  { "KOI8-U", "Ukrainian" },
-  { "KOI8-RU", "Belarusian" },
-  { "KOI8-T", "Tajik" },
-  { "MacArabic", "MAC Arabic" },
-  { "MacCentralEurope", "MAC Central Europe" },
-  { "MacCroatian", "MAC Croatian" },
-  { "MacCyrillic", "MAC Cyrillic" },
-  { "MacGreek", "MAC Greek" },
-  { "MacHebrew", "MAC Hebrew" },
-  { "MacIceland", "MAC Iceland" },
-  { "Macintosh", "MAC" },
-  { "MacRoman", "MAC European/Western languages" },
-  { "MacRomania", "MAC Romania" },
-  { "MacThai", "MAC Thai" },
-  { "MacTurkish", "MAC Turkish" },
-  { "MacUkraine", "MAC Ukraine" },
-  { "MuleLao-1", "Laotian" },
-  { "PT154", "Kazakh" },
-  { "RK1048", "Kazakh" },
-  { "SHIFT_JIS", "Japanese" },
-  { "TCVN", "Vietnamese" },
-  { "TIS-620", "Thai" },
-  { "UTF-8", "UNICODE/Universal" },
-  { "VISCII", "Vietnamese" }
-  }; // Charsets
-
   try
   {
     m_idx_copy = QModelIndex();
 
-    QFileDialog dlg(this, "copy shapefile", QDir::currentPath(), "shapefiles (*.shp)");
-    dlg.setAcceptMode(QFileDialog::AcceptOpen);
-    dlg.setFileMode(QFileDialog::ExistingFile);
-    dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
-
-    QLabel* charset_lbl = new QLabel("Charset:", &dlg);
-    QComboBox* charset_combo = new QComboBox(&dlg);
-    for (int i(0), size(sizeof(Charsets) / sizeof(pair)); i < size; ++i)
-    {
-      QString itm;
-      itm += Charsets[i].first;
-      itm += ", ";
-      itm += Charsets[i].second;
-      charset_combo->addItem(itm, Charsets[i].first);
-    }
-    int pos(-1);
-  #ifdef Q_OS_WIN32
-    pos = charset_combo->findData("CP1252");
-  #elif Q_OS_MAC
-    pos = charset_combo->findData("MacCentralEurope");
-  #else
-    pos = charset_combo->findData("UTF-8");
-  #endif
-    if (pos >= 0) charset_combo->setCurrentIndex(pos);
-
-    QLabel* epsg_lbl = new QLabel("EPSG:", &dlg);
-    QLineEdit* epsg_edit = new QLineEdit("4326", &dlg);
-    QRegExpValidator vlr(QRegExp("[1-9]\\d{0,4}"), 0);
-    epsg_edit->setValidator(&vlr);
-
-    QGridLayout* layout = (QGridLayout*)dlg.layout();
-    const int rows = layout->rowCount();
-    layout->addWidget(charset_lbl, rows, 0);
-    layout->addWidget(charset_combo, rows, 1);
-    layout->addWidget(epsg_lbl, rows + 1, 0);
-    layout->addWidget(epsg_edit, rows + 1, 1);
+    static dialog_shape dlg;
     if (dlg.exec() != QDialog::Accepted) return;
 
     wait_cursor w;
     QFileInfo file(dlg.selectedFiles().value(0));
     std::string base(file.baseName().toUtf8().constData());
     std::string path(QFileInfo(file.dir(), file.baseName()).filePath().toUtf8().constData());
-    std::string charset(qvariant_cast<QString>(charset_combo->itemData(charset_combo->currentIndex())).toUtf8().constData());
+    std::string charset(dlg.charset().toUtf8().constData());
+    std::string epsg(dlg.epsg().toUtf8().constData());
 
     auto allocator(std::make_shared<brig::database::sqlite::command_allocator>(":memory:"));
     connection_link dbc(new connection(allocator, ":memory:"));
-    dbc->get_command()->exec("CREATE VIRTUAL TABLE \"" + base + "\" USING VirtualShape('" + path + "', '" + charset + "', " + std::string(epsg_edit->text().toUtf8().constData()) + ")");
+    dbc->get_command()->exec("CREATE VIRTUAL TABLE \"" + base + "\" USING VirtualShape('" + path + "', '" + charset + "', " + epsg + ")");
 
     brig::database::identifier id; id.name = base;
     auto tbl(dbc->get_table_definition(id));
@@ -355,8 +249,8 @@ void tree_view::copy_shp()
     col_geo->type = brig::database::Geometry;
     col_geo->dbms_type.name = "GEOMETRY";
     col_geo->dbms_type_lcase.name = "geometry";
-    col_geo->srid = epsg_edit->text().toInt();
-    col_geo->epsg = epsg_edit->text().toInt();
+    col_geo->srid = dlg.epsg().toInt();
+    col_geo->epsg = dlg.epsg().toInt();
     col_geo->query_expression = "AsBinary(\"GEOMETRY\")";
 
     brig::database::index_definition pk;
@@ -411,6 +305,7 @@ void tree_view::show_menu(const QPoint& pnt)
     actions.append(m_drop);
     actions.append(m_separator);
   }
+  if (!get_ibm_odbc_driver().empty()) actions.append(m_connect_db2);
   actions.append(m_connect_mysql);
   actions.append(m_connect_odbc);
   actions.append(m_connect_oracle);

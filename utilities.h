@@ -33,6 +33,7 @@ QString rich_text(const QString& icon, const QString& text);
 QString to_string(size_t num);
 void show_message(const char* msg);
 std::string get_table_name(const std::string& tbl, size_t level);
+std::string get_ibm_odbc_driver();
 
 struct wait_cursor {
   wait_cursor()
