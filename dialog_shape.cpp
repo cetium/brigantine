@@ -1,14 +1,13 @@
 // Andrew Naplavkov
 
-#include <QApplication>
 #include <QDir>
 #include <QGridLayout>
 #include <QLabel>
 #include <QtGlobal>
 #include "dialog_shape.h"
 
-dialog_shape::dialog_shape()
-  : QFileDialog(QApplication::activeWindow(), "copy shapefile", QDir::currentPath(), "shapefiles (*.shp)")
+dialog_shape::dialog_shape(QWidget* parent)
+  : QFileDialog(parent, "copy shapefile", QDir::currentPath(), "shapefiles (*.shp)")
   , m_vlr(QRegExp("[1-9]\\d{0,4}"), 0)
   , m_charset_combo(0)
   , m_epsg_edit(0)

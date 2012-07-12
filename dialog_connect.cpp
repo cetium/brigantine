@@ -1,11 +1,10 @@
 // Andrew Naplavkov
 
-#include <QApplication>
 #include "dialog_connect.h"
 #include "ui_dialog_connect.h"
 
-dialog_connect::dialog_connect(QString icon, QString host, int port, QString db, QString usr)
-  : QDialog(QApplication::activeWindow()), ui(new Ui::dialog_connect)
+dialog_connect::dialog_connect(QWidget* parent, QString icon, QString host, int port, QString db, QString usr)
+  : QDialog(parent), ui(new Ui::dialog_connect)
 {
   ui->setupUi(this);
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);

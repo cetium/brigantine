@@ -1,12 +1,11 @@
 // Andrew Naplavkov
 
-#include <QApplication>
 #include <QString>
 #include "dialog_create.h"
 #include "ui_dialog_create.h"
 
-dialog_create::dialog_create(const std::string& tbl)
-  : QDialog(QApplication::activeWindow()), ui(new Ui::dialog_create), m_sql(false)
+dialog_create::dialog_create(QWidget* parent, const std::string& tbl)
+  : QDialog(parent), ui(new Ui::dialog_create), m_sql(false)
 {
   ui->setupUi(this);
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);

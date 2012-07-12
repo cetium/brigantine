@@ -61,7 +61,7 @@ signals:
   void signal_task(std::shared_ptr<task> tsk);
 
 public:
-  explicit map_view(QWidget* parent = 0);
+  explicit map_view(QWidget* parent);
 }; // map_view
 
 #endif // MAP_VIEW_H

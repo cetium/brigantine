@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <brig/database/mysql/client_version.hpp>
+#include <brig/database/odbc/drivers.hpp>
 #include <brig/database/oracle/client_version.hpp>
 #include <brig/database/postgres/client_version.hpp>
 #include <brig/database/sqlite/version.hpp>
@@ -26,11 +27,11 @@
 #include "tree_view.h"
 #include "utilities.h"
 
-main_window::main_window(QWidget* parent) : QMainWindow(parent)
+main_window::main_window()
 {
-  tree_view* tree(new tree_view);
-  map_view* map(new map_view);
-  sql_view* sql(new sql_view);
+  tree_view* tree(new tree_view(this));
+  map_view* map(new map_view(this));
+  sql_view* sql(new sql_view(this));
 
   m_tab = new QTabWidget;
   m_tab->setTabPosition(QTabWidget::East);
@@ -206,6 +207,7 @@ void main_window::copy_sql_stat()
 
 void main_window::keyPressEvent(QKeyEvent* event)
 {
+  using namespace std;
   if (event->key() == Qt::Key_F1)
   {
     QStringList props;
@@ -218,6 +220,15 @@ void main_window::keyPressEvent(QKeyEvent* event)
     if (!brig::database::mysql::client_version().empty()) props.append(QString::fromStdString("MySQL: " + brig::database::mysql::client_version()));
     if (!brig::database::oracle::client_version().empty()) props.append(QString::fromStdString("Oracle: " + brig::database::oracle::client_version()));
     if (!brig::database::postgres::client_version().empty()) props.append(QString::fromStdString("Postgres: " + brig::database::postgres::client_version()));
+    vector<string> drvs;
+    brig::database::odbc::drivers(drvs);
+    if (!drvs.empty())
+    {
+      props.append("ODBC: ");
+      sort(begin(drvs), end(drvs));
+      for (auto i(begin(drvs)); i != end(drvs); ++i)
+        props.append(QString::fromStdString("- " + *i));
+    }
     props.append(QString());
     props.append("andrew.naplavkov@gmail.com");
     QMessageBox::about(this, "about", props.join("\n"));

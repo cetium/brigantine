@@ -8,6 +8,7 @@
 #include <brig/database/sqlite/command_allocator.hpp>
 #include <exception>
 #include <memory>
+#include <QApplication>
 #include <QFile>
 #include <QIcon>
 #include <QRegExp>
@@ -336,7 +337,7 @@ void tree_model::paste_layer(layer_link lr_copy, const QModelIndex& idx_paste)
   if (!is_connection(idx_paste)) return;
   const tree_item* dbc_itm(static_cast<tree_item*>(idx_paste.internalPointer()));
   auto dbc(dbc_itm->get_connection());
-  dialog_create dlg(lr_copy->get_identifier().name);
+  dialog_create dlg(QApplication::activeWindow(), lr_copy->get_identifier().name);
   if (dlg.exec() != QDialog::Accepted) return;
   if (dlg.sql())
   {
@@ -365,7 +366,7 @@ void tree_model::paste_rows(layer_link lr_copy, const QModelIndex& idx_paste)
   layer_link lr_paste = itm_paste->get_layer();
   if (lr_copy->get_levels() != lr_paste->get_levels()) return;
 
-  dialog_insert dlg(lr_copy, lr_paste);
+  dialog_insert dlg(QApplication::activeWindow(), lr_copy, lr_paste);
   if (dlg.exec() != QDialog::Accepted) return;
   task_insert* tsk(new task_insert(lr_copy, lr_paste, dlg.get_items()));
   emit signal_task(std::shared_ptr<task>(tsk));
@@ -383,7 +384,7 @@ void tree_model::drop(const QModelIndex& idx)
   for (size_t level(0); level < lr->get_levels(); ++level)
     dbc->drop(lr->get_table_definition(level), sql);
 
-  dialog_drop dlg(lr->get_string());
+  dialog_drop dlg(QApplication::activeWindow(), lr->get_string());
   if (dlg.exec() != QDialog::Accepted) return;
   else if (dlg.sql()) emit signal_commands(dbc, sql);
   else

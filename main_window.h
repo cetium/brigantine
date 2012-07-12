@@ -11,7 +11,6 @@
 #include <QString>
 #include <QTabWidget>
 #include <QTime>
-#include <QWidget>
 
 class main_window : public QMainWindow {
   Q_OBJECT
@@ -42,7 +41,7 @@ protected:
   virtual void timerEvent(QTimerEvent* event);
 
 public:
-  explicit main_window(QWidget* parent = 0);
+  main_window();
 }; // main_window
 
 #endif // MAIN_WINDOW_H

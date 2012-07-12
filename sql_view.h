@@ -43,7 +43,7 @@ signals:
   void signal_commands();
 
 public:
-  explicit sql_view(QWidget* parent = 0);
+  explicit sql_view(QWidget* parent);
 }; // sql_view
 
 #endif // SQL_VIEW_H

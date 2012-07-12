@@ -15,7 +15,7 @@ class dialog_shape : public QFileDialog {
   QComboBox* m_charset_combo;
   QLineEdit* m_epsg_edit;
 public:
-  dialog_shape();
+  explicit dialog_shape(QWidget* parent);
   QString charset();
   QString epsg();
 }; // dialog_shape

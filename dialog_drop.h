@@ -17,7 +17,7 @@ private slots:
   void on_cancel_button_clicked();
   void on_sql_button_clicked();
 public:
-  dialog_drop(const QString& lr);
+  dialog_drop(QWidget* parent, const QString& lr);
   virtual ~dialog_drop();
   bool sql() const;
 }; // dialog_drop

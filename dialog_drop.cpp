@@ -1,12 +1,11 @@
 // Andrew Naplavkov
 
-#include <QApplication>
 #include <QString>
 #include "dialog_drop.h"
 #include "ui_dialog_drop.h"
 
-dialog_drop::dialog_drop(const QString& lr)
-  : QDialog(QApplication::activeWindow()), ui(new Ui::dialog_drop), m_sql(false)
+dialog_drop::dialog_drop(QWidget* parent, const QString& lr)
+  : QDialog(parent), ui(new Ui::dialog_drop), m_sql(false)
 {
   ui->setupUi(this);
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);

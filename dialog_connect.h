@@ -15,7 +15,7 @@ private slots:
   void on_cancel_button_clicked()  { reject(); }
   void on_connect_button_clicked()  { accept(); }
 public:
-  dialog_connect(QString icon, QString host, int port, QString db, QString usr);
+  dialog_connect(QWidget* parent, QString icon, QString host, int port, QString db, QString usr);
   virtual ~dialog_connect();
   QString host() const;
   int port() const;

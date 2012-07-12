@@ -4,11 +4,14 @@
 #define TREE_VIEW_H
 
 #include <QAction>
+#include <QFileDialog>
 #include <QModelIndex>
 #include <QPoint>
 #include <QString>
 #include <QTreeView>
 #include <QWidget>
+#include "dialog_odbc.h"
+#include "dialog_shape.h"
 #include "task.h"
 #include "tree_model.h"
 
@@ -20,25 +23,32 @@ class tree_view : public QTreeView {
   layer_link m_lr_copy;
 
   QAction
-    *m_connect_db2,
-    *m_connect_mysql,
-    *m_connect_odbc,
-    *m_connect_oracle,
-    *m_connect_postgres,
-    *m_open_sqlite,
-    *m_new_sqlite,
-    *m_copy_shp,
-    *m_refresh,
-    *m_use_in_sql,
-    *m_paste_layer,
-    *m_disconnect,
-    *m_zoom_to_fit,
-    *m_use_projection,
-    *m_attributes,
-    *m_copy,
-    *m_paste_rows,
-    *m_drop,
-    *m_separator;
+    *m_connect_db2_act,
+    *m_connect_mysql_act,
+    *m_connect_odbc_act,
+    *m_connect_oracle_act,
+    *m_connect_postgres_act,
+    *m_open_sqlite_act,
+    *m_new_sqlite_act,
+    *m_copy_shp_act,
+    *m_refresh_act,
+    *m_use_in_sql_act,
+    *m_paste_layer_act,
+    *m_disconnect_act,
+    *m_zoom_to_fit_act,
+    *m_use_projection_act,
+    *m_attributes_act,
+    *m_copy_act,
+    *m_paste_rows_act,
+    *m_drop_act,
+    *m_separator_act;
+
+  dialog_odbc* m_connect_odbc_dlg;
+  dialog_shape* m_copy_shp_dlg;
+
+  QFileDialog
+    *m_open_sqlite_dlg,
+    *m_new_sqlite_dlg;
 
   static void on_remove(const QModelIndex& parent, int start, int end, QModelIndex& index);
   void on_update();
@@ -83,7 +93,7 @@ signals:
   void signal_attributes(layer_link lr);
 
 public:
-  explicit tree_view(QWidget* parent = 0);
+  explicit tree_view(QWidget* parent);
 }; // tree_view
 
 #endif // TREE_VIEW_H
