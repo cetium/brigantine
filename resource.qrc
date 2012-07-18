@@ -30,5 +30,6 @@
         <file>res/palette.png</file>
         <file>res/cubrid.png</file>
         <file>res/info.png</file>
+        <file>res/informix.png</file>
     </qresource>
 </RCC>

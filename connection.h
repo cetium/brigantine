@@ -13,7 +13,8 @@
 class connection : public brig::database::connection<true>
 {
   struct compare {
-    bool operator()(const brig::database::identifier& a, const brig::database::identifier& b) const  { return a.schema < b.schema || a.name < b.name; }
+    bool operator()(const brig::database::identifier& a, const brig::database::identifier& b) const
+      { return a.schema < b.schema || (a.schema == b.schema && a.name < b.name); }
   }; // compare
 
   const QString m_str;
