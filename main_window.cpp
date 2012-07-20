@@ -211,7 +211,7 @@ void main_window::keyPressEvent(QKeyEvent* event)
   if (event->key() == Qt::Key_F1)
   {
     QStringList props;
-    props.append(QString("brigantine: ") + __DATE__ + ", " + to_string(sizeof(void*) * 8) + "-bit");
+    props.append(QString("brigantine: ") + __DATE__ + ", " + ::to_string(sizeof(void*) * 8) + "-bit");
     props.append(QString());
     props.append(QString("Qt: ") + qVersion());
     if (!brig::proj::version().empty()) props.append(QString::fromStdString("Proj: " + brig::proj::version()));
