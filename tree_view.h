@@ -23,7 +23,6 @@ class tree_view : public QTreeView {
   layer_link m_lr_copy;
 
   QAction
-    *m_connect_db2_act,
     *m_connect_mysql_act,
     *m_connect_odbc_act,
     *m_connect_oracle_act,
@@ -57,7 +56,6 @@ protected:
   virtual void rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end);
 
 private slots:
-  void connect_db2();
   void connect_mysql();
   void connect_odbc();
   void connect_oracle();

@@ -29,9 +29,9 @@
 
 main_window::main_window()
 {
-  tree_view* tree(new tree_view(this));
-  map_view* map(new map_view(this));
-  sql_view* sql(new sql_view(this));
+  tree_view* tree(new tree_view(0));
+  map_view* map(new map_view(0));
+  sql_view* sql(new sql_view(0));
 
   m_tab = new QTabWidget;
   m_tab->setTabPosition(QTabWidget::East);

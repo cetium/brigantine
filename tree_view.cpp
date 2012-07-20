@@ -27,10 +27,6 @@ tree_view::tree_view(QWidget* parent) : QTreeView(parent)
   setHeaderHidden(true);
   connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(show_menu(const QPoint&)));
 
-  m_connect_db2_act = new QAction(QIcon(":/res/db2.png"), "connect to DB2", this);
-  m_connect_db2_act->setIconVisibleInMenu(true);
-  connect(m_connect_db2_act, SIGNAL(triggered()), this, SLOT(connect_db2()));
-
   m_connect_mysql_act = new QAction(QIcon(":/res/mysql.png"), "connect to MySQL", this);
   m_connect_mysql_act->setIconVisibleInMenu(true);
   connect(m_connect_mysql_act, SIGNAL(triggered()), this, SLOT(connect_mysql()));
@@ -131,18 +127,6 @@ tree_view::tree_view(QWidget* parent) : QTreeView(parent)
   connect(&m_mdl, SIGNAL(signal_task(std::shared_ptr<task>)), this, SLOT(on_task(std::shared_ptr<task>)));
 }
 
-void tree_view::connect_db2()
-{
-  try
-  {
-    dialog_connect dlg(this, ":/res/db2.png", "192.168.1.152", 50000, "TEST", "DB2INST1");
-    if (dlg.exec() != QDialog::Accepted) return;
-    wait_cursor w;
-    m_mdl.connect_odbc("DRIVER=" + QString().fromUtf8(get_ibm_odbc_driver().c_str()) + ";HOSTNAME=" + dlg.host() + ";PORT=" + to_string(dlg.port()) + ";DATABASE=" + dlg.db() + ";UID=" + dlg.usr() + ";PWD=" + dlg.pwd() + ";");
-  }
-  catch (const std::exception& e)  { show_message(e.what()); }
-}
-
 void tree_view::connect_mysql()
 {
   try
@@ -182,7 +166,7 @@ void tree_view::connect_postgres()
 {
   try
   {
-    dialog_connect dlg(this, ":/res/postgres.png", "gis-lab.info", 5432, "osm_shp", "guest");
+    dialog_connect dlg(this, ":/res/postgres.png", "gis-lab.info", 5432, "osm_shp", "guest", "guest");
     if (dlg.exec() != QDialog::Accepted) return;
     wait_cursor w;
     m_mdl.connect_postgres(dlg.host(), dlg.port(), dlg.db(), dlg.usr(), dlg.pwd());
@@ -306,7 +290,6 @@ void tree_view::show_menu(const QPoint& pnt)
     actions.append(m_drop_act);
     actions.append(m_separator_act);
   }
-  if (!get_ibm_odbc_driver().empty()) actions.append(m_connect_db2_act);
   actions.append(m_connect_mysql_act);
   actions.append(m_connect_odbc_act);
   if (!brig::database::oracle::client_version().empty()) actions.append(m_connect_oracle_act);

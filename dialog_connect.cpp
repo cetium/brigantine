@@ -3,7 +3,7 @@
 #include "dialog_connect.h"
 #include "ui_dialog_connect.h"
 
-dialog_connect::dialog_connect(QWidget* parent, QString icon, QString host, int port, QString db, QString usr)
+dialog_connect::dialog_connect(QWidget* parent, QString icon, QString host, int port, QString db, QString usr, QString pwd)
   : QDialog(parent), ui(new Ui::dialog_connect)
 {
   ui->setupUi(this);
@@ -13,6 +13,7 @@ dialog_connect::dialog_connect(QWidget* parent, QString icon, QString host, int 
   ui->port_edit->setText(QString().setNum(port));
   ui->db_edit->setText(db);
   ui->usr_edit->setText(usr);
+  ui->pwd_edit->setText(pwd);
 }
 
 dialog_connect::~dialog_connect()  { delete ui; }
