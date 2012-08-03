@@ -41,6 +41,12 @@ brig::database::table_definition layer_raster::get_table_definition(size_t level
   return tbl;
 }
 
+void layer_raster::reset_table_definitions()
+{
+  for (size_t level(0); level < m_raster.levels.size(); ++level)
+    get_connection()->reset_table_definition(m_raster.levels[level].geometry);
+}
+
 bool layer_raster::is_writable()
 {
   return !m_raster.levels.empty() && m_raster.levels[0].raster.query_expression.empty();

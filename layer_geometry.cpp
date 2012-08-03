@@ -16,6 +16,11 @@ brig::database::table_definition layer_geometry::get_table_definition(size_t)
   return m_tbl.columns.empty()? get_connection()->get_table_definition(m_id): m_tbl;
 }
 
+void layer_geometry::reset_table_definitions()
+{
+  if (m_tbl.columns.empty()) get_connection()->reset_table_definition(m_id);
+}
+
 layer* layer_geometry::create_result(connection_link dbc, const std::string& name, std::vector<std::string>&)
 {
   brig::database::identifier id(m_id);

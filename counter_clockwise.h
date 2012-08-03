@@ -7,7 +7,7 @@
 #ifndef COUNTER_CLOCKWISE_H
 #define COUNTER_CLOCKWISE_H
 
-// DB2 (geodetic regions: as you follow a polygon from vertex to vertex in the order defined, the area to the left is inside the polygon
+// DB2 (geodetic regions): as you follow a polygon from vertex to vertex in the order defined, the area to the left is inside the polygon
 // MS_SQL: the interior of the polygon in an ellipsoidal system is defined by the left-hand rule
 // Oracle: counter clockwise for exterior rings, and clockwise for interior rings
 

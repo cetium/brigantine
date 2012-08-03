@@ -31,6 +31,7 @@ public:
   virtual brig::database::identifier get_geometry() = 0;
   virtual size_t get_levels() = 0;
   virtual brig::database::table_definition get_table_definition(size_t level) = 0;
+  virtual void reset_table_definitions() = 0;
 
   virtual bool is_writable() = 0;
   virtual layer* create_result(connection_link dbc, const std::string& name, std::vector<std::string>& sql) = 0;

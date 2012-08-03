@@ -17,6 +17,7 @@ public:
   virtual brig::database::identifier get_geometry()  { return m_id; }
   virtual size_t get_levels()  { return 1; }
   virtual brig::database::table_definition get_table_definition(size_t level);
+  virtual void reset_table_definitions();
 
   virtual bool is_writable()  {return true; }
   virtual layer* create_result(connection_link dbc, const std::string& name, std::vector<std::string>& sql);

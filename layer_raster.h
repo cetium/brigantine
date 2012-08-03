@@ -19,6 +19,7 @@ public:
   virtual brig::database::identifier get_geometry()  { return m_raster.levels[0].geometry; }
   virtual size_t get_levels()  { return m_raster.levels.size(); }
   virtual brig::database::table_definition get_table_definition(size_t level);
+  virtual void reset_table_definitions();
 
   virtual bool is_writable();
   virtual layer* create_result(connection_link dbc, const std::string& name, std::vector<std::string>& sql);

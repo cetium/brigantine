@@ -257,12 +257,17 @@ void tree_model::refresh(const QModelIndex& idx)
   bool render(false);
   for (auto old_iter(std::begin(dbc_itm->m_children)); old_iter != std::end(dbc_itm->m_children); ++old_iter)
   {
+    auto old_lr((*old_iter)->get_layer());
     auto old_name((*old_iter)->get_string());
     auto new_iter(std::find_if(std::begin(children), std::end(children), [&](std::unique_ptr<tree_item>& itm){ return old_name  == itm->get_string(); }));
     if (new_iter != std::end(children))
-      *new_iter = std::unique_ptr<tree_item>(new tree_item(dbc_itm, (*old_iter)->get_layer()));
-    else if ((*old_iter)->get_layer().m_state != Qt::Unchecked)
-      render = true;
+      *new_iter = std::unique_ptr<tree_item>(new tree_item(dbc_itm, old_lr));
+    else
+    {
+      old_lr->reset_table_definitions();
+      if (old_lr.m_state != Qt::Unchecked)
+        render = true;
+    }
   }
 
   if (!dbc_itm->m_children.empty())
