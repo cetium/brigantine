@@ -77,7 +77,7 @@ void task_create::run(progress* prg)
       }
     }
 
-    task_insert::run(m_lr_from, lr_to, items, prg);
+    task_insert::run(m_lr_from, lr_to, items, false, prg);
     emit signal_refresh(m_dbc_to);
   }
 }

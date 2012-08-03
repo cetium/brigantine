@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <brig/boost/as_binary.hpp>
 #include <QMutexLocker>
-#include <utility>
 #include "connection.h"
 
 connection::connection(std::shared_ptr<brig::database::command_allocator> allocator, QString str)

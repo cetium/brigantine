@@ -5,6 +5,7 @@ QT +=\
 HEADERS +=\
   connection.h\
   connection_link.h\
+  counter_clockwise.h\
   dialog_connect.h\
   dialog_create.h\
   dialog_drop.h\
@@ -39,6 +40,7 @@ HEADERS +=\
 SOURCES +=\
   connection.cpp\
   connection_link.cpp\
+  counter_clockwise.cpp\
   dialog_connect.cpp\
   dialog_create.cpp\
   dialog_drop.cpp\

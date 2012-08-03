@@ -6,13 +6,14 @@
 #include <string>
 #include <vector>
 #include "connection.h"
+#include "counter_clockwise.h"
 #include "layer.h"
 #include "progress.h"
 #include "reproject.h"
 #include "task_insert.h"
 #include "utilities.h"
 
-void task_insert::run(layer_link lr_from, layer_link lr_to, const std::vector<insert_item>& insert_items, progress* prg)
+void task_insert::run(layer_link lr_from, layer_link lr_to, const std::vector<insert_item>& insert_items, bool ccw, progress* prg)
 {
   if (lr_from->get_levels() != lr_to->get_levels()) throw std::runtime_error("insert error");
 
@@ -21,6 +22,7 @@ void task_insert::run(layer_link lr_from, layer_link lr_to, const std::vector<in
   {
     auto tbl_from(lr_from->get_table_definition(level));
     auto tbl_to(lr_to->get_table_definition(level));
+    std::vector<int> counter_clockwise_cols;
     std::vector<reproject_item> reproject_items;
     std::vector<brig::database::column_definition> params;
 
@@ -46,6 +48,9 @@ void task_insert::run(layer_link lr_from, layer_link lr_to, const std::vector<in
         col_to->epsg = col_from->epsg;
       }
 
+      if (col_to->type == brig::database::Geometry && ccw)
+        counter_clockwise_cols.push_back( int(params.size()) );
+
       reproject_item item;
       item.column = int(params.size());
       if (col_from->epsg != col_to->epsg)
@@ -59,6 +64,7 @@ void task_insert::run(layer_link lr_from, layer_link lr_to, const std::vector<in
     }
 
     auto rowset(lr_from->get_connection()->select(tbl_from));
+    if (!counter_clockwise_cols.empty()) rowset = std::make_shared<brig::database::threaded_rowset>(std::make_shared<counter_clockwise>(rowset, counter_clockwise_cols));
     if (!reproject_items.empty()) rowset = std::make_shared<brig::database::threaded_rowset>(std::make_shared<reproject>(rowset, reproject_items));
 
     auto dbc_to(lr_to->get_connection());

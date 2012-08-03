@@ -39,6 +39,8 @@ bool not_huge(double val)  { return -HUGE_VAL < val && val < HUGE_VAL; }
 
 QRectF transform(const QRectF& rect, const brig::proj::epsg& from, const brig::proj::epsg& to)
 {
+  if (int(from) == int(to)) return rect;
+
   static const int Partition = 20;
   const double step_x(rect.width() / double(Partition));
   const double step_y(rect.height() / double(Partition));
@@ -71,6 +73,8 @@ QRectF transform(const QRectF& rect, const brig::proj::epsg& from, const brig::p
 
 QPointF transform(const QPointF& point, const brig::proj::epsg& from, const brig::proj::epsg& to)
 {
+  if (int(from) == int(to)) return point;
+
   double xy[2];
   xy[0] = point.x();
   xy[1] = point.y();
@@ -95,7 +99,7 @@ brig::proj::epsg get_epsg(int code)
 
 QRectF world(const brig::proj::epsg& epsg)
 {
-  return transform(QRectF(QPointF(-180, -90), QPointF(180, 90)), latlon(), epsg);
+  return transform(QRectF(QPointF(-179.999999, -89.999999), QPointF(179.999999, 89.999999)), latlon(), epsg);
 }
 
 QString rich_text(const QString& icon, const QString& text)

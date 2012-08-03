@@ -368,7 +368,7 @@ void tree_model::paste_rows(layer_link lr_copy, const QModelIndex& idx_paste)
 
   dialog_insert dlg(QApplication::activeWindow(), lr_copy, lr_paste);
   if (dlg.exec() != QDialog::Accepted) return;
-  task_insert* tsk(new task_insert(lr_copy, lr_paste, dlg.get_items()));
+  task_insert* tsk(new task_insert(lr_copy, lr_paste, dlg.get_items(), dlg.ccw()));
   emit signal_task(std::shared_ptr<task>(tsk));
 }
 

@@ -1,7 +1,6 @@
 // Andrew Naplavkov
 
 #include <algorithm>
-#include <stdexcept>
 #include <QComboBox>
 #include <QGridLayout>
 #include <QHBoxLayout>
@@ -12,8 +11,8 @@
 #include <QString>
 #include <QStringList>
 #include <Qt>
-#include <QTabWidget>
 #include <QWidget>
+#include <stdexcept>
 #include "dialog_insert.h"
 #include "layer.h"
 
@@ -24,7 +23,7 @@ dialog_insert::dialog_insert(QWidget* parent, layer_link lr_from, layer_link lr_
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   if (lr_from->get_levels() != lr_to->get_levels()) throw std::runtime_error("layer error");
-  QTabWidget* tab = new QTabWidget;
+  m_tab = new QTabWidget;
   for (size_t lvl(0); lvl < lr_from->get_levels(); ++lvl)
   {
     auto tbl_from(lr_from->get_table_definition(lvl));
@@ -60,6 +59,7 @@ dialog_insert::dialog_insert(QWidget* parent, layer_link lr_from, layer_link lr_
         QLineEdit* edit(new QLineEdit);
         edit->setValidator(&m_vlr);
         edit->setToolTip("EPSG");
+        edit->setText("4326");
         grid->addWidget(edit, row, 2);
       }
 
@@ -68,8 +68,11 @@ dialog_insert::dialog_insert(QWidget* parent, layer_link lr_from, layer_link lr_
 
     QWidget* w = new QWidget;
     w->setLayout(grid);
-    tab->addTab(w, QString().setNum(lvl));
+    m_tab->addTab(w, QString().setNum(lvl));
   }
+
+  m_ccw = new QCheckBox("make counter-clockwise for exterior rings, and clockwise for interior rings");
+  m_ccw->setCheckState(Qt::Unchecked);
 
   QHBoxLayout* buttons(new QHBoxLayout);
   QPushButton* insert_btn(new QPushButton("insert"));
@@ -80,7 +83,8 @@ dialog_insert::dialog_insert(QWidget* parent, layer_link lr_from, layer_link lr_
   buttons->addWidget(cancel_btn);
 
   QVBoxLayout* layout(new QVBoxLayout);
-  layout->addWidget(tab);
+  layout->addWidget(m_tab);
+  layout->addWidget(m_ccw);
   layout->addLayout(buttons);
   setLayout(layout);
 }
@@ -88,10 +92,9 @@ dialog_insert::dialog_insert(QWidget* parent, layer_link lr_from, layer_link lr_
 std::vector<insert_item> dialog_insert::get_items() const
 {
   std::vector<insert_item> res;
-  QTabWidget* tab = static_cast<QTabWidget*>(layout()->itemAt(0)->widget());
-  for (int level(0); level < tab->count(); ++level)
+  for (int level(0); level < m_tab->count(); ++level)
   {
-    QGridLayout* grid = static_cast<QGridLayout*>(tab->widget(level)->layout());
+    QGridLayout* grid = static_cast<QGridLayout*>(m_tab->widget(level)->layout());
     for (int row(0); row < grid->rowCount(); ++row)
     {
       insert_item item;
