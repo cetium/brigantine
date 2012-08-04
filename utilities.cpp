@@ -99,7 +99,7 @@ brig::proj::epsg get_epsg(int code)
 
 QRectF world(const brig::proj::epsg& epsg)
 {
-  return transform(QRectF(QPointF(-179.999999, -89.999999), QPointF(179.999999, 89.999999)), latlon(), epsg);
+  return transform(QRectF(QPointF(-180, -90), QPointF(180, 90)), latlon(), epsg);
 }
 
 QString rich_text(const QString& icon, const QString& text)
