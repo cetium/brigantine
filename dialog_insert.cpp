@@ -17,8 +17,10 @@
 #include "layer.h"
 
 dialog_insert::dialog_insert(QWidget* parent, layer_link lr_from, layer_link lr_to)
-  : QDialog(parent), m_vlr(QRegExp("[1-9]\\d{0,4}"), 0)
+  : QDialog(parent)
 {
+  m_vlr.setBottom(0);
+
   setWindowTitle("inserting rows");
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 

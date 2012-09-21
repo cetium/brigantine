@@ -8,10 +8,11 @@
 
 dialog_shape::dialog_shape(QWidget* parent)
   : QFileDialog(parent, "copy shapefile", QDir::currentPath(), "shapefiles (*.shp)")
-  , m_vlr(QRegExp("[1-9]\\d{0,4}"), 0)
   , m_charset_combo(0)
   , m_epsg_edit(0)
 {
+  m_vlr.setBottom(0);
+
   struct pair { const char *first, *second; };
   static const pair Charsets[] = {
   { "ARMSCII-8", "Armenian" },

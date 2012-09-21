@@ -5,7 +5,7 @@
 
 #include <QCheckBox>
 #include <QDialog>
-#include <QRegExpValidator>
+#include <QIntValidator>
 #include <QTabWidget>
 #include <string>
 #include <vector>
@@ -14,7 +14,7 @@
 
 class dialog_insert : public QDialog {
   Q_OBJECT
-  QRegExpValidator m_vlr;
+  QIntValidator m_vlr;
   QTabWidget* m_tab;
   QCheckBox* m_ccw;
 

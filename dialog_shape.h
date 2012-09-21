@@ -6,12 +6,12 @@
 #include <QComboBox>
 #include <QFileDialog>
 #include <QLineEdit>
-#include <QRegExpValidator>
+#include <QIntValidator>
 #include <QString>
 
 class dialog_shape : public QFileDialog {
   Q_OBJECT
-  QRegExpValidator m_vlr;
+  QIntValidator m_vlr;
   QComboBox* m_charset_combo;
   QLineEdit* m_epsg_edit;
 public:
