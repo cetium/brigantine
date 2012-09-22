@@ -87,7 +87,3 @@ INCLUDEPATH +=\ # boost, brig, ...
 
 QMAKE_CXXFLAGS +=\
   -std=c++0x
-
-CONFIG +=\
-  rtti\
-  exceptions

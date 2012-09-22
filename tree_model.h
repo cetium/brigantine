@@ -54,7 +54,7 @@ public:
   void disconnect(const QModelIndex& idx);
   void refresh(const QModelIndex& idx);
   void use_in_sql(const QModelIndex& idx);
-  void paste_layer(layer_link lr_copy, const QModelIndex& idx_paste);
+  void paste_layers(std::vector<layer_link> lrs_copy, const QModelIndex& idx_paste);
   void zoom_to_fit(const QModelIndex& idx);
   void use_projection(const QModelIndex& idx);
   void paste_rows(layer_link lr_copy, const QModelIndex& idx_paste);
@@ -64,6 +64,8 @@ public:
   connection_link get_connection(const QModelIndex& idx) const;
   bool is_layer(const QModelIndex& idx) const;
   layer_link get_layer(const QModelIndex& idx) const;
+  bool has_rendered_layers() const;
+  void push_back_rendered_layers(std::vector<layer_link>& lrs) const;
 }; // tree_model
 
 #endif // TREE_MODEL_H

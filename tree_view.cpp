@@ -55,6 +55,10 @@ tree_view::tree_view(QWidget* parent) : QTreeView(parent)
   m_copy_shp_act->setIconVisibleInMenu(true);
   connect(m_copy_shp_act, SIGNAL(triggered()), this, SLOT(copy_shp()));
 
+  m_copy_rendered_layers_act = new QAction(QIcon(":/res/copy.png"), "copy rendered layer(s)", this);
+  m_copy_rendered_layers_act->setIconVisibleInMenu(true);
+  connect(m_copy_rendered_layers_act, SIGNAL(triggered()), this, SLOT(copy_rendered_layers()));
+
   m_refresh_act = new QAction(QIcon(":/res/refresh.png"), "refresh", this);
   m_refresh_act->setIconVisibleInMenu(true);
   connect(m_refresh_act, SIGNAL(triggered()), this, SLOT(refresh()));
@@ -63,9 +67,9 @@ tree_view::tree_view(QWidget* parent) : QTreeView(parent)
   m_use_in_sql_act->setIconVisibleInMenu(true);
   connect(m_use_in_sql_act, SIGNAL(triggered()), this, SLOT(use_in_sql()));
 
-  m_paste_layer_act = new QAction(QIcon(":/res/paste.png"), "paste layer", this);
-  m_paste_layer_act->setIconVisibleInMenu(true);
-  connect(m_paste_layer_act, SIGNAL(triggered()), this, SLOT(paste_layer()));
+  m_paste_layers_act = new QAction(QIcon(":/res/paste.png"), "paste layer(s)", this);
+  m_paste_layers_act->setIconVisibleInMenu(true);
+  connect(m_paste_layers_act, SIGNAL(triggered()), this, SLOT(paste_layers()));
 
   m_disconnect_act = new QAction(QIcon(":/res/disconnect.png"), "disconnect", this);
   m_disconnect_act->setIconVisibleInMenu(true);
@@ -95,8 +99,10 @@ tree_view::tree_view(QWidget* parent) : QTreeView(parent)
   m_drop_act->setIconVisibleInMenu(true);
   connect(m_drop_act, SIGNAL(triggered()), this, SLOT(drop()));
 
-  m_separator_act = new QAction(QIcon(""), "", this);
-  m_separator_act->setSeparator(true);
+  m_separator1_act = new QAction(QIcon(""), "", this);
+  m_separator1_act->setSeparator(true);
+  m_separator2_act = new QAction(QIcon(""), "", this);
+  m_separator2_act->setSeparator(true);
 
   m_connect_odbc_dlg = new dialog_odbc(this);
   m_copy_shp_dlg = new dialog_shape(this);
@@ -209,7 +215,7 @@ void tree_view::copy_shp()
 {
   try
   {
-    m_idx_copy = QModelIndex();
+    m_lrs_copy.clear();
 
     if (m_copy_shp_dlg->exec() != QDialog::Accepted) return;
 
@@ -248,22 +254,28 @@ void tree_view::copy_shp()
     idx.columns.push_back(col_geo->name);
     tbl.indexes.push_back(idx);
 
-    m_lr_copy = layer_link(new layer_geometry(dbc, id, tbl));
+    m_lrs_copy.push_back( layer_link(new layer_geometry(dbc, id, tbl)) );
   }
   catch (const std::exception& e)  { show_message(e.what()); }
+}
+void tree_view::copy_rendered_layers()
+{
+  m_lrs_copy.clear();
+  m_mdl.push_back_rendered_layers(m_lrs_copy);
 }
 
 void tree_view::copy()
 {
-  m_idx_copy = m_idx_menu;
-  m_lr_copy = m_mdl.get_layer(m_idx_copy);
+  m_lrs_copy.clear();
+  if (m_mdl.is_layer(m_idx_menu)) m_lrs_copy.push_back( m_mdl.get_layer(m_idx_menu) );
 }
 
 void tree_view::on_update()
 {
   m_drop_act->setEnabled(m_mdl.is_layer(m_idx_menu) && m_mdl.get_layer(m_idx_menu)->is_writable());
-  m_paste_rows_act->setEnabled(m_drop_act->isEnabled() && m_lr_copy && m_mdl.get_layer(m_idx_menu)->get_levels() == m_lr_copy->get_levels());
-  m_paste_layer_act->setEnabled(m_mdl.is_connection(m_idx_menu) && m_lr_copy);
+  m_paste_rows_act->setEnabled(m_drop_act->isEnabled() && (m_lrs_copy.size() == 1) && m_mdl.is_layer(m_idx_menu) && m_mdl.get_layer(m_idx_menu)->get_levels() == m_lrs_copy.front()->get_levels());
+  m_paste_layers_act->setEnabled(m_mdl.is_connection(m_idx_menu) && !m_lrs_copy.empty());
+  m_copy_rendered_layers_act->setEnabled(m_mdl.has_rendered_layers());
 }
 
 void tree_view::show_menu(const QPoint& pnt)
@@ -276,9 +288,9 @@ void tree_view::show_menu(const QPoint& pnt)
   {
     actions.append(m_refresh_act);
     actions.append(m_use_in_sql_act);
-    actions.append(m_paste_layer_act);
+    actions.append(m_paste_layers_act);
     actions.append(m_disconnect_act);
-    actions.append(m_separator_act);
+    actions.append(m_separator1_act);
   }
   else if (m_mdl.is_layer(m_idx_menu))
   {
@@ -288,7 +300,7 @@ void tree_view::show_menu(const QPoint& pnt)
     actions.append(m_copy_act);
     actions.append(m_paste_rows_act);
     actions.append(m_drop_act);
-    actions.append(m_separator_act);
+    actions.append(m_separator1_act);
   }
   actions.append(m_connect_mysql_act);
   actions.append(m_connect_odbc_act);
@@ -296,7 +308,9 @@ void tree_view::show_menu(const QPoint& pnt)
   actions.append(m_connect_postgres_act);
   actions.append(m_open_sqlite_act);
   actions.append(m_new_sqlite_act);
+  actions.append(m_separator2_act);
   actions.append(m_copy_shp_act);
+  actions.append(m_copy_rendered_layers_act);
   QMenu::exec(actions, mapToGlobal(pnt));
 }
 
@@ -321,9 +335,6 @@ void tree_view::on_remove(const QModelIndex& parent, int start, int end, QModelI
 void tree_view::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end)
 {
   on_remove(parent, start, end, m_idx_menu);
-  const bool valid(m_idx_copy.isValid());
-  on_remove(parent, start, end, m_idx_copy);
-  if (valid && !m_idx_copy.isValid()) m_lr_copy = layer_link();
   on_update();
   QTreeView::rowsAboutToBeRemoved(parent, start, end);
 }

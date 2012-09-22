@@ -10,6 +10,7 @@
 #include <QString>
 #include <QTreeView>
 #include <QWidget>
+#include <vector>
 #include "dialog_odbc.h"
 #include "dialog_shape.h"
 #include "task.h"
@@ -19,8 +20,8 @@ class tree_view : public QTreeView {
   Q_OBJECT
 
   tree_model m_mdl;
-  QModelIndex m_idx_menu, m_idx_copy;
-  layer_link m_lr_copy;
+  QModelIndex m_idx_menu;
+  std::vector<layer_link> m_lrs_copy;
 
   QAction
     *m_connect_mysql_act,
@@ -30,9 +31,10 @@ class tree_view : public QTreeView {
     *m_open_sqlite_act,
     *m_new_sqlite_act,
     *m_copy_shp_act,
+    *m_copy_rendered_layers_act,
     *m_refresh_act,
     *m_use_in_sql_act,
-    *m_paste_layer_act,
+    *m_paste_layers_act,
     *m_disconnect_act,
     *m_zoom_to_fit_act,
     *m_use_projection_act,
@@ -40,7 +42,8 @@ class tree_view : public QTreeView {
     *m_copy_act,
     *m_paste_rows_act,
     *m_drop_act,
-    *m_separator_act;
+    *m_separator1_act,
+    *m_separator2_act;
 
   dialog_odbc* m_connect_odbc_dlg;
   dialog_shape* m_copy_shp_dlg;
@@ -63,15 +66,16 @@ private slots:
   void open_sqlite();
   void new_sqlite();
   void copy_shp();
+  void copy_rendered_layers();
   void disconnect()  { m_mdl.disconnect(m_idx_menu); }
   void refresh()  { m_mdl.refresh(m_idx_menu); }
   void use_in_sql()  { m_mdl.use_in_sql(m_idx_menu); }
-  void paste_layer()  { m_mdl.paste_layer(m_lr_copy, m_idx_menu); }
+  void paste_layers()  { m_mdl.paste_layers(m_lrs_copy, m_idx_menu); }
   void zoom_to_fit()  { m_mdl.zoom_to_fit(m_idx_menu); }
   void use_projection()  { m_mdl.use_projection(m_idx_menu); }
   void attributes()  { emit signal_attributes(m_mdl.get_layer(m_idx_menu)); }
   void copy();
-  void paste_rows()  { m_mdl.paste_rows(m_lr_copy, m_idx_menu); }
+  void paste_rows()  { m_mdl.paste_rows(m_lrs_copy.front(), m_idx_menu); }
   void drop()  { m_mdl.drop(m_idx_menu); }
   void show_menu(const QPoint& pnt);
   void on_layers(std::vector<layer_link> lim)  { emit signal_layers(lim); }

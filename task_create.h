@@ -12,7 +12,7 @@
 
 class task_create : public task {
   Q_OBJECT
-  layer_link m_lr_from;
+  std::vector<layer_link> m_lrs_from;
   connection_link m_dbc_to;
   std::string m_name;
   bool m_sql;
@@ -22,7 +22,7 @@ signals:
   void signal_refresh(connection_link dbc);
 
 public:
-  task_create(layer_link lr_from, connection_link dbc_to, const std::string& name, bool sql);
+  task_create(std::vector<layer_link> lrs_from, connection_link dbc_to, const std::string& name, bool sql);
   virtual void run(progress* prg);
 }; // task_create
 

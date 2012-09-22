@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>layer creation</string>
+   <string>layer(s) creation</string>
   </property>
   <property name="windowIcon">
    <iconset resource="resource.qrc">
@@ -23,9 +23,9 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
-        <widget class="QLabel" name="table_label">
+        <widget class="QLabel" name="name_label">
          <property name="text">
-          <string>table</string>
+          <string>name</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -33,7 +33,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="table_edit">
+        <widget class="QLineEdit" name="name_edit">
          <property name="toolTip">
           <string extracomment="SYSTEM"/>
          </property>
@@ -74,7 +74,7 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>table_edit</tabstop>
+  <tabstop>name_edit</tabstop>
   <tabstop>create_button</tabstop>
   <tabstop>cancel_button</tabstop>
   <tabstop>sql_button</tabstop>

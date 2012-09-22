@@ -17,9 +17,9 @@ private slots:
   void on_cancel_button_clicked();
   void on_sql_button_clicked();
 public:
-  dialog_create(QWidget* parent, const std::string& tbl);
+  dialog_create(QWidget* parent, const std::string& name);
   virtual ~dialog_create();
-  std::string tbl() const;
+  std::string name() const;
   bool sql() const;
 }; // dialog_create
 
