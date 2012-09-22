@@ -39,7 +39,7 @@ map_view::map_view(QWidget* parent) : QWidget(parent)
 
   try
   {
-    m_view_fr = frame(m_view_fr.center(), m_view_fr.scale(), m_view_fr.size(), latlon());
+    m_view_fr = frame(QPointF(0, 0), 1, QSize(360, 180), latlon());
     set_view(world(m_view_fr.get_epsg()), m_view_fr.get_epsg());
   }
   catch (const std::exception&)  {}
@@ -73,8 +73,12 @@ void map_view::paintEvent(QPaintEvent*)
 void map_view::resizeEvent(QResizeEvent* event)
 {
   if (m_view_fr.size() == event->size()) return;
-  m_view_fr = frame(m_view_fr.center(), m_view_fr.scale(), event->size(), m_view_fr.get_epsg());
-  render();
+  try
+  {
+    m_view_fr = frame(m_view_fr.center(), m_view_fr.scale(), event->size(), m_view_fr.get_epsg());
+    render();
+  }
+  catch (const std::exception&)  {}
 }
 
 void map_view::on_process(const frame& fr, const QImage& image)
@@ -194,9 +198,13 @@ void map_view::zoom(double zoom_factor)
 
 void map_view::scroll(int delta_x, int delta_y)
 {
-  m_view_fr = frame(m_view_fr.center() + QPointF(delta_x * m_view_fr.scale(), delta_y * m_view_fr.scale()), m_view_fr.scale(), m_view_fr.size(), m_view_fr.get_epsg());
-  update();
-  render();
+  try
+  {
+    m_view_fr = frame(m_view_fr.center() + QPointF(delta_x * m_view_fr.scale(), delta_y * m_view_fr.scale()), m_view_fr.scale(), m_view_fr.size(), m_view_fr.get_epsg());
+    update();
+    render();
+  }
+  catch (const std::exception&)  {}
 }
 
 void map_view::set_layers(std::vector<layer_link> lrs)
@@ -219,7 +227,6 @@ void map_view::set_view(const QRectF& rect, const brig::proj::epsg& pj)
 
     frame view_fr(center, scale, m_view_fr.size(), m_view_fr.get_epsg());
     if (view_fr == m_view_fr) return;
-    view_fr.prepare_rect();
     m_view_fr = view_fr;
 
     update();

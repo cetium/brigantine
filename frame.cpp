@@ -7,7 +7,9 @@
 frame::frame(const QPointF& center, qreal scale, const QSize& size, const brig::proj::epsg& pj)
   : brig::qt::frame(center, scale, size)
   , m_pj(pj)
-{}
+{
+  prepare_rect();
+}
 
 QRectF frame::prepare_rect() const
 {
