@@ -21,8 +21,6 @@ class connection : public brig::database::connection<true>
   QMutex m_mutex;
   std::map<brig::database::identifier, brig::database::table_definition, compare> m_tables;
 
-  brig::database::column_definition* get_column_definition_ptr(const brig::database::identifier& col);
-
 public:
   connection(std::shared_ptr<brig::database::command_allocator> allocator, QString str);
   QString get_string() const  { return m_str; }
@@ -31,6 +29,7 @@ public:
   brig::database::table_definition get_table_definition(const brig::database::identifier& tbl);
   void reset_table_definition(const brig::database::identifier& tbl);
 
+  bool try_column_definition(const brig::database::identifier& col, brig::database::column_definition& def);
   brig::database::column_definition get_column_definition(const brig::database::identifier& col);
   void set_mbr(const brig::database::identifier& col, const brig::boost::box& box);
 }; // connection

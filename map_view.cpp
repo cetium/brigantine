@@ -32,15 +32,15 @@ map_view::map_view(QWidget* parent) : QWidget(parent)
 
   qRegisterMetaType<QImage>("QImage");
   qRegisterMetaType<frame>("frame");
-  connect(&m_trd, SIGNAL(signal_start()), this, SLOT(on_start()));
+  connect(&m_trd, SIGNAL(signal_start()), this, SLOT(emit_start()));
   connect(&m_trd, SIGNAL(signal_process(frame, QImage)), this, SLOT(on_process(frame, QImage)));
-  connect(&m_trd, SIGNAL(signal_process(QString)), this, SLOT(on_process(QString)));
-  connect(&m_trd, SIGNAL(signal_idle()), this, SLOT(on_idle()));
+  connect(&m_trd, SIGNAL(signal_process(QString)), this, SLOT(emit_process(QString)));
+  connect(&m_trd, SIGNAL(signal_idle()), this, SLOT(emit_idle()));
 
   try
   {
     m_view_fr = frame(QPointF(0, 0), 1, QSize(360, 180), latlon());
-    set_view(world(m_view_fr.get_epsg()), m_view_fr.get_epsg());
+    on_view(world(m_view_fr.get_epsg()), m_view_fr.get_epsg());
   }
   catch (const std::exception&)  {}
 }
@@ -81,7 +81,7 @@ void map_view::resizeEvent(QResizeEvent* event)
   catch (const std::exception&)  {}
 }
 
-void map_view::on_process(const frame& fr, const QImage& image)
+void map_view::on_process(frame fr, QImage image)
 {
   if (!(m_view_fr == fr)) return;
   m_pix_fr = m_view_fr;
@@ -103,8 +103,8 @@ void map_view::keyPressEvent(QKeyEvent* event)
     try
     {
       brig::proj::epsg pj(latlon());
-      set_proj(pj);
-      set_view(world(pj), pj);
+      on_proj(pj);
+      on_view(world(pj), pj);
     }
     catch (const std::exception&)  {}
     break;
@@ -207,7 +207,7 @@ void map_view::scroll(int delta_x, int delta_y)
   catch (const std::exception&)  {}
 }
 
-void map_view::set_layers(std::vector<layer_link> lrs)
+void map_view::on_layers(std::vector<layer_link> lrs)
 {
   m_lrs = lrs;
   update();
@@ -215,7 +215,7 @@ void map_view::set_layers(std::vector<layer_link> lrs)
   emit signal_scene(m_view_fr.get_epsg());
 }
 
-void map_view::set_view(const QRectF& rect, const brig::proj::epsg& pj)
+void map_view::on_view(QRectF rect, brig::proj::epsg pj)
 {
   try
   {
@@ -236,7 +236,7 @@ void map_view::set_view(const QRectF& rect, const brig::proj::epsg& pj)
   catch (const std::exception&)  {}
 }
 
-void map_view::set_proj(const brig::proj::epsg& pj)
+void map_view::on_proj(brig::proj::epsg pj)
 {
   try
   {

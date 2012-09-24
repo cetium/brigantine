@@ -59,36 +59,36 @@ protected:
   virtual void rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end);
 
 private slots:
-  void connect_mysql();
-  void connect_odbc();
-  void connect_oracle();
-  void connect_postgres();
-  void open_sqlite();
-  void new_sqlite();
-  void copy_shp();
-  void copy_rendered_layers();
-  void disconnect()  { m_mdl.disconnect(m_idx_menu); }
-  void refresh()  { m_mdl.refresh(m_idx_menu); }
-  void use_in_sql()  { m_mdl.use_in_sql(m_idx_menu); }
-  void paste_layers()  { m_mdl.paste_layers(m_lrs_copy, m_idx_menu); }
-  void zoom_to_fit()  { m_mdl.zoom_to_fit(m_idx_menu); }
-  void use_projection()  { m_mdl.use_projection(m_idx_menu); }
-  void attributes()  { emit signal_attributes(m_mdl.get_layer(m_idx_menu)); }
-  void copy();
-  void paste_rows()  { m_mdl.paste_rows(m_lrs_copy.front(), m_idx_menu); }
-  void drop()  { m_mdl.drop(m_idx_menu); }
-  void show_menu(const QPoint& pnt);
-  void on_layers(std::vector<layer_link> lim)  { emit signal_layers(lim); }
-  void on_view(const QRectF& rect, const brig::proj::epsg& pj)  { emit signal_view(rect, pj); }
-  void on_proj(const brig::proj::epsg& pj)  { emit signal_proj(pj); }
-  void on_commands(connection_link dbc, std::vector<std::string> sqls)  { emit signal_commands(dbc, sqls); }
-  void on_disconnect(connection_link dbc)  { emit signal_disconnect(dbc); }
-  void on_task(std::shared_ptr<task> tsk)  { emit signal_task(tsk); }
+  void on_connect_mysql();
+  void on_connect_odbc();
+  void on_connect_oracle();
+  void on_connect_postgres();
+  void on_open_sqlite();
+  void on_new_sqlite();
+  void on_copy_shp();
+  void on_copy_rendered_layers();
+  void on_disconnect()  { m_mdl.disconnect(m_idx_menu); }
+  void on_refresh()  { m_mdl.refresh(m_idx_menu); }
+  void on_use_in_sql()  { m_mdl.use_in_sql(m_idx_menu); }
+  void on_paste_layers()  { m_mdl.paste_layers(m_lrs_copy, m_idx_menu); }
+  void on_zoom_to_fit()  { m_mdl.zoom_to_fit(m_idx_menu); }
+  void on_use_projection()  { m_mdl.use_projection(m_idx_menu); }
+  void on_copy();
+  void on_paste_rows()  { m_mdl.paste_rows(m_lrs_copy.front(), m_idx_menu); }
+  void on_drop()  { m_mdl.drop(m_idx_menu); }
+  void on_show_menu(QPoint point);
+  void emit_attributes()  { emit signal_attributes(m_mdl.get_layer(m_idx_menu)); }
+  void emit_commands(connection_link dbc, std::vector<std::string> sqls)  { emit signal_commands(dbc, sqls); }
+  void emit_disconnect(connection_link dbc)  { emit signal_disconnect(dbc); }
+  void emit_layers(std::vector<layer_link> lim)  { emit signal_layers(lim); }
+  void emit_proj(brig::proj::epsg pj)  { emit signal_proj(pj); }
+  void emit_task(std::shared_ptr<task> tsk)  { emit signal_task(tsk); }
+  void emit_view(QRectF rect, brig::proj::epsg pj)  { emit signal_view(rect, pj); }
 
 signals:
   void signal_layers(std::vector<layer_link> lrs);
-  void signal_view(const QRectF& rect, const brig::proj::epsg& pj);
-  void signal_proj(const brig::proj::epsg& pj);
+  void signal_view(QRectF rect, brig::proj::epsg pj);
+  void signal_proj(brig::proj::epsg pj);
   void signal_commands(connection_link dbc, std::vector<std::string> sqls);
   void signal_disconnect(connection_link dbc);
   void signal_task(std::shared_ptr<task> tsk);

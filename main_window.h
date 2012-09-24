@@ -23,18 +23,18 @@ class main_window : public QMainWindow {
   QAction *m_copy_map_stat, *m_copy_sql_stat;
 
 private slots:
-  void on_map_coords(const QString& msg);
+  void on_map_coords(QString msg);
   void on_map_start();
-  void on_map_process(const QString& msg)  { m_map_msg = msg; }
+  void on_map_process(QString msg)  { m_map_msg = msg; }
   void on_map_idle();
   void on_map_scene(brig::proj::epsg pj);
   void on_sql_start();
-  void on_sql_process(const QString& msg)  { m_sql_msg = msg; }
+  void on_sql_process(QString msg)  { m_sql_msg = msg; }
   void on_sql_idle();
   void on_sql_commands()  { m_tab->setCurrentIndex(m_sql_tab); }
-  void show_stat_menu(const QPoint&);
-  void copy_map_stat();
-  void copy_sql_stat();
+  void on_show_stat_menu(QPoint);
+  void on_copy_map_stat();
+  void on_copy_sql_stat();
 
 protected:
   virtual void keyPressEvent(QKeyEvent* event);

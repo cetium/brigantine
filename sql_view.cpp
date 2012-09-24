@@ -26,16 +26,16 @@ sql_view::sql_view(QWidget* parent) : QWidget(parent), m_mdl(new sql_model()), m
   tool_bar->setFloatable(false);
   tool_bar->setMovable(false);
 
-  m_info = tool_bar->addAction(QIcon(":/res/info.png"), "info", this, SLOT(info()));
+  m_info = tool_bar->addAction(QIcon(":/res/info.png"), "info", this, SLOT(on_info()));
   m_info->setDisabled(true);
 
-  m_fetch = tool_bar->addAction(QIcon(":/res/fetch.png"), "fetch", this, SLOT(fetch()));
+  m_fetch = tool_bar->addAction(QIcon(":/res/fetch.png"), "fetch", this, SLOT(on_fetch()));
   m_fetch->setDisabled(true);
 
-  m_run = tool_bar->addAction(QIcon(":/res/run.png"), "run", this, SLOT(run()));
+  m_run = tool_bar->addAction(QIcon(":/res/run.png"), "run", this, SLOT(on_run()));
   m_run->setDisabled(true);
 
-  m_cancel = tool_bar->addAction(QIcon(":/res/delete.png"), "stop", this, SLOT(cancel()));
+  m_cancel = tool_bar->addAction(QIcon(":/res/delete.png"), "stop", this, SLOT(on_cancel()));
   m_cancel->setDisabled(true);
 
   m_sql = new QTextEdit;
@@ -58,11 +58,11 @@ sql_view::sql_view(QWidget* parent) : QWidget(parent), m_mdl(new sql_model()), m
   setLayout(layout);
 
   connect(&m_trd, SIGNAL(signal_start()), this, SLOT(on_start()));
-  connect(&m_trd, SIGNAL(signal_process(QString)), this, SLOT(on_process(QString)));
+  connect(&m_trd, SIGNAL(signal_process(QString)), this, SLOT(emit_process(QString)));
   connect(&m_trd, SIGNAL(signal_idle()), this, SLOT(on_idle()));
 }
 
-void sql_view::info()
+void sql_view::on_info()
 {
   struct tables : task {
     connection_link dbc;
@@ -90,7 +90,7 @@ void sql_view::info()
   m_trd.push(std::shared_ptr<task>(tsk));
 }
 
-void sql_view::fetch()
+void sql_view::on_fetch()
 {
   struct select : task {
     connection_link dbc;
@@ -118,7 +118,7 @@ void sql_view::fetch()
   m_trd.push(std::shared_ptr<task>(tsk));
 }
 
-void sql_view::run()
+void sql_view::on_run()
 {
   task_exec* tsk(new task_exec(m_dbc, std::vector<std::string>(1, m_sql->toPlainText().toUtf8().constData())));
   m_trd.push(std::shared_ptr<task>(tsk));

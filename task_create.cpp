@@ -1,9 +1,7 @@
 // Andrew Naplavkov
 
 #include <brig/boost/as_binary.hpp>
-#include <QString>
 #include <Qt>
-#include <vector>
 #include "connection.h"
 #include "layer.h"
 #include "progress.h"
@@ -19,6 +17,7 @@ task_create::task_create(std::vector<layer_link> lrs_from, connection_link dbc_t
 void task_create::run(progress* prg)
 {
   std::vector<std::string> sql;
+  size_t counter(0);
   for (size_t lr(0); lr < m_lrs_from.size(); ++lr)
   {
     if (!m_sql) sql.clear();
@@ -28,7 +27,7 @@ void task_create::run(progress* prg)
     auto dbc_from(lr_from->get_connection());
     for (size_t level(0); level < lr_from->get_levels(); ++level)
     {
-      if (!prg->step()) return;
+      if (!prg->step(counter)) return;
 
       auto tbl(lr_from->get_table_definition(level));
       m_dbc_to->create_check_mbr(tbl);
@@ -41,7 +40,7 @@ void task_create::run(progress* prg)
           brig::database::identifier id(tbl.id); id.qualifier = col->name;
           auto box(dbc_from->get_mbr(id, *col));
           dbc_from->set_mbr(id, box);
-          if (!prg->step()) return;
+          if (!prg->step(counter)) return;
           col->query_value = brig::boost::as_binary(box);
         }
       tbl.id.name = get_table_name(name, level);
@@ -56,7 +55,7 @@ void task_create::run(progress* prg)
       for (auto s(std::begin(sql)); s != std::end(sql); ++s)
       {
         cmd->exec(*s);
-        if (!prg->step()) return;
+        if (!prg->step(counter)) return;
       }
     }
 
@@ -83,7 +82,7 @@ void task_create::run(progress* prg)
         items.push_back(item);
       }
     }
-    task_insert::run(lr_from, lr_to, items, false, prg);
+    task_insert::run(lr_from, lr_to, items, false, counter, prg);
   }
 
   if (m_sql)

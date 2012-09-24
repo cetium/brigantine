@@ -25,79 +25,79 @@ tree_view::tree_view(QWidget* parent) : QTreeView(parent)
   setModel(&m_mdl);
   setContextMenuPolicy(Qt::CustomContextMenu);
   setHeaderHidden(true);
-  connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(show_menu(const QPoint&)));
+  connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(on_show_menu(QPoint)));
 
   m_connect_mysql_act = new QAction(QIcon(":/res/mysql.png"), "connect to MySQL", this);
   m_connect_mysql_act->setIconVisibleInMenu(true);
-  connect(m_connect_mysql_act, SIGNAL(triggered()), this, SLOT(connect_mysql()));
+  connect(m_connect_mysql_act, SIGNAL(triggered()), this, SLOT(on_connect_mysql()));
 
   m_connect_odbc_act = new QAction(QIcon(":/res/odbc.png"), "connect using ODBC", this);
   m_connect_odbc_act->setIconVisibleInMenu(true);
-  connect(m_connect_odbc_act, SIGNAL(triggered()), this, SLOT(connect_odbc()));
+  connect(m_connect_odbc_act, SIGNAL(triggered()), this, SLOT(on_connect_odbc()));
 
   m_connect_oracle_act = new QAction(QIcon(":/res/oracle.png"), "connect to Oracle", this);
   m_connect_oracle_act->setIconVisibleInMenu(true);
-  connect(m_connect_oracle_act, SIGNAL(triggered()), this, SLOT(connect_oracle()));
+  connect(m_connect_oracle_act, SIGNAL(triggered()), this, SLOT(on_connect_oracle()));
 
   m_connect_postgres_act = new QAction(QIcon(":/res/postgres.png"), "connect to Postgres", this);
   m_connect_postgres_act->setIconVisibleInMenu(true);
-  connect(m_connect_postgres_act, SIGNAL(triggered()), this, SLOT(connect_postgres()));
+  connect(m_connect_postgres_act, SIGNAL(triggered()), this, SLOT(on_connect_postgres()));
 
   m_open_sqlite_act = new QAction(QIcon(":/res/sqlite.png"), "open SQLite file", this);
   m_open_sqlite_act->setIconVisibleInMenu(true);
-  connect(m_open_sqlite_act, SIGNAL(triggered()), this, SLOT(open_sqlite()));
+  connect(m_open_sqlite_act, SIGNAL(triggered()), this, SLOT(on_open_sqlite()));
 
   m_new_sqlite_act = new QAction(QIcon(":/res/add_folder.png"), "new SQLite file", this);
   m_new_sqlite_act->setIconVisibleInMenu(true);
-  connect(m_new_sqlite_act, SIGNAL(triggered()), this, SLOT(new_sqlite()));
+  connect(m_new_sqlite_act, SIGNAL(triggered()), this, SLOT(on_new_sqlite()));
 
   m_copy_shp_act = new QAction(QIcon(":/res/shp.png"), "copy shapefile", this);
   m_copy_shp_act->setIconVisibleInMenu(true);
-  connect(m_copy_shp_act, SIGNAL(triggered()), this, SLOT(copy_shp()));
+  connect(m_copy_shp_act, SIGNAL(triggered()), this, SLOT(on_copy_shp()));
 
   m_copy_rendered_layers_act = new QAction(QIcon(":/res/copy.png"), "copy rendered layer(s)", this);
   m_copy_rendered_layers_act->setIconVisibleInMenu(true);
-  connect(m_copy_rendered_layers_act, SIGNAL(triggered()), this, SLOT(copy_rendered_layers()));
+  connect(m_copy_rendered_layers_act, SIGNAL(triggered()), this, SLOT(on_copy_rendered_layers()));
 
   m_refresh_act = new QAction(QIcon(":/res/refresh.png"), "refresh", this);
   m_refresh_act->setIconVisibleInMenu(true);
-  connect(m_refresh_act, SIGNAL(triggered()), this, SLOT(refresh()));
+  connect(m_refresh_act, SIGNAL(triggered()), this, SLOT(on_refresh()));
 
   m_use_in_sql_act = new QAction(QIcon(":/res/sql.png"), "use in SQL", this);
   m_use_in_sql_act->setIconVisibleInMenu(true);
-  connect(m_use_in_sql_act, SIGNAL(triggered()), this, SLOT(use_in_sql()));
+  connect(m_use_in_sql_act, SIGNAL(triggered()), this, SLOT(on_use_in_sql()));
 
   m_paste_layers_act = new QAction(QIcon(":/res/paste.png"), "paste layer(s)", this);
   m_paste_layers_act->setIconVisibleInMenu(true);
-  connect(m_paste_layers_act, SIGNAL(triggered()), this, SLOT(paste_layers()));
+  connect(m_paste_layers_act, SIGNAL(triggered()), this, SLOT(on_paste_layers()));
 
   m_disconnect_act = new QAction(QIcon(":/res/disconnect.png"), "disconnect", this);
   m_disconnect_act->setIconVisibleInMenu(true);
-  connect(m_disconnect_act, SIGNAL(triggered()), this, SLOT(disconnect()));
+  connect(m_disconnect_act, SIGNAL(triggered()), this, SLOT(on_disconnect()));
 
   m_zoom_to_fit_act = new QAction(QIcon(":/res/zoom.png"), "zoom to fit", this);
   m_zoom_to_fit_act->setIconVisibleInMenu(true);
-  connect(m_zoom_to_fit_act, SIGNAL(triggered()), this, SLOT(zoom_to_fit()));
+  connect(m_zoom_to_fit_act, SIGNAL(triggered()), this, SLOT(on_zoom_to_fit()));
 
   m_use_projection_act = new QAction(QIcon(":/res/map.png"), "use the projection", this);
   m_use_projection_act->setIconVisibleInMenu(true);
-  connect(m_use_projection_act, SIGNAL(triggered()), this, SLOT(use_projection()));
+  connect(m_use_projection_act, SIGNAL(triggered()), this, SLOT(on_use_projection()));
 
   m_attributes_act = new QAction(QIcon(":/res/sql.png"), "attributes", this);
   m_attributes_act->setIconVisibleInMenu(true);
-  connect(m_attributes_act, SIGNAL(triggered()), this, SLOT(attributes()));
+  connect(m_attributes_act, SIGNAL(triggered()), this, SLOT(emit_attributes()));
 
   m_copy_act = new QAction(QIcon(":/res/copy.png"), "copy", this);
   m_copy_act->setIconVisibleInMenu(true);
-  connect(m_copy_act, SIGNAL(triggered()), this, SLOT(copy()));
+  connect(m_copy_act, SIGNAL(triggered()), this, SLOT(on_copy()));
 
   m_paste_rows_act = new QAction(QIcon(":/res/paste.png"), "paste rows", this);
   m_paste_rows_act->setIconVisibleInMenu(true);
-  connect(m_paste_rows_act, SIGNAL(triggered()), this, SLOT(paste_rows()));
+  connect(m_paste_rows_act, SIGNAL(triggered()), this, SLOT(on_paste_rows()));
 
   m_drop_act = new QAction(QIcon(":/res/delete.png"), "drop", this);
   m_drop_act->setIconVisibleInMenu(true);
-  connect(m_drop_act, SIGNAL(triggered()), this, SLOT(drop()));
+  connect(m_drop_act, SIGNAL(triggered()), this, SLOT(on_drop()));
 
   m_separator1_act = new QAction(QIcon(""), "", this);
   m_separator1_act->setSeparator(true);
@@ -122,18 +122,18 @@ tree_view::tree_view(QWidget* parent) : QTreeView(parent)
   qRegisterMetaType<std::shared_ptr<task>>("std::shared_ptr<task>");
   qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
   qRegisterMetaType<std::vector<layer_link>>("std::vector<layer_link>");
-  connect(&m_mdl, SIGNAL(signal_layers(std::vector<layer_link>)), this, SLOT(on_layers(std::vector<layer_link>)));
-  connect(&m_mdl, SIGNAL(signal_view(QRectF, brig::proj::epsg)), this, SLOT(on_view(QRectF, brig::proj::epsg)));
-  connect(&m_mdl, SIGNAL(signal_proj(brig::proj::epsg)), this, SLOT(on_proj(brig::proj::epsg)));
   connect
     ( &m_mdl, SIGNAL(signal_commands(connection_link, std::vector<std::string>))
-    , this, SLOT(on_commands(connection_link, std::vector<std::string>))
+    , this, SLOT(emit_commands(connection_link, std::vector<std::string>))
     );
-  connect(&m_mdl, SIGNAL(signal_disconnect(connection_link)), this, SLOT(on_disconnect(connection_link)));
-  connect(&m_mdl, SIGNAL(signal_task(std::shared_ptr<task>)), this, SLOT(on_task(std::shared_ptr<task>)));
+  connect(&m_mdl, SIGNAL(signal_disconnect(connection_link)), this, SLOT(emit_disconnect(connection_link)));
+  connect(&m_mdl, SIGNAL(signal_layers(std::vector<layer_link>)), this, SLOT(emit_layers(std::vector<layer_link>)));
+  connect(&m_mdl, SIGNAL(signal_proj(brig::proj::epsg)), this, SLOT(emit_proj(brig::proj::epsg)));
+  connect(&m_mdl, SIGNAL(signal_task(std::shared_ptr<task>)), this, SLOT(emit_task(std::shared_ptr<task>)));
+  connect(&m_mdl, SIGNAL(signal_view(QRectF, brig::proj::epsg)), this, SLOT(emit_view(QRectF, brig::proj::epsg)));
 }
 
-void tree_view::connect_mysql()
+void tree_view::on_connect_mysql()
 {
   try
   {
@@ -145,7 +145,7 @@ void tree_view::connect_mysql()
   catch (const std::exception& e)  { show_message(e.what()); }
 }
 
-void tree_view::connect_odbc()
+void tree_view::on_connect_odbc()
 {
   try
   {
@@ -156,7 +156,7 @@ void tree_view::connect_odbc()
   catch (const std::exception& e)  { show_message(e.what()); }
 }
 
-void tree_view::connect_oracle()
+void tree_view::on_connect_oracle()
 {
   try
   {
@@ -168,7 +168,7 @@ void tree_view::connect_oracle()
   catch (const std::exception& e)  { show_message(e.what()); }
 }
 
-void tree_view::connect_postgres()
+void tree_view::on_connect_postgres()
 {
   try
   {
@@ -180,7 +180,7 @@ void tree_view::connect_postgres()
   catch (const std::exception& e)  { show_message(e.what()); }
 }
 
-void tree_view::open_sqlite()
+void tree_view::on_open_sqlite()
 {
   try
   {
@@ -193,7 +193,7 @@ void tree_view::open_sqlite()
   catch (const std::exception& e)  { show_message(e.what()); }
 }
 
-void tree_view::new_sqlite()
+void tree_view::on_new_sqlite()
 {
   try
   {
@@ -211,7 +211,7 @@ void tree_view::new_sqlite()
   catch (const std::exception& e)  { show_message(e.what()); }
 }
 
-void tree_view::copy_shp()
+void tree_view::on_copy_shp()
 {
   try
   {
@@ -258,13 +258,14 @@ void tree_view::copy_shp()
   }
   catch (const std::exception& e)  { show_message(e.what()); }
 }
-void tree_view::copy_rendered_layers()
+
+void tree_view::on_copy_rendered_layers()
 {
   m_lrs_copy.clear();
   m_mdl.push_back_rendered_layers(m_lrs_copy);
 }
 
-void tree_view::copy()
+void tree_view::on_copy()
 {
   m_lrs_copy.clear();
   if (m_mdl.is_layer(m_idx_menu)) m_lrs_copy.push_back( m_mdl.get_layer(m_idx_menu) );
@@ -278,9 +279,9 @@ void tree_view::on_update()
   m_copy_rendered_layers_act->setEnabled(m_mdl.has_rendered_layers());
 }
 
-void tree_view::show_menu(const QPoint& pnt)
+void tree_view::on_show_menu(QPoint point)
 {
-  m_idx_menu = indexAt(pnt);
+  m_idx_menu = indexAt(point);
   on_update();
 
   QList<QAction*> actions;
@@ -311,7 +312,7 @@ void tree_view::show_menu(const QPoint& pnt)
   actions.append(m_separator2_act);
   actions.append(m_copy_shp_act);
   actions.append(m_copy_rendered_layers_act);
-  QMenu::exec(actions, mapToGlobal(pnt));
+  QMenu::exec(actions, mapToGlobal(point));
 }
 
 void tree_view::on_remove(const QModelIndex& parent, int start, int end, QModelIndex& index)

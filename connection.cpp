@@ -8,7 +8,8 @@
 connection::connection(std::shared_ptr<brig::database::command_allocator> allocator, QString str)
   : brig::database::connection<true>(allocator)
   , m_str(str)
-{}
+{
+}
 
 QString connection::get_icon()
 {
@@ -38,25 +39,30 @@ brig::database::table_definition connection::get_table_definition(const brig::da
 void connection::reset_table_definition(const brig::database::identifier& tbl)
 {
   QMutexLocker locker(&m_mutex);
-  if (m_tables.find(tbl) != std::end(m_tables)) m_tables.erase(tbl);
+  if (m_tables.find(tbl) != std::end(m_tables))
+    m_tables.erase(tbl);
 }
 
-brig::database::column_definition* connection::get_column_definition_ptr(const brig::database::identifier& id)
+bool connection::try_column_definition(const brig::database::identifier& col, brig::database::column_definition& def)
 {
-
-  if (m_tables.find(id) == std::end(m_tables))
-    m_tables[id] = brig::database::connection<true>::get_table_definition(id);
-  return m_tables[id][id.qualifier];
+  QMutexLocker locker(&m_mutex);
+  if (m_tables.find(col) == std::end(m_tables))
+    return false;
+  def = *m_tables[col][col.qualifier];
+  return true;
 }
 
 brig::database::column_definition connection::get_column_definition(const brig::database::identifier& col)
 {
   QMutexLocker locker(&m_mutex);
-  return *get_column_definition_ptr(col);
+  if (m_tables.find(col) == std::end(m_tables))
+    m_tables[col] = brig::database::connection<true>::get_table_definition(col);
+  return *m_tables[col][col.qualifier];
 }
 
 void connection::set_mbr(const brig::database::identifier& col, const brig::boost::box& box)
 {
   QMutexLocker locker(&m_mutex);
-  get_column_definition_ptr(col)->query_value = brig::boost::as_binary(box);
+  if (m_tables.find(col) != std::end(m_tables))
+    m_tables[col][col.qualifier]->query_value = brig::boost::as_binary(box);
 }

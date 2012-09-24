@@ -17,9 +17,8 @@ public:
   task_insert(layer_link lr_from, layer_link lr_to, const std::vector<insert_item>& items, bool ccw)
     : m_lr_from(lr_from), m_lr_to(lr_to), m_items(items), m_ccw(ccw)
     {}
-  static void run(layer_link lr_from, layer_link lr_to, const std::vector<insert_item>& items, bool ccw, progress* prg);
-  virtual void run(progress* prg)
-    { run(m_lr_from, m_lr_to, m_items, m_ccw, prg); }
+  static void run(layer_link lr_from, layer_link lr_to, const std::vector<insert_item>& items, bool ccw, size_t& counter, progress* prg);
+  virtual void run(progress* prg);
 }; // task_insert
 
 #endif // TASK_INSERT_H

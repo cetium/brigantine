@@ -44,7 +44,8 @@ public:
 
   QString get_string();
   brig::proj::epsg get_epsg();
-  bool get_mbr(brig::boost::box& box);
+  bool try_epsg(brig::proj::epsg& pj);
+  bool try_view(brig::boost::box& box, brig::proj::epsg& pj);
 }; // layer
 
 #endif // LAYER_H

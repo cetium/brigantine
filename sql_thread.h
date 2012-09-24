@@ -25,17 +25,15 @@ class sql_thread : public QThread {
 protected:
   virtual void run();
 
-public slots:
-  void push(std::shared_ptr<task> tsk);
-
 signals:
   void signal_start();
-  void signal_process(const QString& msg);
+  void signal_process(QString msg);
   void signal_idle();
 
 public:
   explicit sql_thread(std::shared_ptr<sql_model> mdl);
   virtual ~sql_thread();
+  void push(std::shared_ptr<task> tsk);
   void cancel();
 }; // sql_thread
 

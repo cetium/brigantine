@@ -39,23 +39,23 @@ protected:
   virtual void leaveEvent(QEvent*)  { emit signal_coords(""); }
 
 private slots:
-  void on_start()  { emit signal_start(); }
-  void on_process(const frame& fr, const QImage& image);
-  void on_process(const QString& msg)  { emit signal_process(msg); }
-  void on_idle()  { emit signal_idle(); }
   void emit_commands(connection_link dbc, std::vector<std::string> sqls)  { emit signal_commands(dbc, sqls); }
+  void emit_idle()  { emit signal_idle(); }
+  void emit_process(QString msg)  { emit signal_process(msg); }
+  void emit_start()  { emit signal_start(); }
+  void on_process(frame fr, QImage image);
 
 public slots:
-  void set_layers(std::vector<layer_link> lrs);
-  void set_view(const QRectF& rect, const brig::proj::epsg& pj);
-  void set_proj(const brig::proj::epsg& pj);
   void on_attributes(layer_link lr);
+  void on_layers(std::vector<layer_link> lrs);
+  void on_proj(brig::proj::epsg pj);
+  void on_view(QRectF rect, brig::proj::epsg pj);
 
 signals:
   void signal_start();
-  void signal_process(const QString& msg);
+  void signal_process(QString msg);
   void signal_idle();
-  void signal_coords(const QString& msg);
+  void signal_coords(QString msg);
   void signal_scene(brig::proj::epsg pj);
   void signal_commands(connection_link dbc, std::vector<std::string> sqls);
   void signal_task(std::shared_ptr<task> tsk);

@@ -45,7 +45,7 @@ main_window::main_window()
 
   QStatusBar* status_bar(new QStatusBar);
   status_bar->setContextMenuPolicy(Qt::CustomContextMenu);
-  connect(status_bar, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(show_stat_menu(const QPoint&)));
+  connect(status_bar, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(on_show_stat_menu(QPoint)));
 
   m_pos_stat = new QLabel;
   m_pos_stat->setDisabled(true);
@@ -70,11 +70,11 @@ main_window::main_window()
 
   m_copy_map_stat = new QAction(QIcon(":/res/copy.png"), "copy to clipboard", this);
   m_copy_map_stat->setIconVisibleInMenu(true);
-  connect(m_copy_map_stat, SIGNAL(triggered()), this, SLOT(copy_map_stat()));
+  connect(m_copy_map_stat, SIGNAL(triggered()), this, SLOT(on_copy_map_stat()));
 
   m_copy_sql_stat = new QAction(QIcon(":/res/copy.png"), "copy to clipboard", this);
   m_copy_sql_stat->setIconVisibleInMenu(true);
-  connect(m_copy_sql_stat, SIGNAL(triggered()), this, SLOT(copy_sql_stat()));
+  connect(m_copy_sql_stat, SIGNAL(triggered()), this, SLOT(on_copy_sql_stat()));
 
   const float w(std::min<float>(width(), height()));
   resize(w, w / 4. * 3.);
@@ -90,16 +90,16 @@ main_window::main_window()
   qRegisterMetaType<std::shared_ptr<task>>("std::shared_ptr<task>");
   qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
   qRegisterMetaType<std::vector<layer_link>>("std::vector<layer_link>");
-  connect(tree, SIGNAL(signal_layers(std::vector<layer_link>)), map, SLOT(set_layers(std::vector<layer_link>)));
-  connect(tree, SIGNAL(signal_view(QRectF, brig::proj::epsg)), map, SLOT(set_view(QRectF, brig::proj::epsg)));
-  connect(tree, SIGNAL(signal_proj(brig::proj::epsg)), map, SLOT(set_proj(brig::proj::epsg)));
   connect(tree, SIGNAL(signal_attributes(layer_link)), map, SLOT(on_attributes(layer_link)));
+  connect(tree, SIGNAL(signal_layers(std::vector<layer_link>)), map, SLOT(on_layers(std::vector<layer_link>)));
+  connect(tree, SIGNAL(signal_proj(brig::proj::epsg)), map, SLOT(on_proj(brig::proj::epsg)));
+  connect(tree, SIGNAL(signal_view(QRectF, brig::proj::epsg)), map, SLOT(on_view(QRectF, brig::proj::epsg)));
   connect
     ( tree, SIGNAL(signal_commands(connection_link, std::vector<std::string>))
     , sql, SLOT(on_commands(connection_link, std::vector<std::string>))
     );
   connect(tree, SIGNAL(signal_disconnect(connection_link)), sql, SLOT(on_disconnect(connection_link)));
-  connect(tree, SIGNAL(signal_task(std::shared_ptr<task>)), sql, SLOT(push(std::shared_ptr<task>)));
+  connect(tree, SIGNAL(signal_task(std::shared_ptr<task>)), sql, SLOT(on_push(std::shared_ptr<task>)));
   connect(sql, SIGNAL(signal_start()), this, SLOT(on_sql_start()));
   connect(sql, SIGNAL(signal_process(QString)), this, SLOT(on_sql_process(QString)));
   connect(sql, SIGNAL(signal_idle()), this, SLOT(on_sql_idle()));
@@ -113,7 +113,7 @@ main_window::main_window()
     ( map, SIGNAL(signal_commands(connection_link, std::vector<std::string>))
     , sql, SLOT(on_commands(connection_link, std::vector<std::string>))
     );
-  connect(map, SIGNAL(signal_task(std::shared_ptr<task>)), sql, SLOT(push(std::shared_ptr<task>)));
+  connect(map, SIGNAL(signal_task(std::shared_ptr<task>)), sql, SLOT(on_push(std::shared_ptr<task>)));
 
   setWindowIcon(QIcon(":/res/wheel.png"));
   try  { on_map_scene(latlon()); }
@@ -128,7 +128,7 @@ void main_window::on_map_scene(brig::proj::epsg pj)
   setWindowTitle("brigantine , " + QString().setNum(int(pj)));
 }
 
-void main_window::on_map_coords(const QString& msg)
+void main_window::on_map_coords(QString msg)
 {
   m_pos_stat->setDisabled(msg.isEmpty());
   m_pos_stat->setText(rich_text(msg.isEmpty()? ":/res/globe_disabled.png": ":/res/globe.png", msg));
@@ -182,25 +182,25 @@ void main_window::timerEvent(QTimerEvent*)
   if (m_sql_stat->isEnabled()) m_sql_stat->setText(rich_text(":/res/sql.png", status(m_sql_time, m_sql_msg)));
 }
 
-void main_window::show_stat_menu(const QPoint& pnt)
+void main_window::on_show_stat_menu(QPoint point)
 {
   QStatusBar* status_bar(statusBar());
-  QWidget* widget(status_bar->childAt(pnt));
+  QWidget* widget(status_bar->childAt(point));
   QList<QAction*> actions;
   if (widget == m_map_stat)
     actions.append(m_copy_map_stat);
   else if (widget == m_sql_stat)
     actions.append(m_copy_sql_stat);
   if (!actions.empty())
-    QMenu::exec(actions, status_bar->mapToGlobal(pnt));
+    QMenu::exec(actions, status_bar->mapToGlobal(point));
 }
 
-void main_window::copy_map_stat()
+void main_window::on_copy_map_stat()
 {
   QApplication::clipboard()->setText(m_map_msg);
 }
 
-void main_window::copy_sql_stat()
+void main_window::on_copy_sql_stat()
 {
   QApplication::clipboard()->setText(m_sql_msg);
 }

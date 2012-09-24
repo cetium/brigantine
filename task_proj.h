@@ -1,21 +1,21 @@
 // Andrew Naplavkov
 
-#ifndef TASK_MBR_H
-#define TASK_MBR_H
+#ifndef TASK_PROJ_H
+#define TASK_PROJ_H
 
 #include <brig/proj/epsg.hpp>
 #include <QRectF>
 #include "layer_link.h"
 #include "task.h"
 
-class task_mbr : public task {
+class task_proj : public task {
   Q_OBJECT
   layer_link m_lr;
 signals:
-  void signal_view(QRectF rect, brig::proj::epsg pj);
+  void signal_proj(brig::proj::epsg pj);
 public:
-  task_mbr(layer_link lr) : m_lr(lr)  {}
+  task_proj(layer_link lr) : m_lr(lr)  {}
   virtual void run(progress* prg);
-}; // task_mbr
+}; // task_proj
 
-#endif // TASK_MBR_H
+#endif // TASK_PROJ_H

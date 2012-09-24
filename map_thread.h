@@ -28,8 +28,8 @@ protected:
 
 signals:
   void signal_start();
-  void signal_process(const frame& fr, const QImage& image);
-  void signal_process(const QString& msg);
+  void signal_process(frame fr, QImage image);
+  void signal_process(QString msg);
   void signal_idle();
 
 public:

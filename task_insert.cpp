@@ -13,11 +13,10 @@
 #include "task_insert.h"
 #include "utilities.h"
 
-void task_insert::run(layer_link lr_from, layer_link lr_to, const std::vector<insert_item>& insert_items, bool ccw, progress* prg)
+void task_insert::run(layer_link lr_from, layer_link lr_to, const std::vector<insert_item>& insert_items, bool ccw, size_t& counter, progress* prg)
 {
   if (lr_from->get_levels() != lr_to->get_levels()) throw std::runtime_error("insert error");
 
-  size_t counter(0);
   for (size_t level(0); level < lr_from->get_levels(); ++level)
   {
     auto tbl_from(lr_from->get_table_definition(level));
@@ -93,4 +92,10 @@ void task_insert::run(layer_link lr_from, layer_link lr_to, const std::vector<in
   }
 
   lr_to->reset_table_definitions();
+}
+
+void task_insert::run(progress* prg)
+{
+  size_t counter(0);
+  run(m_lr_from, m_lr_to, m_items, m_ccw, counter, prg);
 }

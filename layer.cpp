@@ -21,9 +21,19 @@ brig::proj::epsg layer::get_epsg()
   return ::get_epsg(get_connection()->get_column_definition(get_geometry()).epsg);
 }
 
-bool layer::get_mbr(brig::boost::box& box)
+bool layer::try_epsg(brig::proj::epsg& pj)
 {
-  auto col(get_connection()->get_column_definition(get_geometry()));
+  brig::database::column_definition col;
+  if (!get_connection()->try_column_definition(get_geometry(), col)) return false;
+  pj = brig::proj::epsg(col.epsg);
+  return true;
+}
+
+bool layer::try_view(brig::boost::box& box, brig::proj::epsg& pj)
+{
+  brig::database::column_definition col;
+  if (!get_connection()->try_column_definition(get_geometry(), col)) return false;
+  pj = brig::proj::epsg(col.epsg);
   if (col.query_value.type() != typeid(brig::blob_t)) return false;
   const brig::blob_t& blob(boost::get<brig::blob_t>(col.query_value));
   if (blob.empty()) return false;
@@ -35,7 +45,9 @@ brig::database::variant layer::prepare_box(const frame& fr)
 {
   brig::boost::box mbr, box;
   box = rect_to_box(transform(fr.prepare_rect(), fr.get_epsg(), get_epsg()));
-  if (get_mbr(mbr) && boost::geometry::covered_by(mbr, box)) return brig::database::null_t();
+  brig::proj::epsg pj;
+  if (try_view(mbr, pj) && boost::geometry::covered_by(mbr, box))
+    return brig::database::null_t();
   if (get_epsg().is_latlong()) // "out of longitude/latitude" workaround
   {
     const brig::boost::box tmp(box);

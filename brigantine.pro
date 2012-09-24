@@ -29,9 +29,11 @@ HEADERS +=\
   task.h\
   task_attributes.h\
   task_create.h\
+  task_drop.h\
   task_exec.h\
   task_insert.h\
   task_mbr.h\
+  task_proj.h\
   tree_item.h\
   tree_model.h\
   tree_view.h\
@@ -62,9 +64,11 @@ SOURCES +=\
   sql_view.cpp\
   task_attributes.cpp\
   task_create.cpp\
+  task_drop.cpp\
   task_exec.cpp\
   task_insert.cpp\
   task_mbr.cpp\
+  task_proj.cpp\
   tree_item.cpp\
   tree_model.cpp\
   tree_view.cpp\

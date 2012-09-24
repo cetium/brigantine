@@ -23,13 +23,18 @@
 #include "layer_geometry.h"
 #include "layer_raster.h"
 #include "task_create.h"
+#include "task_drop.h"
 #include "task_exec.h"
 #include "task_insert.h"
 #include "task_mbr.h"
+#include "task_proj.h"
 #include "tree_model.h"
 #include "utilities.h"
 
-tree_model::tree_model(QObject* parent) : QAbstractItemModel(parent), m_root(0, connection_link()), m_order(0)  {}
+tree_model::tree_model(QObject* parent)
+  : QAbstractItemModel(parent), m_root(0, connection_link()), m_order(0)
+{
+}
 
 QModelIndex tree_model::index(int row, int, const QModelIndex& parent) const
 {
@@ -119,10 +124,7 @@ void tree_model::emit_layers()
 bool tree_model::setData(const QModelIndex& idx, const QVariant&, int role)
 {
   if (role != Qt::CheckStateRole || !is_layer(idx)) return false;
-  tree_item* itm(static_cast<tree_item*>(idx.internalPointer()));
-  try  { itm->get_layer()->get_epsg(); }
-  catch (const std::exception& e)  { show_message(e.what()); return false; }
-  itm->check(++m_order);
+  static_cast<tree_item*>(idx.internalPointer())->check(++m_order);
   dataChanged(idx, idx);
   emit_layers();
   return true;
@@ -304,11 +306,10 @@ void tree_model::zoom_to_fit(const QModelIndex& idx)
   if (!is_layer(idx)) return;
   tree_item* lr_itm(static_cast<tree_item*>(idx.internalPointer()));
   layer_link lr(lr_itm->get_layer());
-  brig::proj::epsg pj;
-  try  { pj = lr->get_epsg(); }
-  catch (const std::exception& e)  { show_message(e.what()); return; }
+
   brig::boost::box box;
-  if (lr->get_mbr(box))
+  brig::proj::epsg pj;
+  if (lr->try_view(box, pj))
     emit signal_view(box_to_rect(box), pj);
   else
   {
@@ -317,11 +318,7 @@ void tree_model::zoom_to_fit(const QModelIndex& idx)
     connect(tsk, SIGNAL(signal_view(QRectF, brig::proj::epsg)), this, SLOT(emit_view(QRectF, brig::proj::epsg)));
     emit signal_task(std::shared_ptr<task>(tsk));
   }
-}
 
-void tree_model::emit_view(const QRectF& rect, const brig::proj::epsg& pj)
-{
-  emit signal_view(rect, pj);
 }
 
 void tree_model::use_projection(const QModelIndex& idx)
@@ -329,10 +326,17 @@ void tree_model::use_projection(const QModelIndex& idx)
   if (!is_layer(idx)) return;
   tree_item* lr_itm(static_cast<tree_item*>(idx.internalPointer()));
   layer_link lr(lr_itm->get_layer());
+
   brig::proj::epsg pj;
-  try  { pj = lr->get_epsg(); }
-  catch (const std::exception& e)  { show_message(e.what()); return; }
-  emit signal_proj(pj);
+  if (lr->try_epsg(pj))
+    emit signal_proj(pj);
+  else
+  {
+    qRegisterMetaType<brig::proj::epsg>("brig::proj::epsg");
+    task_proj* tsk(new task_proj(lr));
+    connect(tsk, SIGNAL(signal_proj(brig::proj::epsg)), this, SLOT(emit_proj(brig::proj::epsg)));
+    emit signal_task(std::shared_ptr<task>(tsk));
+  }
 }
 
 void tree_model::use_in_sql(const QModelIndex& idx)
@@ -342,10 +346,9 @@ void tree_model::use_in_sql(const QModelIndex& idx)
   emit signal_commands(dbc_itm->get_connection(), std::vector<std::string>());
 }
 
-void tree_model::refresh(connection_link dbc)
+void tree_model::on_refresh(connection_link dbc)
 {
-  auto p = std::find_if(std::begin(m_root.m_children), std::end(m_root.m_children)
-    , [&](std::unique_ptr<tree_item>& itm){ return itm->get_connection() == dbc; });
+  auto p = std::find_if(std::begin(m_root.m_children), std::end(m_root.m_children), [&](std::unique_ptr<tree_item>& itm){ return itm->get_connection() == dbc; });
   if (p != std::end(m_root.m_children)) refresh(index((*p)->position(), 0));
 }
 
@@ -354,24 +357,20 @@ void tree_model::paste_layers(std::vector<layer_link> lrs_copy, const QModelInde
   if (!is_connection(idx_paste)) return;
   const tree_item* dbc_itm(static_cast<tree_item*>(idx_paste.internalPointer()));
   auto dbc(dbc_itm->get_connection());
-  std::string name(lrs_copy.size() == 1? lrs_copy.front()->get_identifier().name: "");
-  bool sql(false);
 
-  dialog_create dlg(QApplication::activeWindow(), name);
+  dialog_create dlg(QApplication::activeWindow(), lrs_copy.size() == 1? lrs_copy.front()->get_identifier().name: "");
   if (dlg.exec() != QDialog::Accepted) return;
-  name = dlg.name();
-  sql = dlg.sql();
 
   qRegisterMetaType<connection_link>("connection_link");
   qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
-  task_create* tsk(new task_create(lrs_copy, dbc, name, sql));
+  task_create* tsk(new task_create(lrs_copy, dbc, dlg.name(), dlg.sql()));
   connect
     ( tsk, SIGNAL(signal_commands(connection_link, std::vector<std::string>))
     , this, SLOT(emit_commands(connection_link, std::vector<std::string>))
     );
   connect
     ( tsk, SIGNAL(signal_refresh(connection_link))
-    , this, SLOT(refresh(connection_link))
+    , this, SLOT(on_refresh(connection_link))
     );
   emit signal_task(std::shared_ptr<task>(tsk));
 }
@@ -394,21 +393,20 @@ void tree_model::drop(const QModelIndex& idx)
   if (!is_layer(idx)) return;
   tree_item* lr_itm(static_cast<tree_item*>(idx.internalPointer()));
   auto lr(lr_itm->get_layer());
-  auto dbc(lr_itm->m_parent->get_connection());
-
-  std::vector<std::string> sql;
-  lr->drop_meta(sql);
-  for (size_t level(0); level < lr->get_levels(); ++level)
-    dbc->drop(lr->get_table_definition(level), sql);
 
   dialog_drop dlg(QApplication::activeWindow(), lr->get_string());
   if (dlg.exec() != QDialog::Accepted) return;
-  else if (dlg.sql()) emit signal_commands(dbc, sql);
-  else
-  {
-    qRegisterMetaType<connection_link>("connection_link");
-    task_exec* tsk(new task_exec(dbc, sql));
-    connect(tsk, SIGNAL(signal_refresh(connection_link)), this, SLOT(refresh(connection_link)));
-    emit signal_task(std::shared_ptr<task>(tsk));
-  }
+
+  qRegisterMetaType<connection_link>("connection_link");
+  qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
+  task_drop* tsk(new task_drop(lr, dlg.sql()));
+  connect
+    ( tsk, SIGNAL(signal_commands(connection_link, std::vector<std::string>))
+    , this, SLOT(emit_commands(connection_link, std::vector<std::string>))
+    );
+  connect
+    ( tsk, SIGNAL(signal_refresh(connection_link))
+    , this, SLOT(on_refresh(connection_link))
+    );
+  emit signal_task(std::shared_ptr<task>(tsk));
 }

@@ -23,22 +23,22 @@ class sql_view : public QWidget {
   QTextEdit *m_sql;
 
 private slots:
-  void info();
-  void fetch();
-  void run();
-  void cancel()  { m_trd.cancel(); }
-  void on_start();
-  void on_process(const QString& msg)  { emit signal_process(msg); }
+  void emit_process(QString msg)  { emit signal_process(msg); }
+  void on_cancel()  { m_trd.cancel(); }
+  void on_fetch();
   void on_idle();
+  void on_info();
+  void on_run();
+  void on_start();
 
 public slots:
-  void push(std::shared_ptr<task> tsk)  { m_trd.push(tsk); }
+  void on_push(std::shared_ptr<task> tsk)  { m_trd.push(tsk); }
   void on_commands(connection_link dbc, std::vector<std::string> sqls);
   void on_disconnect(connection_link dbc);
 
 signals:
   void signal_start();
-  void signal_process(const QString& msg);
+  void signal_process(QString msg);
   void signal_idle();
   void signal_commands();
 
