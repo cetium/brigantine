@@ -109,6 +109,12 @@ void map_thread::run()
     {
       if (m_abort) return;
       if (m_restart) break;
+      if (time.elapsed() > SignalInterval)
+      {
+        emit signal_process(fr, img);
+        emit signal_process((msg.isEmpty()? to_string(counter + 1): msg));
+        time.restart();
+      }
       render_layer(lrs[i], fr, img, msg, counter, time);
     }
     if (m_abort) return;
