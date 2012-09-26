@@ -3,16 +3,16 @@
 #include <QDir>
 #include <QGridLayout>
 #include <QLabel>
+#include <QSettings>
 #include <QtGlobal>
 #include "dialog_shape.h"
+#include "global.h"
 
 dialog_shape::dialog_shape(QWidget* parent)
   : QFileDialog(parent, "copy shapefile", QDir::currentPath(), "shapefiles (*.shp)")
   , m_charset_combo(0)
   , m_epsg_edit(0)
 {
-  m_vlr.setBottom(0);
-
   struct pair { const char *first, *second; };
   static const pair Charsets[] = {
   { "ARMSCII-8", "Armenian" },
@@ -97,9 +97,11 @@ dialog_shape::dialog_shape(QWidget* parent)
   { "VISCII", "Vietnamese" }
   }; // Charsets
 
+  QSettings settings(SettingsIni, QSettings::IniFormat);
   setAcceptMode(QFileDialog::AcceptOpen);
   setFileMode(QFileDialog::ExistingFile);
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+  setDirectory(settings.value(QString("%1/%2").arg(SettingsShapefile).arg(SettingsPath), QDir::currentPath()).toString());
 
   QLabel* charset_lbl = new QLabel("Charset:", this);
   m_charset_combo = new QComboBox(this);
@@ -111,19 +113,20 @@ dialog_shape::dialog_shape(QWidget* parent)
     itm += Charsets[i].second;
     m_charset_combo->addItem(itm, Charsets[i].first);
   }
-  int pos(-1);
+  const int pos(m_charset_combo->findData(settings.value(QString("%1/%2").arg(SettingsShapefile).arg(SettingsCharset),
 #ifdef Q_OS_WIN32
-  pos = m_charset_combo->findData("CP1252");
+  "CP1252"
 #elif Q_OS_MAC
-  pos = m_charset_combo->findData("MacCentralEurope");
+  "MacCentralEurope"
 #else
-  pos = m_charset_combo->findData("UTF-8");
+  "UTF-8"
 #endif
+    ).toString()));
   if (pos >= 0) m_charset_combo->setCurrentIndex(pos);
 
   QLabel* epsg_lbl = new QLabel("EPSG:", this);
-  m_epsg_edit = new QLineEdit("4326", this);
-  m_epsg_edit->setValidator(&m_vlr);
+  m_epsg_edit = new QLineEdit(settings.value(QString("%1/%2").arg(SettingsShapefile).arg(SettingsEPSG), "4326").toString(), this);
+  m_epsg_edit->setInputMethodHints(Qt::ImhDigitsOnly);
 
   QGridLayout* layout = (QGridLayout*)this->layout();
   const int rows = layout->rowCount();
@@ -141,4 +144,13 @@ QString dialog_shape::charset()
 QString dialog_shape::epsg()
 {
   return m_epsg_edit->text();
+}
+
+void dialog_shape::accept()
+{
+  QSettings settings(SettingsIni, QSettings::IniFormat);
+  settings.setValue(QString("%1/%2").arg(SettingsShapefile).arg(SettingsPath), directory().absolutePath());
+  settings.setValue(QString("%1/%2").arg(SettingsShapefile).arg(SettingsCharset), charset());
+  settings.setValue(QString("%1/%2").arg(SettingsShapefile).arg(SettingsEPSG), epsg());
+  QFileDialog::accept();
 }

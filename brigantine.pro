@@ -13,6 +13,7 @@ HEADERS +=\
   dialog_odbc.h\
   dialog_shape.h\
   frame.h\
+  global.h\
   insert_item.h\
   layer.h\
   layer_geometry.h\

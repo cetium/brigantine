@@ -67,9 +67,9 @@ void map_thread::render_layer(layer_link lr, const frame& fr, QImage& img, QStri
         if (!limited)
         {
           painter.drawImage(0, 0, lr_img);
-          emit signal_process(fr, img);
           lr_painter.eraseRect(img.rect());
         }
+        emit signal_process(fr, img);
         emit signal_process((msg.isEmpty()? to_string(counter + 1): msg));
         time.restart();
       }
@@ -109,12 +109,6 @@ void map_thread::run()
     {
       if (m_abort) return;
       if (m_restart) break;
-      if (time.elapsed() > SignalInterval)
-      {
-        emit signal_process(fr, img);
-        emit signal_process((msg.isEmpty()? to_string(counter + 1): msg));
-        time.restart();
-      }
       render_layer(lrs[i], fr, img, msg, counter, time);
     }
     if (m_abort) return;

@@ -31,8 +31,7 @@
 #include "tree_model.h"
 #include "utilities.h"
 
-tree_model::tree_model(QObject* parent)
-  : QAbstractItemModel(parent), m_root(0, connection_link()), m_order(0)
+tree_model::tree_model(QObject* parent) : QAbstractItemModel(parent), m_root(0, connection_link()), m_order(0)
 {
 }
 

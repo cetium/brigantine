@@ -7,14 +7,19 @@
 #include <QCheckBox>
 #include <QDir>
 #include <QFile>
+#include <QFileDialog>
 #include <QFileInfo>
 #include <QIcon>
 #include <QList>
 #include <QMenu>
+#include <QSettings>
 #include <QString>
 #include <QStringList>
 #include "connection.h"
 #include "dialog_connect.h"
+#include "dialog_odbc.h"
+#include "dialog_shape.h"
+#include "global.h"
 #include "layer.h"
 #include "layer_geometry.h"
 #include "tree_view.h"
@@ -104,19 +109,6 @@ tree_view::tree_view(QWidget* parent) : QTreeView(parent)
   m_separator2_act = new QAction(QIcon(""), "", this);
   m_separator2_act->setSeparator(true);
 
-  m_connect_odbc_dlg = new dialog_odbc(this);
-  m_copy_shp_dlg = new dialog_shape(this);
-
-  m_open_sqlite_dlg = new QFileDialog(this, "open SQLite files", QDir::currentPath(), "SQLite files (*.sqlite);;All files (*.*)");
-  m_open_sqlite_dlg->setAcceptMode(QFileDialog::AcceptOpen);
-  m_open_sqlite_dlg->setFileMode(QFileDialog::ExistingFiles);
-  m_open_sqlite_dlg->setWindowFlags(m_open_sqlite_dlg->windowFlags() & ~Qt::WindowContextHelpButtonHint);
-
-  m_new_sqlite_dlg = new QFileDialog(this, "new SQLite file", QDir::currentPath(), "SQLite files (*.sqlite)");
-  m_new_sqlite_dlg->setAcceptMode(QFileDialog::AcceptSave);
-  m_new_sqlite_dlg->setFileMode(QFileDialog::AnyFile);
-  m_new_sqlite_dlg->setWindowFlags(m_new_sqlite_dlg->windowFlags() & ~Qt::WindowContextHelpButtonHint);
-
   qRegisterMetaType<connection_link>("connection_link");
   qRegisterMetaType<brig::proj::epsg>("brig::proj::epsg");
   qRegisterMetaType<std::shared_ptr<task>>("std::shared_ptr<task>");
@@ -137,7 +129,7 @@ void tree_view::on_connect_mysql()
 {
   try
   {
-    dialog_connect dlg(this, ":/res/mysql.png", "192.168.1.56", 3306, "test", "root");
+    dialog_connect dlg(this, QIcon(":/res/mysql.png"), SettingsMySQL, "192.168.1.56", 3306, "test", "root");
     if (dlg.exec() != QDialog::Accepted) return;
     wait_cursor w;
     m_mdl.connect_mysql(dlg.host(), dlg.port(), dlg.db(), dlg.usr(), dlg.pwd());
@@ -149,9 +141,10 @@ void tree_view::on_connect_odbc()
 {
   try
   {
-    if (m_connect_odbc_dlg->exec() != QDialog::Accepted) return;
+    dialog_odbc dlg(this);
+    if (dlg.exec() != QDialog::Accepted) return;
     wait_cursor w;
-    m_mdl.connect_odbc(m_connect_odbc_dlg->str());
+    m_mdl.connect_odbc(dlg.str());
   }
   catch (const std::exception& e)  { show_message(e.what()); }
 }
@@ -160,7 +153,7 @@ void tree_view::on_connect_oracle()
 {
   try
   {
-    dialog_connect dlg(this, ":/res/oracle.png", "192.168.1.152", 1521, "XE", "SYSTEM");
+    dialog_connect dlg(this, QIcon(":/res/oracle.png"), SettingsOracle, "192.168.1.152", 1521, "XE", "SYSTEM");
     if (dlg.exec() != QDialog::Accepted) return;
     wait_cursor w;
     m_mdl.connect_oracle(dlg.host(), dlg.port(), dlg.db(), dlg.usr(), dlg.pwd());
@@ -172,7 +165,7 @@ void tree_view::on_connect_postgres()
 {
   try
   {
-    dialog_connect dlg(this, ":/res/postgres.png", "gis-lab.info", 5432, "osm_shp", "guest", "guest");
+    dialog_connect dlg(this, QIcon(":/res/postgres.png"), SettingsPostgres, "gis-lab.info", 5432, "osm_shp", "guest");
     if (dlg.exec() != QDialog::Accepted) return;
     wait_cursor w;
     m_mdl.connect_postgres(dlg.host(), dlg.port(), dlg.db(), dlg.usr(), dlg.pwd());
@@ -184,9 +177,20 @@ void tree_view::on_open_sqlite()
 {
   try
   {
-    if (m_open_sqlite_dlg->exec() != QDialog::Accepted) return;
+    QSettings settings(SettingsIni, QSettings::IniFormat);
+    QFileDialog dlg
+      ( this
+      , "open SQLite files"
+      , settings.value(QString("%1/%2").arg(SettingsSQLite).arg(SettingsPath), QDir::currentPath()).toString()
+      , "SQLite files (*.sqlite);;All files (*.*)"
+      );
+    dlg.setAcceptMode(QFileDialog::AcceptOpen);
+    dlg.setFileMode(QFileDialog::ExistingFiles);
+    dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
+    if (dlg.exec() != QDialog::Accepted) return;
+    settings.setValue(QString("%1/%2").arg(SettingsSQLite).arg(SettingsPath), dlg.directory().absolutePath());
     wait_cursor w;
-    QStringList files = m_open_sqlite_dlg->selectedFiles();
+    QStringList files = dlg.selectedFiles();
     for (int i(0); i < files.size(); ++i)
       m_mdl.connect_sqlite(files[i], false);
   }
@@ -197,9 +201,20 @@ void tree_view::on_new_sqlite()
 {
   try
   {
-    if (!m_new_sqlite_dlg->exec()) return;
+    QSettings settings(SettingsIni, QSettings::IniFormat);
+    QFileDialog dlg
+      ( this
+      , "new SQLite file"
+      , settings.value(QString("%1/%2").arg(SettingsSQLite).arg(SettingsPath), QDir::currentPath()).toString()
+      , "SQLite files (*.sqlite)"
+      );
+    dlg.setAcceptMode(QFileDialog::AcceptSave);
+    dlg.setFileMode(QFileDialog::AnyFile);
+    dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
+    if (!dlg.exec()) return;
+    settings.setValue(QString("%1/%2").arg(SettingsSQLite).arg(SettingsPath), dlg.directory().absolutePath());
     wait_cursor w;
-    QFileInfo file(m_new_sqlite_dlg->selectedFiles().value(0));
+    QFileInfo file(dlg.selectedFiles().value(0));
     if (file.exists() && !QFile::remove(file.filePath()))
     {
       show_message("file removing error");
@@ -217,14 +232,15 @@ void tree_view::on_copy_shp()
   {
     m_lrs_copy.clear();
 
-    if (m_copy_shp_dlg->exec() != QDialog::Accepted) return;
+    dialog_shape dlg(this);
+    if (dlg.exec() != QDialog::Accepted) return;
 
     wait_cursor w;
-    QFileInfo file(m_copy_shp_dlg->selectedFiles().value(0));
+    QFileInfo file(dlg.selectedFiles().value(0));
     std::string base(file.baseName().toUtf8().constData());
     std::string path(QFileInfo(file.dir(), file.baseName()).filePath().toUtf8().constData());
-    std::string charset(m_copy_shp_dlg->charset().toUtf8().constData());
-    std::string epsg(m_copy_shp_dlg->epsg().toUtf8().constData());
+    std::string charset(dlg.charset().toUtf8().constData());
+    std::string epsg(dlg.epsg().toUtf8().constData());
 
     auto allocator(std::make_shared<brig::database::sqlite::command_allocator>(":memory:"));
     connection_link dbc(new connection(allocator, ":memory:"));
@@ -240,8 +256,8 @@ void tree_view::on_copy_shp()
     col_geo->type = brig::database::Geometry;
     col_geo->dbms_type.name = "GEOMETRY";
     col_geo->dbms_type_lcase.name = "geometry";
-    col_geo->srid = m_copy_shp_dlg->epsg().toInt();
-    col_geo->epsg = m_copy_shp_dlg->epsg().toInt();
+    col_geo->srid = dlg.epsg().toInt();
+    col_geo->epsg = dlg.epsg().toInt();
     col_geo->query_expression = "AsBinary(\"GEOMETRY\")";
 
     brig::database::index_definition pk;

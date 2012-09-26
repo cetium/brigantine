@@ -4,15 +4,12 @@
 #define TREE_VIEW_H
 
 #include <QAction>
-#include <QFileDialog>
 #include <QModelIndex>
 #include <QPoint>
 #include <QString>
 #include <QTreeView>
 #include <QWidget>
 #include <vector>
-#include "dialog_odbc.h"
-#include "dialog_shape.h"
 #include "task.h"
 #include "tree_model.h"
 
@@ -44,13 +41,6 @@ class tree_view : public QTreeView {
     *m_drop_act,
     *m_separator1_act,
     *m_separator2_act;
-
-  dialog_odbc* m_connect_odbc_dlg;
-  dialog_shape* m_copy_shp_dlg;
-
-  QFileDialog
-    *m_open_sqlite_dlg,
-    *m_new_sqlite_dlg;
 
   static void on_remove(const QModelIndex& parent, int start, int end, QModelIndex& index);
   void on_update();

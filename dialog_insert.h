@@ -5,7 +5,6 @@
 
 #include <QCheckBox>
 #include <QDialog>
-#include <QIntValidator>
 #include <QTabWidget>
 #include <string>
 #include <vector>
@@ -14,10 +13,8 @@
 
 class dialog_insert : public QDialog {
   Q_OBJECT
-  QIntValidator m_vlr;
   QTabWidget* m_tab;
   QCheckBox* m_ccw;
-
 public:
   dialog_insert(QWidget* parent, layer_link lr_from, layer_link lr_to);
   std::vector<insert_item> get_items() const;

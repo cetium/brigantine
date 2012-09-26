@@ -19,8 +19,6 @@
 dialog_insert::dialog_insert(QWidget* parent, layer_link lr_from, layer_link lr_to)
   : QDialog(parent)
 {
-  m_vlr.setBottom(0);
-
   setWindowTitle("inserting rows");
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
@@ -59,7 +57,7 @@ dialog_insert::dialog_insert(QWidget* parent, layer_link lr_from, layer_link lr_
       if (brig::database::Geometry == col_to->type && col_to->epsg <= 0)
       {
         QLineEdit* edit(new QLineEdit);
-        edit->setValidator(&m_vlr);
+        edit->setInputMethodHints(Qt::ImhDigitsOnly);
         edit->setToolTip("EPSG");
         edit->setText("4326");
         grid->addWidget(edit, row, 2);

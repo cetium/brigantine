@@ -6,14 +6,14 @@
 #include <QComboBox>
 #include <QFileDialog>
 #include <QLineEdit>
-#include <QIntValidator>
 #include <QString>
 
 class dialog_shape : public QFileDialog {
   Q_OBJECT
-  QIntValidator m_vlr;
   QComboBox* m_charset_combo;
   QLineEdit* m_epsg_edit;
+public slots:
+  virtual void accept();
 public:
   explicit dialog_shape(QWidget* parent);
   QString charset();
