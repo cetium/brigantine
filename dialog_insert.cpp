@@ -5,6 +5,7 @@
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
+#include <QIntValidator>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
@@ -16,8 +17,7 @@
 #include "dialog_insert.h"
 #include "layer.h"
 
-dialog_insert::dialog_insert(QWidget* parent, layer_link lr_from, layer_link lr_to)
-  : QDialog(parent)
+dialog_insert::dialog_insert(QWidget* parent, layer_link lr_from, layer_link lr_to) : QDialog(parent)
 {
   setWindowTitle("inserting rows");
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -57,7 +57,7 @@ dialog_insert::dialog_insert(QWidget* parent, layer_link lr_from, layer_link lr_
       if (brig::database::Geometry == col_to->type && col_to->epsg <= 0)
       {
         QLineEdit* edit(new QLineEdit);
-        edit->setInputMethodHints(Qt::ImhDigitsOnly);
+        edit->setValidator(new QIntValidator(0, INT_MAX, this));
         edit->setToolTip("EPSG");
         edit->setText("4326");
         grid->addWidget(edit, row, 2);

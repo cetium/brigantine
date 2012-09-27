@@ -52,7 +52,7 @@
         <string extracomment="SYSTEM"/>
        </property>
        <property name="inputMethodHints">
-        <set>Qt::ImhDigitsOnly</set>
+        <set>Qt::ImhNone</set>
        </property>
        <property name="text">
         <string/>

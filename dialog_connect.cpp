@@ -1,5 +1,6 @@
 // Andrew Naplavkov
 
+#include <QIntValidator>
 #include <QSettings>
 #include "dialog_connect.h"
 #include "global.h"
@@ -13,6 +14,7 @@ dialog_connect::dialog_connect(QWidget* parent, QIcon icon, QString settings_pre
   setWindowIcon(icon);
   QSettings settings(SettingsIni, QSettings::IniFormat);
   ui->host_edit->setText(settings.value(QString("%1/%2").arg(m_settings_prefix).arg(SettingsHost), host).toString());
+  ui->port_edit->setValidator(new QIntValidator(0, INT_MAX, this));
   ui->port_edit->setText(settings.value(QString("%1/%2").arg(m_settings_prefix).arg(SettingsPort), port).toString());
   ui->db_edit->setText(settings.value(QString("%1/%2").arg(m_settings_prefix).arg(SettingsDb), db).toString());
   ui->usr_edit->setText(settings.value(QString("%1/%2").arg(m_settings_prefix).arg(SettingsUsr), usr).toString());

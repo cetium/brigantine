@@ -2,6 +2,7 @@
 
 #include <QDir>
 #include <QGridLayout>
+#include <QIntValidator>
 #include <QLabel>
 #include <QSettings>
 #include <QtGlobal>
@@ -126,7 +127,7 @@ dialog_shape::dialog_shape(QWidget* parent)
 
   QLabel* epsg_lbl = new QLabel("EPSG:", this);
   m_epsg_edit = new QLineEdit(settings.value(QString("%1/%2").arg(SettingsShapefile).arg(SettingsEPSG), "4326").toString(), this);
-  m_epsg_edit->setInputMethodHints(Qt::ImhDigitsOnly);
+  m_epsg_edit->setValidator(new QIntValidator(0, INT_MAX, this));
 
   QGridLayout* layout = (QGridLayout*)this->layout();
   const int rows = layout->rowCount();
