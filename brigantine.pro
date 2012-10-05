@@ -91,4 +91,5 @@ INCLUDEPATH +=\ # boost, brig, ...
   ../include/oci/
 
 QMAKE_CXXFLAGS +=\
+  -fno-tree-vectorize\
   -std=c++0x

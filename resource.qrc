@@ -9,7 +9,6 @@
         <file>res/disconnect.png</file>
         <file>res/zoom.png</file>
         <file>res/odbc.png</file>
-        <file>res/init_spatialite.sql</file>
         <file>res/sql.png</file>
         <file>res/run.png</file>
         <file>res/wheel.png</file>

@@ -188,15 +188,8 @@ void tree_model::connect_sqlite(QString file, bool init)
   auto allocator(std::make_shared<brig::database::sqlite::command_allocator>(file.toUtf8().constData()));
   if (init)
   {
-    QFile file(":/res/init_spatialite.sql");
-    file.open(QIODevice::ReadOnly|QIODevice::Text);
-    QTextStream stream(&file);
     std::unique_ptr<brig::database::command> cmd(allocator->allocate());
-    while (!stream.atEnd())
-    {
-      const QString sql(stream.readLine());
-      cmd->exec(sql.toUtf8().constData());
-    }
+    cmd->exec("SELECT InitSpatialMetaData();");
   }
   connect_to(connection_link(new connection(allocator, file)));
 }
