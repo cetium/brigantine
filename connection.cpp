@@ -20,6 +20,7 @@ QString connection::get_icon()
   case CUBRID: return ":/res/cubrid.png";
   case DB2: return ":/res/db2.png";
   case Informix: return ":/res/informix.png";
+  case Ingres: return ":/res/ingres.png";
   case MS_SQL: return ":/res/ms_sql.png";
   case MySQL: return ":/res/mysql.png";
   case Oracle: return ":/res/oracle.png";

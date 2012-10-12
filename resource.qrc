@@ -30,5 +30,6 @@
         <file>res/cubrid.png</file>
         <file>res/info.png</file>
         <file>res/informix.png</file>
+        <file>res/ingres.png</file>
     </qresource>
 </RCC>
