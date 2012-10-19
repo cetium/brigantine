@@ -20,12 +20,13 @@ public:
   virtual size_t get_levels()  { return m_raster.levels.size(); }
   virtual brig::database::table_definition get_table_definition(size_t level);
   virtual void reset_table_definitions();
-
   virtual bool is_writable();
-  virtual layer* create_result(connection_link dbc, const std::string& name, std::vector<std::string>& sql);
-  virtual void drop_meta(std::vector<std::string>& sql);
+
+  virtual layer* reg(connection_link dbc, std::vector<std::string>& sql);
+  virtual void unreg(std::vector<std::string>& sql);
 
   virtual size_t limit()  { return 100; }
+  virtual bool has_spatial_index(const frame& fr);
   virtual std::shared_ptr<brig::database::rowset> attributes(const frame& fr);
   virtual std::shared_ptr<brig::database::rowset> drawing(const frame& fr, bool limited);
   virtual void draw(const std::vector<brig::database::variant>& row, const frame& fr, QPainter& painter);

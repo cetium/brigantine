@@ -58,6 +58,7 @@ void map_thread::render_layer(layer_link lr, const frame& fr, QImage& img, QStri
     const size_t counter_end(limited? counter + lr->limit(): LONG_MAX);
 
     std::vector<brig::database::variant> row;
+    if (msg.isEmpty() && !lr->has_spatial_index(fr)) msg = "no index";
     for (auto rs(lr->drawing(fr, limited)); rs->fetch(row) && counter < counter_end; ++counter)
     {
       if (m_abort || (m_restart && !limited)) return;

@@ -248,10 +248,10 @@ void tree_view::on_copy_shp()
 
     brig::database::identifier id; id.name = base;
     auto tbl(dbc->get_table_definition(id));
-    auto col_key(std::find_if(std::begin(tbl.columns), std::end(tbl.columns), [](const brig::database::column_definition& c){ return "PK_UID" == c.name; }));
-    if (col_key == std::end(tbl.columns)) col_key = std::find_if(std::begin(tbl.columns), std::end(tbl.columns), [](const brig::database::column_definition& c){ return "PKUID" == c.name; });
-    auto col_geo(std::find_if(std::begin(tbl.columns), std::end(tbl.columns), [](const brig::database::column_definition& c){ return "Geometry" == c.name; }));
-    if (col_key == std::end(tbl.columns) || col_geo == std::end(tbl.columns)) return;
+    auto col_key = tbl["PK_UID"];
+    if (!col_key) col_key = tbl["PKUID"];
+    auto col_geo = tbl["Geometry"];
+    if (!col_key || !col_geo) return;
 
     col_geo->type = brig::database::Geometry;
     col_geo->dbms_type.name = "GEOMETRY";
@@ -264,11 +264,6 @@ void tree_view::on_copy_shp()
     pk.type = brig::database::Primary;
     pk.columns.push_back(col_key->name);
     tbl.indexes.push_back(pk);
-
-    brig::database::index_definition idx;
-    idx.type = brig::database::Spatial;
-    idx.columns.push_back(col_geo->name);
-    tbl.indexes.push_back(idx);
 
     m_lrs_copy.push_back( layer_link(new layer_geometry(dbc, id, tbl)) );
   }

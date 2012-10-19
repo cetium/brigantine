@@ -1,5 +1,6 @@
 // Andrew Naplavkov
 
+#include <iterator>
 #include "connection.h"
 #include "layer.h"
 #include "progress.h"
@@ -12,8 +13,9 @@ task_drop::task_drop(layer_link lr, bool sql)
 
 void task_drop::run(progress* prg)
 {
-  std::vector<std::string> sql;
-  m_lr->drop_meta(sql);
+  using namespace std;
+  vector<string> sql;
+  m_lr->unreg(sql);
   auto dbc(m_lr->get_connection());
   for (size_t level(0), levels(m_lr->get_levels()); level < levels; ++level)
     dbc->drop(m_lr->get_table_definition(level), sql);
@@ -23,7 +25,7 @@ void task_drop::run(progress* prg)
   else
   {
     auto cmd(dbc->get_command());
-    for (auto s(std::begin(sql)); s != std::end(sql); ++s)
+    for (auto s(begin(sql)); s != end(sql); ++s)
     {
       cmd->exec(*s);
       if (!prg->step()) return;

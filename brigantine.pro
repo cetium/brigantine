@@ -7,8 +7,7 @@ HEADERS +=\
   connection_link.h\
   counter_clockwise.h\
   dialog_connect.h\
-  dialog_create.h\
-  dialog_drop.h\
+  dialog_do.h\
   dialog_insert.h\
   dialog_odbc.h\
   dialog_shape.h\
@@ -45,8 +44,7 @@ SOURCES +=\
   connection_link.cpp\
   counter_clockwise.cpp\
   dialog_connect.cpp\
-  dialog_create.cpp\
-  dialog_drop.cpp\
+  dialog_do.cpp\
   dialog_insert.cpp\
   dialog_odbc.cpp\
   dialog_shape.cpp\
@@ -77,8 +75,7 @@ SOURCES +=\
 
 FORMS +=\
   dialog_connect.ui\
-  dialog_create.ui\
-  dialog_drop.ui\
+  dialog_do.ui\
   dialog_odbc.ui
 
 RESOURCES +=\

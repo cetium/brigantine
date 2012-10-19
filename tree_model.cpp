@@ -16,8 +16,7 @@
 #include <QTextStream>
 #include <vector>
 #include "connection.h"
-#include "dialog_create.h"
-#include "dialog_drop.h"
+#include "dialog_do.h"
 #include "dialog_insert.h"
 #include "layer.h"
 #include "layer_geometry.h"
@@ -350,12 +349,12 @@ void tree_model::paste_layers(std::vector<layer_link> lrs_copy, const QModelInde
   const tree_item* dbc_itm(static_cast<tree_item*>(idx_paste.internalPointer()));
   auto dbc(dbc_itm->get_connection());
 
-  dialog_create dlg(QApplication::activeWindow(), lrs_copy.size() == 1? lrs_copy.front()->get_identifier().name: "");
+  dialog_do dlg(QApplication::activeWindow(), QString("create"), lrs_copy.size() == 1? lrs_copy.front()->get_string(): QString("layers"));
   if (dlg.exec() != QDialog::Accepted) return;
 
   qRegisterMetaType<connection_link>("connection_link");
   qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
-  task_create* tsk(new task_create(lrs_copy, dbc, dlg.name(), dlg.sql()));
+  task_create* tsk(new task_create(lrs_copy, dbc, dlg.sql()));
   connect
     ( tsk, SIGNAL(signal_commands(connection_link, std::vector<std::string>))
     , this, SLOT(emit_commands(connection_link, std::vector<std::string>))
@@ -386,7 +385,7 @@ void tree_model::drop(const QModelIndex& idx)
   tree_item* lr_itm(static_cast<tree_item*>(idx.internalPointer()));
   auto lr(lr_itm->get_layer());
 
-  dialog_drop dlg(QApplication::activeWindow(), lr->get_string());
+  dialog_do dlg(QApplication::activeWindow(), QString("drop"), lr->get_string());
   if (dlg.exec() != QDialog::Accepted) return;
 
   qRegisterMetaType<connection_link>("connection_link");

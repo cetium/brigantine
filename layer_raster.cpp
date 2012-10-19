@@ -52,18 +52,16 @@ bool layer_raster::is_writable()
   return !m_raster.levels.empty() && m_raster.levels[0].raster.query_expression.empty();
 }
 
-layer* layer_raster::create_result(connection_link dbc, const std::string& name, std::vector<std::string>& sql)
+layer* layer_raster::reg(connection_link dbc, std::vector<std::string>& sql)
 {
-  brig::database::raster_pyramid raster(m_raster);
-  for (size_t level(0); level < raster.levels.size(); ++level)
-    raster.levels[level].geometry.name = get_table_name(name, level);
-  dbc->create_result(raster, sql);
+  auto raster(dbc->fit_to_reg(m_raster));
+  dbc->reg(raster, sql);
   return new layer_raster(dbc, raster);
 }
 
-void layer_raster::drop_meta(std::vector<std::string>& sql)
+void layer_raster::unreg(std::vector<std::string>& sql)
 {
-  get_connection()->drop_meta(m_raster, sql);
+  get_connection()->unreg(m_raster, sql);
 }
 
 size_t layer_raster::get_level(const frame& fr) const
@@ -77,6 +75,13 @@ size_t layer_raster::get_level(const frame& fr) const
 std::string layer_raster::get_raster_column(size_t level) const
 {
   return m_raster.levels[level].raster.name;
+}
+
+bool layer_raster::has_spatial_index(const frame& fr)
+{
+  size_t level(get_level(fr));
+  auto tbl(get_table_definition(level));
+  return find_rtree(std::begin(tbl.indexes), std::end(tbl.indexes), m_raster.levels[level].geometry.qualifier) != 0;
 }
 
 std::shared_ptr<brig::database::rowset> layer_raster::attributes(const frame& fr)

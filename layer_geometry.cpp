@@ -1,7 +1,9 @@
 // Andrew Naplavkov
 
+#include <algorithm>
 #include <brig/database/threaded_rowset.hpp>
 #include <brig/qt/draw.hpp>
+#include <iterator>
 #include <vector>
 #include "layer_geometry.h"
 #include "reproject.h"
@@ -21,12 +23,22 @@ void layer_geometry::reset_table_definitions()
   if (m_tbl.columns.empty()) get_connection()->reset_table_definition(m_id);
 }
 
-layer* layer_geometry::create_result(connection_link dbc, const std::string& name, std::vector<std::string>&)
+layer* layer_geometry::reg(connection_link dbc, std::vector<std::string>&)
 {
-  brig::database::identifier id(m_id);
-  id.name = name;
-  dbc->create_result(id);
-  return new layer_geometry(dbc, id);
+  auto tbl_from(get_table_definition(0));
+  auto tbl_to(dbc->fit_to_create(tbl_from));
+
+  for (size_t col(0), cols(std::min<>(tbl_from.columns.size(), tbl_to.columns.size())); col < cols; ++col)
+    if (tbl_from.columns[col].name.compare(m_id.qualifier) == 0)
+      tbl_to.id.qualifier = tbl_to.columns[col].name;
+
+  return new layer_geometry(dbc, tbl_to.id);
+}
+
+bool layer_geometry::has_spatial_index(const frame&)
+{
+  auto tbl(get_table_definition(0));
+  return find_rtree(std::begin(tbl.indexes), std::end(tbl.indexes), m_id.qualifier) != 0;
 }
 
 std::shared_ptr<brig::database::rowset> layer_geometry::attributes(const frame& fr)

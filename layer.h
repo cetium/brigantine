@@ -32,12 +32,13 @@ public:
   virtual size_t get_levels() = 0;
   virtual brig::database::table_definition get_table_definition(size_t level) = 0;
   virtual void reset_table_definitions() = 0;
-
   virtual bool is_writable() = 0;
-  virtual layer* create_result(connection_link dbc, const std::string& name, std::vector<std::string>& sql) = 0;
-  virtual void drop_meta(std::vector<std::string>& sql) = 0;
+
+  virtual layer* reg(connection_link dbc, std::vector<std::string>& sql) = 0;
+  virtual void unreg(std::vector<std::string>& sql) = 0;
 
   virtual size_t limit() = 0;
+  virtual bool has_spatial_index(const frame& fr) = 0;
   virtual std::shared_ptr<brig::database::rowset> attributes(const frame& fr) = 0;
   virtual std::shared_ptr<brig::database::rowset> drawing(const frame& fr, bool limited) = 0;
   virtual void draw(const std::vector<brig::database::variant>& row, const frame& fr, QPainter& painter) = 0;
