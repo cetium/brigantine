@@ -248,22 +248,14 @@ void tree_view::on_copy_shp()
 
     brig::database::identifier id; id.name = base;
     auto tbl(dbc->get_table_definition(id));
-    auto col_key = tbl["PK_UID"];
-    if (!col_key) col_key = tbl["PKUID"];
     auto col_geo = tbl["Geometry"];
-    if (!col_key || !col_geo) return;
+    if (!col_geo) return;
 
     col_geo->type = brig::database::Geometry;
-    col_geo->dbms_type.name = "GEOMETRY";
     col_geo->dbms_type_lcase.name = "geometry";
     col_geo->srid = dlg.epsg().toInt();
     col_geo->epsg = dlg.epsg().toInt();
     col_geo->query_expression = "AsBinary(\"GEOMETRY\")";
-
-    brig::database::index_definition pk;
-    pk.type = brig::database::Primary;
-    pk.columns.push_back(col_key->name);
-    tbl.indexes.push_back(pk);
 
     m_lrs_copy.push_back( layer_link(new layer_geometry(dbc, id, tbl)) );
   }

@@ -51,7 +51,7 @@ void task_create::run(progress* prg)
           && boost::get<brig::blob_t>(col_to.query_value).empty()
            )
         {
-          auto box(dbc_from->get_mbr(tbl_from.id, col_from));
+          auto box(dbc_from->get_mbr(tbl_from, col_from.name));
           identifier id = tbl_from.id; id.qualifier = col_from.name;
           dbc_from->set_mbr(id, box);
           if (!prg->step(counter)) return;

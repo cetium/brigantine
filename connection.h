@@ -28,9 +28,8 @@ public:
 
   brig::database::table_definition get_table_definition(const brig::database::identifier& tbl);
   void reset_table_definition(const brig::database::identifier& tbl);
+  bool try_table_definition(const brig::database::identifier& tbl, brig::database::table_definition& def);
 
-  bool try_column_definition(const brig::database::identifier& col, brig::database::column_definition& def);
-  brig::database::column_definition get_column_definition(const brig::database::identifier& col);
   void set_mbr(const brig::database::identifier& col, const brig::boost::box& box);
 }; // connection
 

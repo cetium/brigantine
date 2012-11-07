@@ -18,24 +18,29 @@ QString layer::get_string()
 
 brig::proj::epsg layer::get_epsg()
 {
-  return ::get_epsg(get_connection()->get_column_definition(get_geometry()).epsg);
+  auto id(get_geometry());
+  auto tbl(get_connection()->get_table_definition(id));
+  return ::get_epsg(tbl[id.qualifier]->epsg);
 }
 
 bool layer::try_epsg(brig::proj::epsg& pj)
 {
-  brig::database::column_definition col;
-  if (!get_connection()->try_column_definition(get_geometry(), col)) return false;
-  pj = brig::proj::epsg(col.epsg);
+  auto geo(get_geometry());
+  brig::database::table_definition tbl;
+  if (!get_connection()->try_table_definition(geo, tbl)) return false;
+  pj = brig::proj::epsg(tbl[geo.qualifier]->epsg);
   return true;
 }
 
 bool layer::try_view(brig::boost::box& box, brig::proj::epsg& pj)
 {
-  brig::database::column_definition col;
-  if (!get_connection()->try_column_definition(get_geometry(), col)) return false;
-  pj = brig::proj::epsg(col.epsg);
-  if (col.query_value.type() != typeid(brig::blob_t)) return false;
-  const brig::blob_t& blob(boost::get<brig::blob_t>(col.query_value));
+  auto geo(get_geometry());
+  brig::database::table_definition tbl;
+  if (!get_connection()->try_table_definition(geo, tbl)) return false;
+  auto col(tbl[geo.qualifier]);
+  pj = brig::proj::epsg(col->epsg);
+  if (col->query_value.type() != typeid(brig::blob_t)) return false;
+  const brig::blob_t& blob(boost::get<brig::blob_t>(col->query_value));
   if (blob.empty()) return false;
   box = brig::boost::envelope(brig::boost::geom_from_wkb(blob));
   return true;

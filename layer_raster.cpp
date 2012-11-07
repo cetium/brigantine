@@ -12,27 +12,13 @@
 
 brig::database::table_definition layer_raster::get_table_definition(size_t level)
 {
+  using namespace std;
+
   auto tbl(get_connection()->get_table_definition(m_raster.levels[level].geometry));
   if (!m_raster.levels[level].raster.query_expression.empty())
     tbl.columns.push_back(m_raster.levels[level].raster);
 
-  bool create_index(true);
-  for (auto idx(std::begin(tbl.indexes)); idx != std::end(tbl.indexes); ++idx)
-    if ( brig::database::Spatial == idx->type
-      && 1 == idx->columns.size()
-      && idx->columns.front() == m_raster.levels[level].geometry.qualifier
-       )
-       create_index = false;
-
-  if (create_index)
-  {
-    brig::database::index_definition idx;
-    idx.type = brig::database::Spatial;
-    idx.columns.push_back(m_raster.levels[level].geometry.qualifier);
-    tbl.indexes.push_back(idx);
-  }
-
-  for (auto cnd(std::begin(m_raster.levels[level].query_conditions)); cnd != std::end(m_raster.levels[level].query_conditions); ++cnd)
+  for (auto cnd(begin(m_raster.levels[level].query_conditions)); cnd != end(m_raster.levels[level].query_conditions); ++cnd)
   {
     auto col(tbl[cnd->name]);
     if (!cnd->query_expression.empty()) col->query_expression = cnd->query_expression;
@@ -66,10 +52,12 @@ void layer_raster::unreg(std::vector<std::string>& sql)
 
 size_t layer_raster::get_level(const frame& fr) const
 {
-  std::vector<double> dists;
+  using namespace std;
+
+  vector<double> dists;
   for (size_t level(0); level < m_raster.levels.size(); ++level)
-    dists.push_back(pow(m_raster.levels[level].resolution.get<0>() - fr.scale(), 2) + pow(m_raster.levels[level].resolution.get<1>() - fr.scale(), 2));
-  return std::distance(std::begin(dists), std::min_element(std::begin(dists), std::end(dists)));
+    dists.push_back(pow(m_raster.levels[level].resolution_x - fr.scale(), 2) + pow(m_raster.levels[level].resolution_y - fr.scale(), 2));
+  return distance(begin(dists), min_element(begin(dists), end(dists)));
 }
 
 std::string layer_raster::get_raster_column(size_t level) const
@@ -81,7 +69,7 @@ bool layer_raster::has_spatial_index(const frame& fr)
 {
   size_t level(get_level(fr));
   auto tbl(get_table_definition(level));
-  return find_rtree(std::begin(tbl.indexes), std::end(tbl.indexes), m_raster.levels[level].geometry.qualifier) != 0;
+  return tbl.rtree(m_raster.levels[level].geometry.qualifier) != 0;
 }
 
 std::shared_ptr<brig::database::rowset> layer_raster::attributes(const frame& fr)

@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <brig/database/threaded_rowset.hpp>
 #include <brig/qt/draw.hpp>
-#include <iterator>
 #include <vector>
 #include "layer_geometry.h"
 #include "reproject.h"
@@ -38,7 +37,7 @@ layer* layer_geometry::reg(connection_link dbc, std::vector<std::string>&)
 bool layer_geometry::has_spatial_index(const frame&)
 {
   auto tbl(get_table_definition(0));
-  return find_rtree(std::begin(tbl.indexes), std::end(tbl.indexes), m_id.qualifier) != 0;
+  return tbl.rtree(m_id.qualifier) != 0;
 }
 
 std::shared_ptr<brig::database::rowset> layer_geometry::attributes(const frame& fr)

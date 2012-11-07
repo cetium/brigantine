@@ -14,9 +14,9 @@ void task_mbr::run(progress* prg)
   {
     auto dbc(m_lr->get_connection());
     auto id(m_lr->get_geometry());
-    auto col(dbc->get_column_definition(id));
-    pj = brig::proj::epsg(col.epsg);
-    box = dbc->get_mbr(id, col);
+    auto tbl(dbc->get_table_definition(id));
+    pj = brig::proj::epsg(tbl[id.qualifier]->epsg);
+    box = dbc->get_mbr(tbl, id.qualifier);
     dbc->set_mbr(id, box);
     if (!prg->step()) return;
   }

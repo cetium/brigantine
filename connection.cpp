@@ -44,21 +44,13 @@ void connection::reset_table_definition(const brig::database::identifier& tbl)
     m_tables.erase(tbl);
 }
 
-bool connection::try_column_definition(const brig::database::identifier& col, brig::database::column_definition& def)
+bool connection::try_table_definition(const brig::database::identifier& tbl, brig::database::table_definition& def)
 {
   QMutexLocker locker(&m_mutex);
-  if (m_tables.find(col) == std::end(m_tables))
+  if (m_tables.find(tbl) == std::end(m_tables))
     return false;
-  def = *m_tables[col][col.qualifier];
+  def = m_tables[tbl];
   return true;
-}
-
-brig::database::column_definition connection::get_column_definition(const brig::database::identifier& col)
-{
-  QMutexLocker locker(&m_mutex);
-  if (m_tables.find(col) == std::end(m_tables))
-    m_tables[col] = brig::database::connection<true>::get_table_definition(col);
-  return *m_tables[col][col.qualifier];
 }
 
 void connection::set_mbr(const brig::database::identifier& col, const brig::boost::box& box)
