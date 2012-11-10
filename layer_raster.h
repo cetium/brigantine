@@ -8,7 +8,7 @@
 class layer_raster : public layer {
   const brig::database::raster_pyramid m_raster;
 
-  size_t get_level(const frame& fr) const;
+  size_t get_level(const frame& fr);
   std::string get_raster_column(size_t level) const;
 
 public:

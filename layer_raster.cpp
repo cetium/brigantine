@@ -50,13 +50,28 @@ void layer_raster::unreg(std::vector<std::string>& sql)
   get_connection()->unreg(m_raster, sql);
 }
 
-size_t layer_raster::get_level(const frame& fr) const
+size_t layer_raster::get_level(const frame& fr)
 {
   using namespace std;
 
+  const brig::proj::epsg epsg_rast(get_epsg());
+  const brig::proj::epsg epsg_fr(fr.get_epsg());
+  double scale(1);
+  if (int(epsg_rast) == int(epsg_fr))
+    scale = fr.scale();
+  else
+  {
+    const QRectF rect1(pixel_to_proj(QRectF(QPointF(), fr.size()), fr).intersect(world(epsg_fr)));
+    if (!rect1.isValid()) return m_raster.levels.size() - 1;
+    const QRectF rect2(transform(rect1, epsg_fr, epsg_rast).intersect(world(epsg_rast)));
+    if (!rect2.isValid()) return m_raster.levels.size() - 1;
+    const double zoom_factor(std::min<>(rect2.width() / rect1.width(), rect2.height() / rect1.height()));
+    scale = fr.scale() * zoom_factor;
+  }
+
   vector<double> dists;
   for (size_t level(0); level < m_raster.levels.size(); ++level)
-    dists.push_back(pow(m_raster.levels[level].resolution_x - fr.scale(), 2) + pow(m_raster.levels[level].resolution_y - fr.scale(), 2));
+    dists.push_back(pow(m_raster.levels[level].resolution_x - scale, 2) + pow(m_raster.levels[level].resolution_y - scale, 2));
   return distance(begin(dists), min_element(begin(dists), end(dists)));
 }
 
@@ -89,7 +104,6 @@ std::shared_ptr<brig::database::rowset> layer_raster::attributes(const frame& fr
 
 std::shared_ptr<brig::database::rowset> layer_raster::drawing(const frame& fr, bool limited)
 {
-  if (int(fr.get_epsg()) != int(get_epsg())) throw std::runtime_error("projection error");
   size_t level(get_level(fr));
   auto tbl(get_table_definition(level));
   for (size_t i(0); i < tbl.columns.size(); ++i)
@@ -104,8 +118,40 @@ std::shared_ptr<brig::database::rowset> layer_raster::drawing(const frame& fr, b
 void layer_raster::draw(const std::vector<brig::database::variant>& row, const frame& fr, QPainter& painter)
 {
   if (row.size() < 2 || row[0].type() != typeid(brig::blob_t) || row[1].type() != typeid(brig::blob_t)) return;
-  brig::blob_t g(boost::get<brig::blob_t>(row[0])), r(boost::get<brig::blob_t>(row[1]));
-  QRectF rect(proj_to_pixel(box_to_rect(brig::boost::envelope(brig::boost::geom_from_wkb(g))), fr));
-  QImage img;
-  if (img.loadFromData(r.data(), uint(r.size()))) painter.drawImage(rect.toAlignedRect(), img);
+  const brig::blob_t g(boost::get<brig::blob_t>(row[0]));
+  const brig::blob_t r(boost::get<brig::blob_t>(row[1]));
+  const QRectF rect_rast(box_to_rect(brig::boost::envelope(brig::boost::geom_from_wkb(g))));
+  QImage img_rast;
+  if (!img_rast.loadFromData(r.data(), uint(r.size()))) return;
+  const brig::proj::epsg epsg_rast(get_epsg());
+  const brig::proj::epsg epsg_fr(fr.get_epsg());
+
+  if (int(epsg_rast) == int(epsg_fr))
+    painter.drawImage(proj_to_pixel(rect_rast, fr).toAlignedRect(), img_rast);
+  else
+  {
+    const QRectF rect_fr(transform(rect_rast, epsg_rast, epsg_fr));
+    const QRect rect_fr_px(proj_to_pixel(fr.prepare_rect().intersect(rect_fr), fr).toAlignedRect());
+    if (!rect_fr_px.isValid()) return;
+    QImage img_fr(rect_fr_px.size(), QImage::Format_ARGB32_Premultiplied);
+    {
+      QPainter painter_fr(&img_fr);
+      painter_fr.eraseRect(img_fr.rect());
+    }
+
+    for (int j(0); j < img_fr.height(); ++j)
+      for (int i(0); i < img_fr.width(); ++i)
+      {
+        const QPointF point_fr(fr.pixel_to_proj(rect_fr_px.topLeft() + QPoint(i, j)));
+        const QPointF point_rast(transform(point_fr, epsg_fr, epsg_rast));
+        if (!rect_rast.contains(point_rast)) continue;
+
+        const double dx((point_rast.x() - rect_rast.left()) / rect_rast.width());
+        const double dy((point_rast.y() - rect_rast.top()) / rect_rast.height());
+
+        QRgb rgb(img_rast.pixel(int(dx * img_rast.width()), int((1 - dy) * img_rast.height())));
+        img_fr.setPixel(i, j, rgb);
+      }
+    painter.drawImage(rect_fr_px, img_fr);
+  }
 }

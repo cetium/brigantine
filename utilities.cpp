@@ -41,7 +41,7 @@ QRectF transform(const QRectF& rect, const brig::proj::epsg& from, const brig::p
 {
   if (int(from) == int(to)) return rect;
 
-  static const int Partition = 20;
+  static const int Partition = 32;
   const double step_x(rect.width() / double(Partition));
   const double step_y(rect.height() / double(Partition));
   std::vector<double> points_xy;
