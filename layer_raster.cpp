@@ -134,23 +134,20 @@ void layer_raster::draw(const std::vector<brig::database::variant>& row, const f
     const QRect rect_fr_px(proj_to_pixel(fr.prepare_rect().intersect(rect_fr), fr).toAlignedRect());
     if (!rect_fr_px.isValid()) return;
     QImage img_fr(rect_fr_px.size(), QImage::Format_ARGB32_Premultiplied);
-    {
-      QPainter painter_fr(&img_fr);
-      painter_fr.eraseRect(img_fr.rect());
-    }
-
     for (int j(0); j < img_fr.height(); ++j)
       for (int i(0); i < img_fr.width(); ++i)
       {
         const QPointF point_fr(fr.pixel_to_proj(rect_fr_px.topLeft() + QPoint(i, j)));
         const QPointF point_rast(transform(point_fr, epsg_fr, epsg_rast));
-        if (!rect_rast.contains(point_rast)) continue;
-
-        const double dx((point_rast.x() - rect_rast.left()) / rect_rast.width());
-        const double dy((point_rast.y() - rect_rast.top()) / rect_rast.height());
-
-        QRgb rgb(img_rast.pixel(int(dx * img_rast.width()), int((1 - dy) * img_rast.height())));
-        img_fr.setPixel(i, j, rgb);
+        if (rect_rast.contains(point_rast))
+        {
+          const double dx((point_rast.x() - rect_rast.left()) / rect_rast.width());
+          const double dy((point_rast.y() - rect_rast.top()) / rect_rast.height());
+          QRgb rgb(img_rast.pixel(int(dx * img_rast.width()), int((1 - dy) * img_rast.height())));
+          img_fr.setPixel(i, j, rgb);
+        }
+        else
+          img_fr.setPixel(i, j, QColor(0, 0, 0, 0).rgba());
       }
     painter.drawImage(rect_fr_px, img_fr);
   }
