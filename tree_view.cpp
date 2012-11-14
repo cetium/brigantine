@@ -52,11 +52,11 @@ tree_view::tree_view(QWidget* parent) : QTreeView(parent)
   m_open_sqlite_act->setIconVisibleInMenu(true);
   connect(m_open_sqlite_act, SIGNAL(triggered()), this, SLOT(on_open_sqlite()));
 
-  m_new_sqlite_act = new QAction(QIcon(":/res/add_folder.png"), "new SQLite file", this);
+  m_new_sqlite_act = new QAction(QIcon(":/res/new_file.png"), "new SQLite file", this);
   m_new_sqlite_act->setIconVisibleInMenu(true);
   connect(m_new_sqlite_act, SIGNAL(triggered()), this, SLOT(on_new_sqlite()));
 
-  m_copy_shp_act = new QAction(QIcon(":/res/shp.png"), "copy shapefile", this);
+  m_copy_shp_act = new QAction(QIcon(":/res/esri.png"), "copy shapefile", this);
   m_copy_shp_act->setIconVisibleInMenu(true);
   connect(m_copy_shp_act, SIGNAL(triggered()), this, SLOT(on_copy_shp()));
 
@@ -214,14 +214,14 @@ void tree_view::on_new_sqlite()
     if (!dlg.exec()) return;
     settings.setValue(QString("%1/%2").arg(SettingsSQLite).arg(SettingsPath), dlg.directory().absolutePath());
     wait_cursor w;
-    QFileInfo file(dlg.selectedFiles().value(0));
-    if (file.exists() && !QFile::remove(file.filePath()))
+    QFileInfo info(dlg.selectedFiles().value(0));
+    if (info.suffix().isEmpty()) info = QFileInfo(info.dir(), info.fileName() + ".sqlite");
+    if (info.exists() && !QFile::remove(info.filePath()))
     {
       show_message("file removing error");
       return;
     }
-    if (file.suffix().isEmpty()) file = QFileInfo(file.dir(), file.fileName() + ".sqlite");
-    m_mdl.connect_sqlite(file.filePath(), true);
+    m_mdl.connect_sqlite(info.filePath(), true);
   }
   catch (const std::exception& e)  { show_message(e.what()); }
 }

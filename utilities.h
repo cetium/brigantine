@@ -29,7 +29,7 @@ brig::proj::epsg get_epsg(int code);
 inline brig::proj::epsg latlon()  { return get_epsg(4326); }
 QRectF world(const brig::proj::epsg& epsg);
 
-QString rich_text(const QString& icon, const QString& text);
+QString rich_text(const QString& icon, const QString& text, bool icon_suffix);
 QString to_string(size_t num);
 void show_message(const char* msg);
 std::string get_table_name(const std::string& tbl, size_t level);

@@ -10,6 +10,7 @@ const char SettingsODBC[] = "ODBC";
 const char SettingsOracle[] = "Oracle";
 const char SettingsPostgres[] = "Postgres";
 const char SettingsShapefile[] = "shapefile";
+const char SettingsSQL[] = "SQLite";
 const char SettingsSQLite[] = "SQLite";
 
 const char SettingsCharset[] = "charset";

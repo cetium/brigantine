@@ -23,7 +23,6 @@
 #include "layer_raster.h"
 #include "task_create.h"
 #include "task_drop.h"
-#include "task_exec.h"
 #include "task_insert.h"
 #include "task_mbr.h"
 #include "task_proj.h"

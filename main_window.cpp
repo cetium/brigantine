@@ -50,19 +50,19 @@ main_window::main_window()
   m_pos_stat = new QLabel;
   m_pos_stat->setDisabled(true);
   m_pos_stat->setTextFormat(Qt::RichText);
-  m_pos_stat->setText(rich_text(":/res/globe_disabled.png", ""));
+  m_pos_stat->setText(rich_text(":/res/globe_disabled.png", "", false));
   status_bar->addWidget(m_pos_stat);
 
   m_map_stat = new QLabel;
   m_map_stat->setDisabled(true);
   m_map_stat->setTextFormat(Qt::RichText);
-  m_map_stat->setText(rich_text(":/res/map_disabled.png", ""));
+  m_map_stat->setText(rich_text(":/res/map_disabled.png", "", true));
   status_bar->addPermanentWidget(m_map_stat);
 
   m_sql_stat = new QLabel;
   m_sql_stat->setDisabled(true);
   m_sql_stat->setTextFormat(Qt::RichText);
-  m_sql_stat->setText(rich_text(":/res/sql_disabled.png", ""));
+  m_sql_stat->setText(rich_text(":/res/sql_disabled.png", "", true));
   status_bar->addPermanentWidget(m_sql_stat);
 
   setCentralWidget(splitter);
@@ -131,7 +131,7 @@ void main_window::on_map_scene(brig::proj::epsg pj)
 void main_window::on_map_coords(QString msg)
 {
   m_pos_stat->setDisabled(msg.isEmpty());
-  m_pos_stat->setText(rich_text(msg.isEmpty()? ":/res/globe_disabled.png": ":/res/globe.png", msg));
+  m_pos_stat->setText(rich_text(msg.isEmpty()? ":/res/globe_disabled.png": ":/res/globe.png", msg, false));
 }
 
 QString status(const QTime& time, QString msg)
@@ -146,40 +146,40 @@ QString status(const QTime& time, QString msg)
 
 void main_window::on_map_start()
 {
-  m_map_msg = "0";
+  m_map_msg = "";
   m_map_time.restart();
   m_map_stat->setEnabled(true);
-  m_map_stat->setText(rich_text(":/res/map.png", status(m_map_time, m_map_msg)));
+  m_map_stat->setText(rich_text(":/res/map.png", "", true));
   m_map_stat->setToolTip("");
 }
 
 void main_window::on_map_idle()
 {
   m_map_stat->setDisabled(true);
-  m_map_stat->setText(rich_text(":/res/map_disabled.png", status(m_map_time, m_map_msg)));
+  m_map_stat->setText(rich_text(":/res/map_disabled.png", status(m_map_time, m_map_msg), true));
   m_map_stat->setToolTip(m_map_msg);
 }
 
 void main_window::on_sql_start()
 {
-  m_sql_msg = "0";
+  m_sql_msg = "";
   m_sql_time.restart();
   m_sql_stat->setEnabled(true);
-  m_sql_stat->setText(rich_text(":/res/sql.png", status(m_sql_time, m_sql_msg)));
+  m_sql_stat->setText(rich_text(":/res/sql.png", "", true));
   m_sql_stat->setToolTip("");
 }
 
 void main_window::on_sql_idle()
 {
   m_sql_stat->setDisabled(true);
-  m_sql_stat->setText(rich_text(":/res/sql_disabled.png", status(m_sql_time, m_sql_msg)));
+  m_sql_stat->setText(rich_text(":/res/sql_disabled.png", status(m_sql_time, m_sql_msg), true));
   m_sql_stat->setToolTip(m_sql_msg);
 }
 
 void main_window::timerEvent(QTimerEvent*)
 {
-  if (m_map_stat->isEnabled()) m_map_stat->setText(rich_text(":/res/map.png", status(m_map_time, m_map_msg)));
-  if (m_sql_stat->isEnabled()) m_sql_stat->setText(rich_text(":/res/sql.png", status(m_sql_time, m_sql_msg)));
+  if (m_map_stat->isEnabled()) m_map_stat->setText(rich_text(":/res/map.png", status(m_map_time, m_map_msg), true));
+  if (m_sql_stat->isEnabled()) m_sql_stat->setText(rich_text(":/res/sql.png", status(m_sql_time, m_sql_msg), true));
 }
 
 void main_window::on_show_stat_menu(QPoint point)

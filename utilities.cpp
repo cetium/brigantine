@@ -102,9 +102,12 @@ QRectF world(const brig::proj::epsg& epsg)
   return transform(QRectF(QPointF(-180, -90), QPointF(180, 90)), latlon(), epsg);
 }
 
-QString rich_text(const QString& icon, const QString& text)
+QString rich_text(const QString& icon, const QString& text, bool icon_suffix)
 {
-  return "<img src=\"" + icon + "\" width=\"16\" height=\"16\"/> " + text;
+  if (icon_suffix)
+    return text + " <img src=\"" + icon + "\" width=\"16\" height=\"16\"/> ";
+  else
+    return " <img src=\"" + icon + "\" width=\"16\" height=\"16\"/> " + text;
 }
 
 QString to_string(size_t num)

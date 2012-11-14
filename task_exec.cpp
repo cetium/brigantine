@@ -1,20 +1,15 @@
 // Andrew Naplavkov
 
 #include "connection.h"
-#include "progress.h"
 #include "task_exec.h"
 
-task_exec::task_exec(connection_link dbc, const std::vector<std::string>& sqls) : m_dbc(dbc), m_sqls(sqls)  {}
+task_exec::task_exec(connection_link dbc, const std::string& sql) : m_dbc(dbc), m_sql(sql)
+{
+}
 
-void task_exec::run(progress* prg)
+void task_exec::run(progress*)
 {
   auto cmd(m_dbc->get_command());
-  size_t counter(0);
-  for (auto sql(std::begin(m_sqls)); sql != std::end(m_sqls); ++sql)
-  {
-    cmd->exec(*sql);
-    counter += cmd->affected();
-    if (!prg->step(counter)) return;
-  }
+  cmd->exec_batch(m_sql);
   emit signal_refresh(m_dbc);
 }

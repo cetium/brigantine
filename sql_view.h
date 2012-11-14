@@ -19,7 +19,7 @@ class sql_view : public QWidget {
   sql_thread m_trd;
   connection_link m_dbc;
   QLabel* m_title;
-  QAction *m_info, *m_fetch, *m_run, *m_cancel;
+  QAction *m_open, *m_save, *m_fetch, *m_run, *m_cancel, *m_info;
   QTextEdit *m_sql;
 
 private slots:
@@ -28,7 +28,9 @@ private slots:
   void on_fetch();
   void on_idle();
   void on_info();
+  void on_open();
   void on_run();
+  void on_save();
   void on_start();
 
 public slots:
