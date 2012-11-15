@@ -54,8 +54,8 @@ void task_insert::run(layer_link lr_from, layer_link lr_to, const std::vector<in
       item.column = int(params.size());
       if (col_from->epsg != col_to->epsg)
       {
-        item.pj_from = get_epsg(col_from->epsg);
-        item.pj_to = get_epsg(col_to->epsg);
+        item.pj_from = get_pj(col_from->epsg);
+        item.pj_to = get_pj(col_to->epsg);
         reproject_items.push_back(item);
       }
 

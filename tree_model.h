@@ -3,7 +3,7 @@
 #ifndef TREE_MODEL_H
 #define TREE_MODEL_H
 
-#include <brig/proj/epsg.hpp>
+#include <brig/proj/shared_pj.hpp>
 #include <memory>
 #include <QAbstractItemModel>
 #include <QModelIndex>
@@ -26,14 +26,14 @@ class tree_model : public QAbstractItemModel {
 
 private slots:
   void emit_commands(connection_link dbc, std::vector<std::string> sqls)  { emit signal_commands(dbc, sqls); }
-  void emit_proj(brig::proj::epsg pj)  { emit signal_proj(pj); }
-  void emit_view(QRectF rect, brig::proj::epsg pj)  { emit signal_view(rect, pj); }
+  void emit_proj(brig::proj::shared_pj pj)  { emit signal_proj(pj); }
+  void emit_view(QRectF rect, brig::proj::shared_pj pj)  { emit signal_view(rect, pj); }
   void on_refresh(connection_link dbc);
 
 signals:
   void signal_layers(std::vector<layer_link> lrs);
-  void signal_view(QRectF rect, brig::proj::epsg pj);
-  void signal_proj(brig::proj::epsg pj);
+  void signal_view(QRectF rect, brig::proj::shared_pj pj);
+  void signal_proj(brig::proj::shared_pj pj);
   void signal_commands(connection_link dbc, std::vector<std::string> sqls);
   void signal_task(std::shared_ptr<task> tsk);
   void signal_disconnect(connection_link dbc);

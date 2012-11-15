@@ -40,14 +40,14 @@ map_view::map_view(QWidget* parent) : QWidget(parent)
   try
   {
     m_view_fr = frame(QPointF(0, 0), 1, QSize(360, 180), latlon());
-    on_view(world(m_view_fr.get_epsg()), m_view_fr.get_epsg());
+    on_view(world(m_view_fr.get_pj()), m_view_fr.get_pj());
   }
   catch (const std::exception&)  {}
 }
 
 void map_view::paintEvent(QPaintEvent*)
 {
-  if (m_pix.isNull() || int(m_view_fr.get_epsg()) != int(m_pix_fr.get_epsg())) return;
+  if (m_pix.isNull() || !(m_view_fr.get_pj() == m_pix_fr.get_pj())) return;
 
   QPainter painter(this);
   if (m_view_fr == m_pix_fr)
@@ -75,7 +75,7 @@ void map_view::resizeEvent(QResizeEvent* event)
   if (m_view_fr.size() == event->size()) return;
   try
   {
-    m_view_fr = frame(m_view_fr.center(), m_view_fr.scale(), event->size(), m_view_fr.get_epsg());
+    m_view_fr = frame(m_view_fr.center(), m_view_fr.scale(), event->size(), m_view_fr.get_pj());
     render();
   }
   catch (const std::exception&)  {}
@@ -102,7 +102,7 @@ void map_view::keyPressEvent(QKeyEvent* event)
   case Qt::Key_Home:
     try
     {
-      brig::proj::epsg pj(latlon());
+      brig::proj::shared_pj pj(latlon());
       on_proj(pj);
       on_view(world(pj), pj);
     }
@@ -122,7 +122,7 @@ void map_view::wheelEvent(QWheelEvent* event)
     const double zoom_factor(pow(ZoomInFactor, num_steps));
     const double scale(m_view_fr.scale() * zoom_factor);
     QPointF center(m_view_fr.center() - QPointF((pos - m_view_fr.center()) * (zoom_factor - 1)));
-    m_view_fr = frame(center, scale, m_view_fr.size(), m_view_fr.get_epsg());
+    m_view_fr = frame(center, scale, m_view_fr.size(), m_view_fr.get_pj());
     update();
     render();
   }
@@ -144,20 +144,20 @@ void map_view::mouseMoveEvent(QMouseEvent* event)
   {
     try
     {
-      frame view_fr(m_press_center, m_view_fr.scale(), m_view_fr.size(), m_view_fr.get_epsg());
+      frame view_fr(m_press_center, m_view_fr.scale(), m_view_fr.size(), m_view_fr.get_pj());
       const QPointF press(view_fr.pixel_to_proj(m_press_event));
       const QPointF pos(view_fr.pixel_to_proj(event->pos()));
-      m_view_fr = frame(m_press_center + press - pos, m_view_fr.scale(), m_view_fr.size(), m_view_fr.get_epsg());
+      m_view_fr = frame(m_press_center + press - pos, m_view_fr.scale(), m_view_fr.size(), m_view_fr.get_pj());
       update();
     }
     catch (const std::exception&)  {}
   }
-  else if (int(m_view_fr.get_epsg()) >= 0)
+  else if (projPJ(m_view_fr.get_pj()) != 0)
   {
     QString x, y, res;
     try
     {
-      const QPointF point(transform(m_view_fr.pixel_to_proj(event->pos()), m_view_fr.get_epsg(), latlon()));
+      const QPointF point(transform(m_view_fr.pixel_to_proj(event->pos()), m_view_fr.get_pj(), latlon()));
       if (point.x() > -180 && point.x() < 180 && point.y() > -90 && point.y() < 90)
       {
         x.setNum(point.x(), 'f', 4);
@@ -175,10 +175,10 @@ void map_view::mouseReleaseEvent(QMouseEvent* event)
   if (event->button() != Qt::LeftButton) return;
   try
   {
-    frame view_fr(m_press_center, m_view_fr.scale(), m_view_fr.size(), m_view_fr.get_epsg());
+    frame view_fr(m_press_center, m_view_fr.scale(), m_view_fr.size(), m_view_fr.get_pj());
     const QPointF press(view_fr.pixel_to_proj(m_press_event));
     const QPointF pos(view_fr.pixel_to_proj(event->pos()));
-    m_view_fr = frame(m_press_center + press - pos, m_view_fr.scale(), m_view_fr.size(), m_view_fr.get_epsg());
+    m_view_fr = frame(m_press_center + press - pos, m_view_fr.scale(), m_view_fr.size(), m_view_fr.get_pj());
     update();
     if (m_press_event != event->pos()) render();
   }
@@ -189,7 +189,7 @@ void map_view::zoom(double zoom_factor)
 {
   try
   {
-    m_view_fr = frame(m_view_fr.center(), m_view_fr.scale() * zoom_factor, m_view_fr.size(), m_view_fr.get_epsg());
+    m_view_fr = frame(m_view_fr.center(), m_view_fr.scale() * zoom_factor, m_view_fr.size(), m_view_fr.get_pj());
     update();
     render();
   }
@@ -200,7 +200,7 @@ void map_view::scroll(int delta_x, int delta_y)
 {
   try
   {
-    m_view_fr = frame(m_view_fr.center() + QPointF(delta_x * m_view_fr.scale(), delta_y * m_view_fr.scale()), m_view_fr.scale(), m_view_fr.size(), m_view_fr.get_epsg());
+    m_view_fr = frame(m_view_fr.center() + QPointF(delta_x * m_view_fr.scale(), delta_y * m_view_fr.scale()), m_view_fr.scale(), m_view_fr.size(), m_view_fr.get_pj());
     update();
     render();
   }
@@ -212,49 +212,49 @@ void map_view::on_layers(std::vector<layer_link> lrs)
   m_lrs = lrs;
   update();
   render();
-  emit signal_scene(m_view_fr.get_epsg());
+  emit signal_scene(m_view_fr.get_pj());
 }
 
-void map_view::on_view(QRectF rect, brig::proj::epsg pj)
+void map_view::on_view(QRectF rect, brig::proj::shared_pj pj)
 {
   try
   {
     if (size().width() == 0 || size().height() == 0 || !rect.isValid()) return;
-    const QRectF box(proj_to_pixel(transform(rect, pj, m_view_fr.get_epsg()), m_view_fr));
+    const QRectF box(proj_to_pixel(transform(rect, pj, m_view_fr.get_pj()), m_view_fr));
     const double zoom_factor(std::max<>(box.width() / size().width(), box.height() / size().height()));
     const double scale(m_view_fr.scale() * zoom_factor * (1. + DBL_EPSILON)); // "zoom to fit" workaround
     const QPointF center(m_view_fr.pixel_to_proj(box.center()));
 
-    frame view_fr(center, scale, m_view_fr.size(), m_view_fr.get_epsg());
+    frame view_fr(center, scale, m_view_fr.size(), m_view_fr.get_pj());
     if (view_fr == m_view_fr) return;
     m_view_fr = view_fr;
 
     update();
     render();
-    emit signal_scene(m_view_fr.get_epsg());
+    emit signal_scene(m_view_fr.get_pj());
   }
   catch (const std::exception&)  {}
 }
 
-void map_view::on_proj(brig::proj::epsg pj)
+void map_view::on_proj(brig::proj::shared_pj pj)
 {
   try
   {
-    if (int(pj) == int(m_view_fr.get_epsg())) return;
-    const QRectF rect1(pixel_to_proj(QRectF(QPointF(), m_view_fr.size()), m_view_fr).intersect(world(m_view_fr.get_epsg())));
+    if (pj == m_view_fr.get_pj()) return;
+    const QRectF rect1(pixel_to_proj(QRectF(QPointF(), m_view_fr.size()), m_view_fr).intersect(world(m_view_fr.get_pj())));
     if (!rect1.isValid()) return;
-    const QRectF rect2(transform(rect1, m_view_fr.get_epsg(), pj).intersect(world(pj)));
+    const QRectF rect2(transform(rect1, m_view_fr.get_pj(), pj).intersect(world(pj)));
     if (!rect2.isValid()) return;
     const double zoom_factor(std::min<>(rect2.width() / rect1.width(), rect2.height() / rect1.height()));
     const double scale(m_view_fr.scale() * zoom_factor);
-    const QPointF center(transform(m_view_fr.center(), m_view_fr.get_epsg(), pj));
+    const QPointF center(transform(m_view_fr.center(), m_view_fr.get_pj(), pj));
 
     m_pix = QPixmap();
     m_view_fr = frame(center, scale, m_view_fr.size(), pj);
 
     update();
     render();
-    emit signal_scene(m_view_fr.get_epsg());
+    emit signal_scene(m_view_fr.get_pj());
   }
   catch (const std::exception&)  {}
 }

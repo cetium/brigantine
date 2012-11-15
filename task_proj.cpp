@@ -7,7 +7,7 @@
 
 void task_proj::run(progress* prg)
 {
-  brig::proj::epsg pj(m_lr->get_epsg());
+  brig::proj::shared_pj pj(m_lr->get_pj());
   if (!prg->step()) return;
   emit signal_proj(pj);
 }

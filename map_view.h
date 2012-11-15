@@ -48,15 +48,15 @@ private slots:
 public slots:
   void on_attributes(layer_link lr);
   void on_layers(std::vector<layer_link> lrs);
-  void on_proj(brig::proj::epsg pj);
-  void on_view(QRectF rect, brig::proj::epsg pj);
+  void on_proj(brig::proj::shared_pj pj);
+  void on_view(QRectF rect, brig::proj::shared_pj pj);
 
 signals:
   void signal_start();
   void signal_process(QString msg);
   void signal_idle();
   void signal_coords(QString msg);
-  void signal_scene(brig::proj::epsg pj);
+  void signal_scene(brig::proj::shared_pj pj);
   void signal_commands(connection_link dbc, std::vector<std::string> sqls);
   void signal_task(std::shared_ptr<task> tsk);
 

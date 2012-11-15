@@ -4,7 +4,7 @@
 #define UTILITIES_H
 
 #include <brig/boost/geometry.hpp>
-#include <brig/proj/epsg.hpp>
+#include <brig/proj/shared_pj.hpp>
 #include <QApplication>
 #include <QCursor>
 #include <QRectF>
@@ -22,12 +22,13 @@ brig::boost::box rect_to_box(const QRectF& rect);
 
 QRectF proj_to_pixel(const QRectF& rect, const frame& fr);
 QRectF pixel_to_proj(const QRectF& rect, const frame& fr);
-QRectF transform(const QRectF& rect, const brig::proj::epsg& from, const brig::proj::epsg& to);
-QPointF transform(const QPointF& point, const brig::proj::epsg& from, const brig::proj::epsg& to);
+QRectF transform(const QRectF& rect, const brig::proj::shared_pj& from, const brig::proj::shared_pj& to);
+QPointF transform(const QPointF& point, const brig::proj::shared_pj& from, const brig::proj::shared_pj& to);
 
-brig::proj::epsg get_epsg(int code);
-inline brig::proj::epsg latlon()  { return get_epsg(4326); }
-QRectF world(const brig::proj::epsg& epsg);
+brig::proj::shared_pj get_pj(int epsg);
+int get_epsg(const brig::proj::shared_pj& pj);
+inline brig::proj::shared_pj latlon()  { return get_pj(4326); }
+QRectF world(const brig::proj::shared_pj& pj);
 
 QString rich_text(const QString& icon, const QString& text, bool icon_suffix);
 QString to_string(size_t num);

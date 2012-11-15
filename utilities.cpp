@@ -37,9 +37,9 @@ QRectF pixel_to_proj(const QRectF& rect, const frame& fr)
 
 bool not_huge(double val)  { return -HUGE_VAL < val && val < HUGE_VAL; }
 
-QRectF transform(const QRectF& rect, const brig::proj::epsg& from, const brig::proj::epsg& to)
+QRectF transform(const QRectF& rect, const brig::proj::shared_pj& from, const brig::proj::shared_pj& to)
 {
-  if (int(from) == int(to)) return rect;
+  if (from == to) return rect;
 
   static const int Partition = 32;
   const double step_x(rect.width() / double(Partition));
@@ -71,9 +71,9 @@ QRectF transform(const QRectF& rect, const brig::proj::epsg& from, const brig::p
     );
 }
 
-QPointF transform(const QPointF& point, const brig::proj::epsg& from, const brig::proj::epsg& to)
+QPointF transform(const QPointF& point, const brig::proj::shared_pj& from, const brig::proj::shared_pj& to)
 {
-  if (int(from) == int(to)) return point;
+  if (from == to) return point;
 
   double xy[2];
   xy[0] = point.x();
@@ -82,24 +82,32 @@ QPointF transform(const QPointF& point, const brig::proj::epsg& from, const brig
   return QPointF(xy[0], xy[1]);
 }
 
-brig::proj::epsg get_epsg(int code)
-{
-  static QMutex s_mtx;
-  static std::map<int, brig::proj::epsg> s_collection;
+static QMutex s_mtx;
+static std::map<int, brig::proj::shared_pj> s_collection;
 
+brig::proj::shared_pj get_pj(int epsg)
+{
   QMutexLocker locker(&s_mtx);
-  auto iter(s_collection.find(code));
+  auto iter(s_collection.find(epsg));
   if (iter == std::end(s_collection))
   {
-    s_collection.insert(std::pair<int, brig::proj::epsg>(code, brig::proj::epsg(code)));
-    iter = s_collection.find(code);
+    s_collection.insert(std::pair<int, brig::proj::shared_pj>(epsg, brig::proj::shared_pj(epsg)));
+    iter = s_collection.find(epsg);
   }
   return iter->second;
 }
 
-QRectF world(const brig::proj::epsg& epsg)
+int get_epsg(const brig::proj::shared_pj& pj)
 {
-  return transform(QRectF(QPointF(-180, -90), QPointF(180, 90)), latlon(), epsg);
+  QMutexLocker locker(&s_mtx);
+  for (auto iter(std::begin(s_collection)); iter != std::end(s_collection); ++iter)
+    if (pj == iter->second) return iter->first;
+  return -1;
+}
+
+QRectF world(const brig::proj::shared_pj& pj)
+{
+  return transform(QRectF(QPointF(-180, -90), QPointF(180, 90)), latlon(), pj);
 }
 
 QString rich_text(const QString& icon, const QString& text, bool icon_suffix)

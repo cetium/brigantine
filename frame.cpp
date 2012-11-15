@@ -4,7 +4,7 @@
 #include "frame.h"
 #include "utilities.h"
 
-frame::frame(const QPointF& center, qreal scale, const QSize& size, const brig::proj::epsg& pj)
+frame::frame(const QPointF& center, qreal scale, const QSize& size, const brig::proj::shared_pj& pj)
   : brig::qt::frame(center, scale, size)
   , m_pj(pj)
 {

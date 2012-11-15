@@ -54,16 +54,16 @@ size_t layer_raster::get_level(const frame& fr)
 {
   using namespace std;
 
-  const brig::proj::epsg epsg_rast(get_epsg());
-  const brig::proj::epsg epsg_fr(fr.get_epsg());
+  const brig::proj::shared_pj pj_rast(get_pj());
+  const brig::proj::shared_pj pj_fr(fr.get_pj());
   double scale(1);
-  if (int(epsg_rast) == int(epsg_fr))
+  if (pj_rast == pj_fr)
     scale = fr.scale();
   else
   {
-    const QRectF rect1(pixel_to_proj(QRectF(QPointF(), fr.size()), fr).intersect(world(epsg_fr)));
+    const QRectF rect1(pixel_to_proj(QRectF(QPointF(), fr.size()), fr).intersect(world(pj_fr)));
     if (!rect1.isValid()) return m_raster.levels.size() - 1;
-    const QRectF rect2(transform(rect1, epsg_fr, epsg_rast).intersect(world(epsg_rast)));
+    const QRectF rect2(transform(rect1, pj_fr, pj_rast).intersect(world(pj_rast)));
     if (!rect2.isValid()) return m_raster.levels.size() - 1;
     const double zoom_factor(std::min<>(rect2.width() / rect1.width(), rect2.height() / rect1.height()));
     scale = fr.scale() * zoom_factor;
@@ -123,14 +123,14 @@ void layer_raster::draw(const std::vector<brig::database::variant>& row, const f
   const QRectF rect_rast(box_to_rect(brig::boost::envelope(brig::boost::geom_from_wkb(g))));
   QImage img_rast;
   if (!img_rast.loadFromData(r.data(), uint(r.size()))) return;
-  const brig::proj::epsg epsg_rast(get_epsg());
-  const brig::proj::epsg epsg_fr(fr.get_epsg());
+  const brig::proj::shared_pj pj_rast(get_pj());
+  const brig::proj::shared_pj pj_fr(fr.get_pj());
 
-  if (int(epsg_rast) == int(epsg_fr))
+  if (pj_rast == pj_fr)
     painter.drawImage(proj_to_pixel(rect_rast, fr).toAlignedRect(), img_rast);
   else
   {
-    const QRectF rect_fr(transform(rect_rast, epsg_rast, epsg_fr));
+    const QRectF rect_fr(transform(rect_rast, pj_rast, pj_fr));
     const QRect rect_fr_px(proj_to_pixel(fr.prepare_rect().intersect(rect_fr), fr).toAlignedRect());
     if (!rect_fr_px.isValid()) return;
     QImage img_fr(rect_fr_px.size(), QImage::Format_ARGB32_Premultiplied);
@@ -138,7 +138,7 @@ void layer_raster::draw(const std::vector<brig::database::variant>& row, const f
       for (int i(0); i < img_fr.width(); ++i)
       {
         const QPointF point_fr(fr.pixel_to_proj(rect_fr_px.topLeft() + QPoint(i, j)));
-        const QPointF point_rast(transform(point_fr, epsg_fr, epsg_rast));
+        const QPointF point_rast(transform(point_fr, pj_fr, pj_rast));
         if (rect_rast.contains(point_rast))
         {
           const double dx((point_rast.x() - rect_rast.left()) / rect_rast.width());

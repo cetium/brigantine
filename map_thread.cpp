@@ -93,7 +93,7 @@ void map_thread::run()
     m_mutex.unlock();
 
     std::sort(std::begin(lrs), std::end(lrs), [](const layer_link& a, const layer_link& b){ return a.m_order < b.m_order; });
-    if (int(fr.get_epsg()) < 0) return;
+    if (projPJ(fr.get_pj()) == 0) return;
     if (m_abort) return;
     emit signal_start();
 

@@ -3,7 +3,7 @@
 #ifndef LAYER_H
 #define LAYER_H
 
-#include <brig/proj/epsg.hpp>
+#include <brig/proj/shared_pj.hpp>
 #include <memory>
 #include <QPainter>
 #include <QString>
@@ -44,9 +44,9 @@ public:
   virtual void draw(const std::vector<brig::database::variant>& row, const frame& fr, QPainter& painter) = 0;
 
   QString get_string();
-  brig::proj::epsg get_epsg();
-  bool try_epsg(brig::proj::epsg& pj);
-  bool try_view(brig::boost::box& box, brig::proj::epsg& pj);
+  brig::proj::shared_pj get_pj();
+  bool try_pj(brig::proj::shared_pj& pj);
+  bool try_view(brig::boost::box& box, brig::proj::shared_pj& pj);
 }; // layer
 
 #endif // LAYER_H

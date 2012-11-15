@@ -86,14 +86,14 @@ main_window::main_window()
   splitter->setSizes(sizes);
 
   qRegisterMetaType<connection_link>("connection_link");
-  qRegisterMetaType<brig::proj::epsg>("brig::proj::epsg");
+  qRegisterMetaType<brig::proj::shared_pj>("brig::proj::shared_pj");
   qRegisterMetaType<std::shared_ptr<task>>("std::shared_ptr<task>");
   qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
   qRegisterMetaType<std::vector<layer_link>>("std::vector<layer_link>");
   connect(tree, SIGNAL(signal_attributes(layer_link)), map, SLOT(on_attributes(layer_link)));
   connect(tree, SIGNAL(signal_layers(std::vector<layer_link>)), map, SLOT(on_layers(std::vector<layer_link>)));
-  connect(tree, SIGNAL(signal_proj(brig::proj::epsg)), map, SLOT(on_proj(brig::proj::epsg)));
-  connect(tree, SIGNAL(signal_view(QRectF, brig::proj::epsg)), map, SLOT(on_view(QRectF, brig::proj::epsg)));
+  connect(tree, SIGNAL(signal_proj(brig::proj::shared_pj)), map, SLOT(on_proj(brig::proj::shared_pj)));
+  connect(tree, SIGNAL(signal_view(QRectF, brig::proj::shared_pj)), map, SLOT(on_view(QRectF, brig::proj::shared_pj)));
   connect
     ( tree, SIGNAL(signal_commands(connection_link, std::vector<std::string>))
     , sql, SLOT(on_commands(connection_link, std::vector<std::string>))
@@ -108,7 +108,7 @@ main_window::main_window()
   connect(map, SIGNAL(signal_process(QString)), this, SLOT(on_map_process(QString)));
   connect(map, SIGNAL(signal_idle()), this, SLOT(on_map_idle()));
   connect(map, SIGNAL(signal_coords(QString)), this, SLOT(on_map_coords(QString)));
-  connect(map, SIGNAL(signal_scene(brig::proj::epsg)), this, SLOT(on_map_scene(brig::proj::epsg)));
+  connect(map, SIGNAL(signal_scene(brig::proj::shared_pj)), this, SLOT(on_map_scene(brig::proj::shared_pj)));
   connect
     ( map, SIGNAL(signal_commands(connection_link, std::vector<std::string>))
     , sql, SLOT(on_commands(connection_link, std::vector<std::string>))
@@ -122,10 +122,10 @@ main_window::main_window()
   startTimer(100);
 }
 
-void main_window::on_map_scene(brig::proj::epsg pj)
+void main_window::on_map_scene(brig::proj::shared_pj pj)
 {
   m_tab->setCurrentIndex(m_map_tab);
-  setWindowTitle("brigantine , " + QString().setNum(int(pj)));
+  setWindowTitle("brigantine , " + QString().setNum(get_epsg(pj)));
 }
 
 void main_window::on_map_coords(QString msg)
@@ -148,9 +148,8 @@ void main_window::on_map_start()
 {
   m_map_msg = "";
   m_map_time.restart();
-  m_map_stat->setEnabled(true);
-  m_map_stat->setText(rich_text(":/res/map.png", "", true));
   m_map_stat->setToolTip("");
+  m_map_stat->setEnabled(true);
 }
 
 void main_window::on_map_idle()
@@ -164,9 +163,8 @@ void main_window::on_sql_start()
 {
   m_sql_msg = "";
   m_sql_time.restart();
-  m_sql_stat->setEnabled(true);
-  m_sql_stat->setText(rich_text(":/res/sql.png", "", true));
   m_sql_stat->setToolTip("");
+  m_sql_stat->setEnabled(true);
 }
 
 void main_window::on_sql_idle()

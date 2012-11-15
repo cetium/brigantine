@@ -71,14 +71,14 @@ private slots:
   void emit_commands(connection_link dbc, std::vector<std::string> sqls)  { emit signal_commands(dbc, sqls); }
   void emit_disconnect(connection_link dbc)  { emit signal_disconnect(dbc); }
   void emit_layers(std::vector<layer_link> lim)  { emit signal_layers(lim); }
-  void emit_proj(brig::proj::epsg pj)  { emit signal_proj(pj); }
+  void emit_proj(brig::proj::shared_pj pj)  { emit signal_proj(pj); }
   void emit_task(std::shared_ptr<task> tsk)  { emit signal_task(tsk); }
-  void emit_view(QRectF rect, brig::proj::epsg pj)  { emit signal_view(rect, pj); }
+  void emit_view(QRectF rect, brig::proj::shared_pj pj)  { emit signal_view(rect, pj); }
 
 signals:
   void signal_layers(std::vector<layer_link> lrs);
-  void signal_view(QRectF rect, brig::proj::epsg pj);
-  void signal_proj(brig::proj::epsg pj);
+  void signal_view(QRectF rect, brig::proj::shared_pj pj);
+  void signal_proj(brig::proj::shared_pj pj);
   void signal_commands(connection_link dbc, std::vector<std::string> sqls);
   void signal_disconnect(connection_link dbc);
   void signal_task(std::shared_ptr<task> tsk);

@@ -110,7 +110,7 @@ tree_view::tree_view(QWidget* parent) : QTreeView(parent)
   m_separator2_act->setSeparator(true);
 
   qRegisterMetaType<connection_link>("connection_link");
-  qRegisterMetaType<brig::proj::epsg>("brig::proj::epsg");
+  qRegisterMetaType<brig::proj::shared_pj>("brig::proj::shared_pj");
   qRegisterMetaType<std::shared_ptr<task>>("std::shared_ptr<task>");
   qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
   qRegisterMetaType<std::vector<layer_link>>("std::vector<layer_link>");
@@ -120,9 +120,9 @@ tree_view::tree_view(QWidget* parent) : QTreeView(parent)
     );
   connect(&m_mdl, SIGNAL(signal_disconnect(connection_link)), this, SLOT(emit_disconnect(connection_link)));
   connect(&m_mdl, SIGNAL(signal_layers(std::vector<layer_link>)), this, SLOT(emit_layers(std::vector<layer_link>)));
-  connect(&m_mdl, SIGNAL(signal_proj(brig::proj::epsg)), this, SLOT(emit_proj(brig::proj::epsg)));
+  connect(&m_mdl, SIGNAL(signal_proj(brig::proj::shared_pj)), this, SLOT(emit_proj(brig::proj::shared_pj)));
   connect(&m_mdl, SIGNAL(signal_task(std::shared_ptr<task>)), this, SLOT(emit_task(std::shared_ptr<task>)));
-  connect(&m_mdl, SIGNAL(signal_view(QRectF, brig::proj::epsg)), this, SLOT(emit_view(QRectF, brig::proj::epsg)));
+  connect(&m_mdl, SIGNAL(signal_view(QRectF, brig::proj::shared_pj)), this, SLOT(emit_view(QRectF, brig::proj::shared_pj)));
 }
 
 void tree_view::on_connect_mysql()

@@ -3,7 +3,7 @@
 #ifndef MAIN_WINDOW_H
 #define MAIN_WINDOW_H
 
-#include <brig/proj/epsg.hpp>
+#include <brig/proj/shared_pj.hpp>
 #include <QAction>
 #include <QKeyEvent>
 #include <QLabel>
@@ -27,7 +27,7 @@ private slots:
   void on_map_start();
   void on_map_process(QString msg)  { m_map_msg = msg; }
   void on_map_idle();
-  void on_map_scene(brig::proj::epsg pj);
+  void on_map_scene(brig::proj::shared_pj pj);
   void on_sql_start();
   void on_sql_process(QString msg)  { m_sql_msg = msg; }
   void on_sql_idle();

@@ -1,7 +1,7 @@
 // Andrew Naplavkov
 
 #include <brig/database/connection.hpp>
-#include <brig/proj/epsg.hpp>
+#include <brig/proj/shared_pj.hpp>
 #include <memory>
 #include <vector>
 
@@ -10,7 +10,7 @@
 
 struct reproject_item {
   int column;
-  brig::proj::epsg pj_from, pj_to;
+  brig::proj::shared_pj pj_from, pj_to;
   reproject_item() : column(-1)  {}
 }; // reproject_item
 

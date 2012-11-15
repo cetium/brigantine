@@ -66,10 +66,10 @@ std::shared_ptr<brig::database::rowset> layer_geometry::drawing(const frame& fr,
   auto rs(get_connection()->select(tbl));
   reproject_item item;
   item.column = 0;
-  item.pj_from = get_epsg();
-  item.pj_to = fr.get_epsg();
+  item.pj_from = get_pj();
+  item.pj_to = fr.get_pj();
   std::vector<reproject_item> items;
-  if (int(item.pj_from) != int(item.pj_to)) items.push_back(item);
+  if (!(item.pj_from == item.pj_to)) items.push_back(item);
   return items.empty()? rs: std::make_shared<brig::database::threaded_rowset>(std::make_shared<reproject>(rs, items));
 }
 

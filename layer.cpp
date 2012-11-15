@@ -16,29 +16,29 @@ QString layer::get_string()
   return str;
 }
 
-brig::proj::epsg layer::get_epsg()
+brig::proj::shared_pj layer::get_pj()
 {
   auto id(get_geometry());
   auto tbl(get_connection()->get_table_definition(id));
-  return ::get_epsg(tbl[id.qualifier]->epsg);
+  return ::get_pj(tbl[id.qualifier]->epsg);
 }
 
-bool layer::try_epsg(brig::proj::epsg& pj)
+bool layer::try_pj(brig::proj::shared_pj& pj)
 {
   auto geo(get_geometry());
   brig::database::table_definition tbl;
   if (!get_connection()->try_table_definition(geo, tbl)) return false;
-  pj = brig::proj::epsg(tbl[geo.qualifier]->epsg);
+  pj = ::get_pj(tbl[geo.qualifier]->epsg);
   return true;
 }
 
-bool layer::try_view(brig::boost::box& box, brig::proj::epsg& pj)
+bool layer::try_view(brig::boost::box& box, brig::proj::shared_pj& pj)
 {
   auto geo(get_geometry());
   brig::database::table_definition tbl;
   if (!get_connection()->try_table_definition(geo, tbl)) return false;
   auto col(tbl[geo.qualifier]);
-  pj = brig::proj::epsg(col->epsg);
+  pj = ::get_pj(col->epsg);
   if (col->query_value.type() != typeid(brig::blob_t)) return false;
   const brig::blob_t& blob(boost::get<brig::blob_t>(col->query_value));
   if (blob.empty()) return false;
@@ -49,11 +49,11 @@ bool layer::try_view(brig::boost::box& box, brig::proj::epsg& pj)
 brig::database::variant layer::prepare_box(const frame& fr)
 {
   brig::boost::box mbr, box;
-  box = rect_to_box(transform(fr.prepare_rect(), fr.get_epsg(), get_epsg()));
-  brig::proj::epsg pj;
+  box = rect_to_box(transform(fr.prepare_rect(), fr.get_pj(), get_pj()));
+  brig::proj::shared_pj pj;
   if (try_view(mbr, pj) && boost::geometry::covered_by(mbr, box))
     return brig::database::null_t();
-  if (get_epsg().is_latlong()) // "out of longitude/latitude" workaround
+  if (get_pj().is_latlong()) // "out of longitude/latitude" workaround
   {
     const brig::boost::box tmp(box);
     const brig::boost::box wrld(brig::boost::point(-180, -90), brig::boost::point(180, 90));
