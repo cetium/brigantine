@@ -118,13 +118,6 @@ QString rich_text(const QString& icon, const QString& text, bool icon_suffix)
     return " <img src=\"" + icon + "\" width=\"16\" height=\"16\"/> " + text;
 }
 
-QString to_string(size_t num)
-{
-  QString res;
-  res.setNum(num);
-  return res;
-}
-
 void show_message(const char* msg)
 {
   QMessageBox dlg;

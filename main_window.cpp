@@ -125,7 +125,11 @@ main_window::main_window()
 void main_window::on_map_scene(brig::proj::shared_pj pj)
 {
   m_tab->setCurrentIndex(m_map_tab);
-  setWindowTitle("brigantine , " + QString().setNum(get_epsg(pj)));
+  const int epsg(get_epsg(pj));
+  QString def;
+  if (epsg < 0) def.fromUtf8( pj.definition().c_str() );
+  else def = QString("%1").arg(epsg);
+  setWindowTitle("brigantine , " + def);
 }
 
 void main_window::on_map_coords(QString msg)
@@ -209,7 +213,7 @@ void main_window::keyPressEvent(QKeyEvent* event)
   if (event->key() == Qt::Key_F1)
   {
     QStringList props;
-    props.append(QString("brigantine: ") + __DATE__ + ", " + ::to_string(sizeof(void*) * 8) + "-bit");
+    props.append(QString("brigantine: %1, %2-bit").arg(__DATE__).arg(sizeof(void*) * 8));
     props.append(QString());
     props.append(QString("Qt: ") + qVersion());
     if (!brig::proj::version().empty()) props.append(QString::fromStdString("Proj: " + brig::proj::version()));

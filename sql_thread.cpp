@@ -65,7 +65,7 @@ void sql_thread::run()
       if (m_time.elapsed() > SignalInterval)
       {
         m_thread->m_mdl->update();
-        m_thread->emit signal_process(to_string(m_counter));
+        m_thread->emit signal_process(QString("%1").arg(m_counter));
         m_time.restart();
       }
       return true;
@@ -101,7 +101,7 @@ void sql_thread::run()
 
     if (m_abort) return;
     if (prg.m_msg.isEmpty() && m_cancel) prg.m_msg = "canceled";
-    if (prg.m_msg.isEmpty()) prg.m_msg = to_string(prg.m_counter);
+    if (prg.m_msg.isEmpty()) prg.m_msg = QString("%1").arg(prg.m_counter);
     m_mdl->update();
     emit signal_process(prg.m_msg);
   }

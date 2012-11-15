@@ -154,7 +154,7 @@ void tree_model::connect_mysql(QString host, int port, QString db, QString usr, 
 {
   connect_to(connection_link(new connection
     ( std::make_shared<brig::database::mysql::command_allocator>(host.toUtf8().constData(), port, db.toUtf8().constData(), usr.toUtf8().constData(), pwd.toUtf8().constData())
-    , host + ":" + QString().setNum(port) + "/" + db
+    , QString("%1:%2/%3").arg(host).arg(port).arg(db)
     )));
 }
 
@@ -169,7 +169,7 @@ void tree_model::connect_oracle(QString host, int port, QString db, QString usr,
 {
   connect_to(connection_link(new connection
     ( std::make_shared<brig::database::oracle::command_allocator>(host.toUtf8().constData(), port, db.toUtf8().constData(), usr.toUtf8().constData(), pwd.toUtf8().constData())
-    , host + ":" + QString().setNum(port) + "/" + db
+    , QString("%1:%2/%3").arg(host).arg(port).arg(db)
     )));
 }
 
@@ -177,7 +177,7 @@ void tree_model::connect_postgres(QString host, int port, QString db, QString us
 {
   connect_to(connection_link(new connection
     ( std::make_shared<brig::database::postgres::command_allocator>(host.toUtf8().constData(), port, db.toUtf8().constData(), usr.toUtf8().constData(), pwd.toUtf8().constData())
-    , host + ":" + QString().setNum(port) + "/" + db
+    , QString("%1:%2/%3").arg(host).arg(port).arg(db)
     )));
 }
 

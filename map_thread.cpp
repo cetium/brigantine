@@ -71,14 +71,14 @@ void map_thread::render_layer(layer_link lr, const frame& fr, QImage& img, QStri
           lr_painter.eraseRect(img.rect());
         }
         emit signal_process(fr, img);
-        emit signal_process((msg.isEmpty()? to_string(counter + 1): msg));
+        emit signal_process((msg.isEmpty()? QString("%1").arg(counter + 1): msg));
         time.restart();
       }
     }
 
     if (counter >= counter_end) painter.setOpacity(painter.opacity() / 6.);
     painter.drawImage(0, 0, lr_img);
-    emit signal_process((msg.isEmpty()? to_string(counter): msg));
+    emit signal_process((msg.isEmpty()? QString("%1").arg(counter): msg));
   }
   catch (const std::exception& e)  { if (msg.isEmpty()) msg = QString::fromUtf8(e.what()); }
 }
@@ -116,7 +116,7 @@ void map_thread::run()
     if (!m_restart)
     {
       emit signal_process(fr, img);
-      emit signal_process(msg.isEmpty()? to_string(counter): msg);
+      emit signal_process(msg.isEmpty()? QString("%1").arg(counter): msg);
       emit signal_idle();
     }
 

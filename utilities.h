@@ -31,7 +31,6 @@ inline brig::proj::shared_pj latlon()  { return get_pj(4326); }
 QRectF world(const brig::proj::shared_pj& pj);
 
 QString rich_text(const QString& icon, const QString& text, bool icon_suffix);
-QString to_string(size_t num);
 void show_message(const char* msg);
 std::string get_table_name(const std::string& tbl, size_t level);
 

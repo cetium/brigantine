@@ -68,7 +68,7 @@ dialog_insert::dialog_insert(QWidget* parent, layer_link lr_from, layer_link lr_
 
     QWidget* w = new QWidget;
     w->setLayout(grid);
-    m_tab->addTab(w, QString().setNum(lvl));
+    m_tab->addTab(w, QString("%1").arg(lvl));
   }
 
   m_ccw = new QCheckBox("make counter-clockwise for exterior rings, and clockwise for interior rings");
