@@ -81,12 +81,19 @@ FORMS +=\
 RESOURCES +=\
   resource.qrc
 
-INCLUDEPATH +=\ # boost, brig, ...
+QMAKE_CXXFLAGS +=\
+  -fno-tree-vectorize\
+  -std=c++0x
+
+# boost, brig, ...
+win32:INCLUDEPATH +=\
   ../include/\
   ../include/libpq/\
   ../include/mysql\
   ../include/oci/
 
-QMAKE_CXXFLAGS +=\
-  -fno-tree-vectorize\
-  -std=c++0x
+unix:INCLUDEPATH +=\
+  ../include/\
+  /usr/include/postgresql/\
+  /usr/include/mysql\
+  ../include/oci/
