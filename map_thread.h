@@ -24,7 +24,7 @@ class map_thread : public QThread {
   void render_layer(layer_link lr, const frame& fr, QImage& img, QString& msg, size_t& rows, QTime& time);
 
 protected:
-  virtual void run();
+  void run() override;
 
 signals:
   void signal_start();
@@ -34,7 +34,7 @@ signals:
 
 public:
   explicit map_thread(QObject* parent = 0);
-  virtual ~map_thread();
+  ~map_thread() override;
   void render(std::vector<layer_link> lrs, const frame& fr);
 }; // map_thread
 

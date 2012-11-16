@@ -11,23 +11,23 @@ class layer_geometry : public layer {
 
 public:
   layer_geometry(connection_link dbc, const brig::database::identifier& id, const brig::database::table_definition& tbl = brig::database::table_definition());
-  virtual QString get_icon()  { return ":/res/compasses.png"; }
+  QString get_icon() override  { return ":/res/compasses.png"; }
 
-  virtual brig::database::identifier get_identifier()  { return m_id; }
-  virtual brig::database::identifier get_geometry()  { return m_id; }
-  virtual size_t get_levels()  { return 1; }
-  virtual brig::database::table_definition get_table_definition(size_t level);
-  virtual void reset_table_definitions();
-  virtual bool is_writable()  { return true; }
+  brig::database::identifier get_identifier() override  { return m_id; }
+  brig::database::identifier get_geometry() override  { return m_id; }
+  size_t get_levels() override  { return 1; }
+  brig::database::table_definition get_table_definition(size_t level) override;
+  void reset_table_definitions() override;
+  bool is_writable() override  { return true; }
 
-  virtual layer* reg(connection_link dbc, std::vector<std::string>& sql);
-  virtual void unreg(std::vector<std::string>&)  {}
+  layer* reg(connection_link dbc, std::vector<std::string>& sql) override;
+  void unreg(std::vector<std::string>&) override  {}
 
-  virtual size_t limit()  { return 1000; }
-  virtual bool has_spatial_index(const frame& fr);
-  virtual std::shared_ptr<brig::database::rowset> attributes(const frame& fr);
-  virtual std::shared_ptr<brig::database::rowset> drawing(const frame& fr, bool limited);
-  virtual void draw(const std::vector<brig::database::variant>& row, const frame& fr, QPainter& painter);
+  size_t limit() override  { return 1000; }
+  bool has_spatial_index(const frame& fr) override;
+  std::shared_ptr<brig::database::rowset> attributes(const frame& fr) override;
+  std::shared_ptr<brig::database::rowset> drawing(const frame& fr, bool limited) override;
+  void draw(const std::vector<brig::database::variant>& row, const frame& fr, QPainter& painter) override;
 }; // layer_geometry
 
 #endif // LAYER_GEOMETRY_H

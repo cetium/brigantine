@@ -49,14 +49,14 @@ void sql_thread::run()
 
     explicit progress_impl(sql_thread* thread_) : m_thread(thread_), m_counter(0)  { m_time.start(); }
 
-    virtual void init(const std::vector<std::string>& columns = std::vector<std::string>())
+    void init(const std::vector<std::string>& columns = std::vector<std::string>()) override
     {
       if (columns.empty()) return;
       m_thread->m_mdl->clear();
       m_thread->m_mdl->init(columns);
     }
 
-    virtual bool step(size_t counter = 0, const std::vector<std::string>& row = std::vector<std::string>())
+    bool step(size_t counter = 0, const std::vector<std::string>& row = std::vector<std::string>()) override
     {
       if (m_thread->m_abort) return false;
       if (m_thread->m_cancel) return false;

@@ -18,7 +18,7 @@ signals:
   void signal_commands(connection_link dbc, std::vector<std::string> sqls);
 public:
   task_attributes(frame fr, layer_link lr);
-  virtual void run(progress* prg);
+  void run(progress* prg) override;
 }; // task_attributes
 
 #endif // TASK_ATTRIBUTES_H

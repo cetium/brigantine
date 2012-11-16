@@ -67,7 +67,7 @@ void sql_view::on_info()
   struct tables : task {
     connection_link dbc;
 
-    virtual void run(progress* prg)
+    void run(progress* prg) override
     {
       std::vector<std::string> row;
       row.push_back("SCHEMA");
@@ -96,7 +96,7 @@ void sql_view::on_fetch()
     connection_link dbc;
     std::string sql;
 
-    virtual void run(progress* prg)
+    void run(progress* prg) override
     {
       auto cmd(dbc->get_command());
       cmd->exec(sql);
@@ -218,5 +218,6 @@ void sql_view::on_save()
   QFile file(info.filePath());
   if (!file.open(QFile::WriteOnly)) return;
   QTextStream stream(&file);
+  stream.setCodec("UTF-8");
   stream << m_sql->toPlainText().toUtf8().constData();
 }

@@ -18,7 +18,7 @@ private slots:
   void on_connect_button_clicked();
 public:
   dialog_connect(QWidget* parent, QIcon icon, QString settings_prefix, QString host, int port, QString db, QString usr);
-  virtual ~dialog_connect();
+  ~dialog_connect() override;
   QString host() const;
   int port() const;
   QString db() const;

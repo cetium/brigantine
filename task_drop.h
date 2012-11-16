@@ -20,7 +20,7 @@ signals:
 
 public:
   task_drop(layer_link lr, bool sql);
-  virtual void run(progress* prg);
+  void run(progress* prg) override;
 }; // task_drop
 
 #endif // TASK_DROP_H

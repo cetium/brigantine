@@ -13,23 +13,23 @@ class layer_raster : public layer {
 
 public:
   layer_raster(connection_link dbc, const brig::database::raster_pyramid& raster) : layer(dbc), m_raster(raster)  {}
-  virtual QString get_icon()  { return ":/res/palette.png"; }
+  QString get_icon() override  { return ":/res/palette.png"; }
 
-  virtual brig::database::identifier get_identifier()  { return m_raster.id; }
-  virtual brig::database::identifier get_geometry()  { return m_raster.levels[0].geometry; }
-  virtual size_t get_levels()  { return m_raster.levels.size(); }
-  virtual brig::database::table_definition get_table_definition(size_t level);
-  virtual void reset_table_definitions();
-  virtual bool is_writable();
+  brig::database::identifier get_identifier() override  { return m_raster.id; }
+  brig::database::identifier get_geometry() override  { return m_raster.levels[0].geometry; }
+  size_t get_levels() override  { return m_raster.levels.size(); }
+  brig::database::table_definition get_table_definition(size_t level) override;
+  void reset_table_definitions() override;
+  bool is_writable() override;
 
-  virtual layer* reg(connection_link dbc, std::vector<std::string>& sql);
-  virtual void unreg(std::vector<std::string>& sql);
+  layer* reg(connection_link dbc, std::vector<std::string>& sql) override;
+  void unreg(std::vector<std::string>& sql) override;
 
-  virtual size_t limit()  { return 100; }
-  virtual bool has_spatial_index(const frame& fr);
-  virtual std::shared_ptr<brig::database::rowset> attributes(const frame& fr);
-  virtual std::shared_ptr<brig::database::rowset> drawing(const frame& fr, bool limited);
-  virtual void draw(const std::vector<brig::database::variant>& row, const frame& fr, QPainter& painter);
+  size_t limit() override  { return 100; }
+  bool has_spatial_index(const frame& fr) override;
+  std::shared_ptr<brig::database::rowset> attributes(const frame& fr) override;
+  std::shared_ptr<brig::database::rowset> drawing(const frame& fr, bool limited) override;
+  void draw(const std::vector<brig::database::variant>& row, const frame& fr, QPainter& painter) override;
 }; // layer_raster
 
 #endif // LAYER_RASTER_H

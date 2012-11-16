@@ -23,7 +23,7 @@ class sql_thread : public QThread {
   bool m_abort, m_cancel;
 
 protected:
-  virtual void run();
+  void run() override;
 
 signals:
   void signal_start();
@@ -32,7 +32,7 @@ signals:
 
 public:
   explicit sql_thread(std::shared_ptr<sql_model> mdl);
-  virtual ~sql_thread();
+  ~sql_thread() override;
   void push(std::shared_ptr<task> tsk);
   void cancel();
 }; // sql_thread

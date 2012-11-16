@@ -18,7 +18,7 @@ public:
     : m_lr_from(lr_from), m_lr_to(lr_to), m_items(items), m_ccw(ccw)
     {}
   static void run(layer_link lr_from, layer_link lr_to, const std::vector<insert_item>& items, bool ccw, size_t& counter, progress* prg);
-  virtual void run(progress* prg);
+  void run(progress* prg) override;
 }; // task_insert
 
 #endif // TASK_INSERT_H

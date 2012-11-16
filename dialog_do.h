@@ -18,7 +18,7 @@ private slots:
   void on_sql_button_clicked();
 public:
   dialog_do(QWidget* parent, const QString& verb, const QString& name);
-  virtual ~dialog_do();
+  ~dialog_do() override;
   bool sql() const;
 }; // dialog_do
 

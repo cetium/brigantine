@@ -19,8 +19,8 @@ class reproject : public brig::database::rowset {
   std::vector<reproject_item> m_items;
 public:
   reproject(std::shared_ptr<brig::database::rowset> rs, const std::vector<reproject_item>& items) : m_rs(rs), m_items(items)  {}
-  virtual std::vector<std::string> columns()  { return m_rs->columns(); }
-  virtual bool fetch(std::vector<brig::database::variant>& row);
+  std::vector<std::string> columns() override  { return m_rs->columns(); }
+  bool fetch(std::vector<brig::database::variant>& row) override;
 }; // reproject
 
 #endif // REPROJECT_H

@@ -20,12 +20,12 @@ class sql_model : public QAbstractItemModel {
 
 public:
   explicit sql_model(QObject* parent = 0);
-  virtual int columnCount(const QModelIndex& parent = QModelIndex()) const;
-  virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole ) const;
-  virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
-  virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
-  virtual QModelIndex parent(const QModelIndex&) const  { return QModelIndex(); }
-  virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
+  int columnCount(const QModelIndex& parent = QModelIndex()) const override;
+  QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole ) const override;
+  QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
+  QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const override;
+  QModelIndex parent(const QModelIndex&) const override  { return QModelIndex(); }
+  int rowCount(const QModelIndex& parent = QModelIndex()) const override;
 
   void clear();
   void init(const std::vector<std::string>& columns);

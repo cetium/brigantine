@@ -42,7 +42,7 @@ struct wait_cursor {
     #endif
   }
 
-  virtual ~wait_cursor()
+  ~wait_cursor()
   {
     #ifndef QT_NO_CURSOR
     QApplication::restoreOverrideCursor();

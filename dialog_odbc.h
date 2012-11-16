@@ -17,7 +17,7 @@ private slots:
   void on_file_button_clicked();
 public:
   explicit dialog_odbc(QWidget* parent);
-  virtual ~dialog_odbc();
+  ~dialog_odbc() override;
   QString str() const;
 }; // dialog_odbc
 

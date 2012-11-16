@@ -15,7 +15,7 @@ signals:
   void signal_view(QRectF rect, brig::proj::shared_pj pj);
 public:
   task_mbr(layer_link lr) : m_lr(lr)  {}
-  virtual void run(progress* prg);
+  void run(progress* prg) override;
 }; // task_mbr
 
 #endif // TASK_MBR_H

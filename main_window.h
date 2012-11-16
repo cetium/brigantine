@@ -37,8 +37,8 @@ private slots:
   void on_copy_sql_stat();
 
 protected:
-  virtual void keyPressEvent(QKeyEvent* event);
-  virtual void timerEvent(QTimerEvent* event);
+  void keyPressEvent(QKeyEvent* event) override;
+  void timerEvent(QTimerEvent* event) override;
 
 public:
   main_window();

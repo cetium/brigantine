@@ -22,7 +22,7 @@ signals:
 
 public:
   task_create(std::vector<layer_link> lrs_from, connection_link dbc_to, bool sql);
-  virtual void run(progress* prg);
+  void run(progress* prg) override;
 }; // task_create
 
 #endif // TASK_CREATE_H

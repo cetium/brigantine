@@ -16,8 +16,8 @@ class counter_clockwise : public brig::database::rowset {
   std::vector<int> m_cols;
 public:
   counter_clockwise(std::shared_ptr<brig::database::rowset> rs, const std::vector<int>& cols) : m_rs(rs), m_cols(cols)  {}
-  virtual std::vector<std::string> columns()  { return m_rs->columns(); }
-  virtual bool fetch(std::vector<brig::database::variant>& row);
+  std::vector<std::string> columns() override  { return m_rs->columns(); }
+  bool fetch(std::vector<brig::database::variant>& row) override;
 }; // counter_clockwise
 
 #endif // COUNTER_CLOCKWISE_H

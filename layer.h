@@ -25,7 +25,6 @@ public:
   explicit layer(connection_link dbc) : m_dbc(dbc)  {}
   virtual ~layer()  {}
   virtual QString get_icon() = 0;
-  virtual connection_link get_connection()  { return m_dbc; }
 
   virtual brig::database::identifier get_identifier() = 0;
   virtual brig::database::identifier get_geometry() = 0;
@@ -43,6 +42,7 @@ public:
   virtual std::shared_ptr<brig::database::rowset> drawing(const frame& fr, bool limited) = 0;
   virtual void draw(const std::vector<brig::database::variant>& row, const frame& fr, QPainter& painter) = 0;
 
+  connection_link get_connection()  { return m_dbc; }
   QString get_string();
   brig::proj::shared_pj get_pj();
   bool try_pj(brig::proj::shared_pj& pj);

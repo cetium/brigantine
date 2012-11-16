@@ -46,7 +46,7 @@ class tree_view : public QTreeView {
   void on_update();
 
 protected:
-  virtual void rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end);
+  void rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end) override;
 
 private slots:
   void on_connect_mysql();

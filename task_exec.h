@@ -15,7 +15,7 @@ signals:
   void signal_refresh(connection_link dbc);
 public:
   task_exec(connection_link dbc, const std::string& sql);
-  virtual void run(progress* prg);
+  void run(progress* prg) override;
 }; // task_exec
 
 #endif // TASK_EXEC_H

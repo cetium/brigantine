@@ -40,13 +40,13 @@ signals:
 
 public:
   explicit tree_model(QObject* parent = 0);
-  virtual int columnCount(const QModelIndex&) const  { return 1; }
-  virtual QVariant data(const QModelIndex& idx, int role = Qt::DisplayRole) const;
-  virtual Qt::ItemFlags flags(const QModelIndex& idx) const;
-  virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
-  virtual QModelIndex parent(const QModelIndex& idx) const;
-  virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
-  virtual bool setData(const QModelIndex& idx, const QVariant& value, int role = Qt::EditRole);
+  int columnCount(const QModelIndex&) const override  { return 1; }
+  QVariant data(const QModelIndex& idx, int role = Qt::DisplayRole) const override;
+  Qt::ItemFlags flags(const QModelIndex& idx) const override;
+  QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const override;
+  QModelIndex parent(const QModelIndex& idx) const override;
+  int rowCount(const QModelIndex& parent = QModelIndex()) const override;
+  bool setData(const QModelIndex& idx, const QVariant& value, int role = Qt::EditRole) override;
 
   void connect_mysql(QString host, int port, QString db, QString usr, QString pwd);
   void connect_odbc(QString dsn);

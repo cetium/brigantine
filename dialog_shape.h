@@ -13,7 +13,7 @@ class dialog_shape : public QFileDialog {
   QComboBox* m_charset_combo;
   QLineEdit* m_epsg_edit;
 public slots:
-  virtual void accept();
+  void accept() override;
 public:
   explicit dialog_shape(QWidget* parent);
   QString charset();

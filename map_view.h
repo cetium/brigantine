@@ -29,14 +29,14 @@ class map_view : public QWidget {
   void render()  { m_trd.render(m_lrs, m_view_fr); }
 
 protected:
-  virtual void paintEvent(QPaintEvent* event);
-  virtual void resizeEvent(QResizeEvent* event);
-  virtual void keyPressEvent(QKeyEvent* event);
-  virtual void wheelEvent(QWheelEvent* event);
-  virtual void mousePressEvent(QMouseEvent* event);
-  virtual void mouseMoveEvent(QMouseEvent* event);
-  virtual void mouseReleaseEvent(QMouseEvent* event);
-  virtual void leaveEvent(QEvent*)  { emit signal_coords(""); }
+  void paintEvent(QPaintEvent* event) override;
+  void resizeEvent(QResizeEvent* event) override;
+  void keyPressEvent(QKeyEvent* event) override;
+  void wheelEvent(QWheelEvent* event) override;
+  void mousePressEvent(QMouseEvent* event) override;
+  void mouseMoveEvent(QMouseEvent* event) override;
+  void mouseReleaseEvent(QMouseEvent* event) override;
+  void leaveEvent(QEvent*) override  { emit signal_coords(""); }
 
 private slots:
   void emit_commands(connection_link dbc, std::vector<std::string> sqls)  { emit signal_commands(dbc, sqls); }
