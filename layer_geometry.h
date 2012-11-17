@@ -14,9 +14,9 @@ public:
   QString get_icon() override  { return ":/res/compasses.png"; }
 
   brig::database::identifier get_identifier() override  { return m_id; }
-  brig::database::identifier get_geometry() override  { return m_id; }
   size_t get_levels() override  { return 1; }
-  brig::database::table_definition get_table_definition(size_t level) override;
+  brig::database::identifier get_geometry(size_t) override  { return m_id; }
+  brig::database::table_definition get_table_definition(size_t lvl) override;
   void reset_table_definitions() override;
   bool is_writable() override  { return true; }
 

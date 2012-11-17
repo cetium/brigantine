@@ -16,9 +16,9 @@ public:
   QString get_icon() override  { return ":/res/palette.png"; }
 
   brig::database::identifier get_identifier() override  { return m_raster.id; }
-  brig::database::identifier get_geometry() override  { return m_raster.levels[0].geometry; }
   size_t get_levels() override  { return m_raster.levels.size(); }
-  brig::database::table_definition get_table_definition(size_t level) override;
+  brig::database::identifier get_geometry(size_t lvl) override  { return m_raster.levels[lvl].geometry; }
+  brig::database::table_definition get_table_definition(size_t lvl) override;
   void reset_table_definitions() override;
   bool is_writable() override;
 

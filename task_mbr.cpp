@@ -13,7 +13,7 @@ void task_mbr::run(progress* prg)
   if (!m_lr->try_view(box, pj))
   {
     auto dbc(m_lr->get_connection());
-    auto id(m_lr->get_geometry());
+    auto id(m_lr->get_geometry(0));
     auto tbl(dbc->get_table_definition(id));
     pj = ::get_pj(tbl[id.qualifier]->epsg);
     box = dbc->get_mbr(tbl, id.qualifier);

@@ -10,15 +10,15 @@
 #include "layer_raster.h"
 #include "utilities.h"
 
-brig::database::table_definition layer_raster::get_table_definition(size_t level)
+brig::database::table_definition layer_raster::get_table_definition(size_t lvl)
 {
   using namespace std;
 
-  auto tbl(get_connection()->get_table_definition(m_raster.levels[level].geometry));
-  if (!m_raster.levels[level].raster.query_expression.empty())
-    tbl.columns.push_back(m_raster.levels[level].raster);
+  auto tbl(get_connection()->get_table_definition(m_raster.levels[lvl].geometry));
+  if (!m_raster.levels[lvl].raster.query_expression.empty())
+    tbl.columns.push_back(m_raster.levels[lvl].raster);
 
-  for (auto cnd(begin(m_raster.levels[level].query_conditions)); cnd != end(m_raster.levels[level].query_conditions); ++cnd)
+  for (auto cnd(begin(m_raster.levels[lvl].query_conditions)); cnd != end(m_raster.levels[lvl].query_conditions); ++cnd)
   {
     auto col(tbl[cnd->name]);
     if (!cnd->query_expression.empty()) col->query_expression = cnd->query_expression;
@@ -29,8 +29,8 @@ brig::database::table_definition layer_raster::get_table_definition(size_t level
 
 void layer_raster::reset_table_definitions()
 {
-  for (size_t level(0); level < m_raster.levels.size(); ++level)
-    get_connection()->reset_table_definition(m_raster.levels[level].geometry);
+  for (size_t lvl(0); lvl < m_raster.levels.size(); ++lvl)
+    get_connection()->reset_table_definition(m_raster.levels[lvl].geometry);
 }
 
 bool layer_raster::is_writable()

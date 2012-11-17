@@ -18,14 +18,14 @@ QString layer::get_string()
 
 brig::proj::shared_pj layer::get_pj()
 {
-  auto id(get_geometry());
+  auto id(get_geometry(0));
   auto tbl(get_connection()->get_table_definition(id));
   return ::get_pj(tbl[id.qualifier]->epsg);
 }
 
 bool layer::try_pj(brig::proj::shared_pj& pj)
 {
-  auto geo(get_geometry());
+  auto geo(get_geometry(0));
   brig::database::table_definition tbl;
   if (!get_connection()->try_table_definition(geo, tbl)) return false;
   pj = ::get_pj(tbl[geo.qualifier]->epsg);
@@ -34,7 +34,7 @@ bool layer::try_pj(brig::proj::shared_pj& pj)
 
 bool layer::try_view(brig::boost::box& box, brig::proj::shared_pj& pj)
 {
-  auto geo(get_geometry());
+  auto geo(get_geometry(0));
   brig::database::table_definition tbl;
   if (!get_connection()->try_table_definition(geo, tbl)) return false;
   auto col(tbl[geo.qualifier]);

@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <brig/boost/as_binary.hpp>
+#include <iterator>
 #include <Qt>
 #include "connection.h"
 #include "layer.h"
@@ -28,12 +29,16 @@ void task_create::run(progress* prg)
     auto lr_from(m_lrs_from[lr]);
     auto dbc_from(lr_from->get_connection());
     vector<insert_item> items;
+    vector<string> reg;
+    layer_link lr_to(lr_from->reg(m_dbc_to, reg));
 
     for (size_t lvl(0); lvl < lr_from->get_levels(); ++lvl)
     {
       if (!prg->step(counter)) return;
       auto tbl_from(lr_from->get_table_definition(lvl));
-      auto tbl_to(m_dbc_to->fit_to_create(tbl_from));
+      auto tbl_to(tbl_from);
+      tbl_to.id.name = lr_to->get_geometry(lvl).name;
+      tbl_to = m_dbc_to->fit_to_create(tbl_to);
 
       for (size_t col(0), cols(min<>(tbl_from.columns.size(), tbl_to.columns.size())); col < cols; ++col)
       {
@@ -61,7 +66,7 @@ void task_create::run(progress* prg)
 
       m_dbc_to->create(tbl_to, sql);
     }
-    layer_link lr_to(lr_from->reg(m_dbc_to, sql));
+    sql.insert(end(sql), begin(reg), end(reg));
 
     if (m_sql) continue;
 
