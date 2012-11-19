@@ -348,7 +348,7 @@ void tree_model::paste_layers(std::vector<layer_link> lrs_copy, const QModelInde
   const tree_item* dbc_itm(static_cast<tree_item*>(idx_paste.internalPointer()));
   auto dbc(dbc_itm->get_connection());
 
-  dialog_do dlg(QApplication::activeWindow(), QString("create"), lrs_copy.size() == 1? lrs_copy.front()->get_string(): QString("layers"));
+  dialog_do dlg(QApplication::activeWindow(), QString("create"), lrs_copy.size() == 1? lrs_copy.front()->get_string(): QString("%1 layers").arg(lrs_copy.size()));
   if (dlg.exec() != QDialog::Accepted) return;
 
   qRegisterMetaType<connection_link>("connection_link");
