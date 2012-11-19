@@ -97,3 +97,6 @@ unix:INCLUDEPATH +=\
   /usr/include/postgresql/\
   /usr/include/mysql\
   ../include/oci/
+
+unix:QMAKE_RPATHDIR +=\
+  '${ORIGIN}'
