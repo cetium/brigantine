@@ -23,7 +23,7 @@ public:
   layer* reg(connection_link dbc, std::vector<std::string>& sql) override;
   void unreg(std::vector<std::string>&) override  {}
 
-  size_t limit() override  { return 1000; }
+  size_t limit() override  { return 4 * brig::database::PageSize; }
   bool has_spatial_index(const frame& fr) override;
   std::shared_ptr<brig::database::rowset> attributes(const frame& fr) override;
   std::shared_ptr<brig::database::rowset> drawing(const frame& fr, bool limited) override;

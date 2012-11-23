@@ -39,12 +39,14 @@ bool not_huge(double val)  { return -HUGE_VAL < val && val < HUGE_VAL; }
 
 QRectF transform(const QRectF& rect, const brig::proj::shared_pj& from, const brig::proj::shared_pj& to)
 {
+  using namespace std;
+
   if (from == to) return rect;
 
   static const int Partition = 32;
   const double step_x(rect.width() / double(Partition));
   const double step_y(rect.height() / double(Partition));
-  std::vector<double> points_xy;
+  vector<double> points_xy;
   for (int i(0); i <= Partition; ++i)
     for (int j(0); j <= Partition; ++j)
     {
@@ -54,7 +56,7 @@ QRectF transform(const QRectF& rect, const brig::proj::shared_pj& from, const br
 
   brig::proj::transform(points_xy.data(), long(points_xy.size() / 2), from, to);
 
-  std::vector<double> xs, ys;
+  vector<double> xs, ys;
   for (size_t i(0); i < points_xy.size(); i += 2)
   {
     if (not_huge(points_xy[i]))
@@ -63,11 +65,11 @@ QRectF transform(const QRectF& rect, const brig::proj::shared_pj& from, const br
       ys.push_back(points_xy[i + 1]);
   }
 
-  if (xs.empty() || ys.empty()) throw std::runtime_error("projection error");;
+  if (xs.empty() || ys.empty()) throw runtime_error("projection error");
 
   return QRectF
-    ( QPointF(*std::min_element(std::begin(xs), std::end(xs)), *std::min_element(std::begin(ys), std::end(ys)))
-    , QPointF(*std::max_element(std::begin(xs), std::end(xs)), *std::max_element(std::begin(ys), std::end(ys)))
+    ( QPointF(*min_element(begin(xs), end(xs)), *min_element(begin(ys), end(ys)))
+    , QPointF(*max_element(begin(xs), end(xs)), *max_element(begin(ys), end(ys)))
     );
 }
 
@@ -91,7 +93,12 @@ brig::proj::shared_pj get_pj(int epsg)
   auto iter(s_collection.find(epsg));
   if (iter == std::end(s_collection))
   {
-    s_collection.insert(std::pair<int, brig::proj::shared_pj>(epsg, brig::proj::shared_pj(epsg)));
+    try
+    {
+      brig::proj::shared_pj pj(epsg);
+      s_collection.insert(std::pair<int, brig::proj::shared_pj>(epsg, pj));
+    }
+    catch (const std::exception&)  { return brig::proj::shared_pj(); }
     iter = s_collection.find(epsg);
   }
   return iter->second;

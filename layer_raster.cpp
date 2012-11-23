@@ -56,6 +56,7 @@ size_t layer_raster::get_level(const frame& fr)
 
   const brig::proj::shared_pj pj_rast(get_pj());
   const brig::proj::shared_pj pj_fr(fr.get_pj());
+  if (projPJ(pj_rast) == 0 || projPJ(pj_fr) == 0) return m_raster.levels.size() - 1;
   double scale(1);
   if (pj_rast == pj_fr)
     scale = fr.scale();

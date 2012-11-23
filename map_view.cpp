@@ -219,7 +219,7 @@ void map_view::on_view(QRectF rect, brig::proj::shared_pj pj)
 {
   try
   {
-    if (size().width() == 0 || size().height() == 0 || !rect.isValid()) return;
+    if (!rect.isValid() || projPJ(pj) == 0 || size().width() == 0 || size().height() == 0) return;
     const QRectF box(proj_to_pixel(transform(rect, pj, m_view_fr.get_pj()), m_view_fr));
     const double zoom_factor(std::max<>(box.width() / size().width(), box.height() / size().height()));
     const double scale(m_view_fr.scale() * zoom_factor * (1. + DBL_EPSILON)); // "zoom to fit" workaround
@@ -240,7 +240,7 @@ void map_view::on_proj(brig::proj::shared_pj pj)
 {
   try
   {
-    if (pj == m_view_fr.get_pj()) return;
+    if (projPJ(pj) == 0 || pj == m_view_fr.get_pj()) return;
     const QRectF rect1(pixel_to_proj(QRectF(QPointF(), m_view_fr.size()), m_view_fr).intersect(world(m_view_fr.get_pj())));
     if (!rect1.isValid()) return;
     const QRectF rect2(transform(rect1, m_view_fr.get_pj(), pj).intersect(world(pj)));
