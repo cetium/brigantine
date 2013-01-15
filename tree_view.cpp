@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <brig/database/oracle/client_version.hpp>
-#include <brig/database/sqlite/command_allocator.hpp>
 #include <exception>
 #include <QCheckBox>
 #include <QDir>
@@ -15,15 +14,25 @@
 #include <QSettings>
 #include <QString>
 #include <QStringList>
+#include <utility>
 #include "connection.h"
 #include "dialog_connect.h"
 #include "dialog_odbc.h"
-#include "dialog_shape.h"
 #include "global.h"
 #include "layer.h"
 #include "layer_geometry.h"
 #include "tree_view.h"
 #include "utilities.h"
+
+static const std::pair<const char*, const char*> filter_to_code[] =
+{
+std::make_pair("SQLite files (*.sqlite)", "SQLite"),
+std::make_pair("Arc/Info ASCII Coverage (*.e00)", ""),
+std::make_pair("ESRI Shapefiles (*.shp)", "ESRI Shapefile"),
+std::make_pair("Mapinfo interchange format (*.mif)", ""), // todo:
+std::make_pair("Mapinfo native format (*.tab)", ""), // todo:
+std::make_pair("S-57 Base file (*.000)", ""),
+};
 
 tree_view::tree_view(QWidget* parent) : QTreeView(parent)
 {
@@ -44,21 +53,21 @@ tree_view::tree_view(QWidget* parent) : QTreeView(parent)
   m_connect_oracle_act->setIconVisibleInMenu(true);
   connect(m_connect_oracle_act, SIGNAL(triggered()), this, SLOT(on_connect_oracle()));
 
+  m_connect_osm_act = new QAction(QIcon(":/res/osm.png"), "connect to OSM", this);
+  m_connect_osm_act->setIconVisibleInMenu(true);
+  connect(m_connect_osm_act, SIGNAL(triggered()), this, SLOT(on_connect_osm()));
+
   m_connect_postgres_act = new QAction(QIcon(":/res/postgres.png"), "connect to Postgres", this);
   m_connect_postgres_act->setIconVisibleInMenu(true);
   connect(m_connect_postgres_act, SIGNAL(triggered()), this, SLOT(on_connect_postgres()));
 
-  m_open_sqlite_act = new QAction(QIcon(":/res/sqlite.png"), "open SQLite file", this);
-  m_open_sqlite_act->setIconVisibleInMenu(true);
-  connect(m_open_sqlite_act, SIGNAL(triggered()), this, SLOT(on_open_sqlite()));
+  m_open_file_act = new QAction(QIcon(":/res/open.png"), "open file", this);
+  m_open_file_act->setIconVisibleInMenu(true);
+  connect(m_open_file_act, SIGNAL(triggered()), this, SLOT(on_open_file()));
 
-  m_new_sqlite_act = new QAction(QIcon(":/res/new_file.png"), "new SQLite file", this);
-  m_new_sqlite_act->setIconVisibleInMenu(true);
-  connect(m_new_sqlite_act, SIGNAL(triggered()), this, SLOT(on_new_sqlite()));
-
-  m_copy_shp_act = new QAction(QIcon(":/res/esri.png"), "copy shapefile", this);
-  m_copy_shp_act->setIconVisibleInMenu(true);
-  connect(m_copy_shp_act, SIGNAL(triggered()), this, SLOT(on_copy_shp()));
+  m_new_file_act = new QAction(QIcon(":/res/new_file.png"), "new file", this);
+  m_new_file_act->setIconVisibleInMenu(true);
+  connect(m_new_file_act, SIGNAL(triggered()), this, SLOT(on_new_file()));
 
   m_copy_rendered_layers_act = new QAction(QIcon(":/res/copy.png"), "copy rendered layer(s)", this);
   m_copy_rendered_layers_act->setIconVisibleInMenu(true);
@@ -68,9 +77,9 @@ tree_view::tree_view(QWidget* parent) : QTreeView(parent)
   m_refresh_act->setIconVisibleInMenu(true);
   connect(m_refresh_act, SIGNAL(triggered()), this, SLOT(on_refresh()));
 
-  m_use_in_sql_act = new QAction(QIcon(":/res/sql.png"), "use in SQL", this);
-  m_use_in_sql_act->setIconVisibleInMenu(true);
-  connect(m_use_in_sql_act, SIGNAL(triggered()), this, SLOT(on_use_in_sql()));
+  m_sql_console_act = new QAction(QIcon(":/res/sql.png"), "SQL console", this);
+  m_sql_console_act->setIconVisibleInMenu(true);
+  connect(m_sql_console_act, SIGNAL(triggered()), this, SLOT(on_sql_console()));
 
   m_paste_layers_act = new QAction(QIcon(":/res/paste.png"), "paste layer(s)", this);
   m_paste_layers_act->setIconVisibleInMenu(true);
@@ -161,6 +170,11 @@ void tree_view::on_connect_oracle()
   catch (const std::exception& e)  { show_message(e.what()); }
 }
 
+void tree_view::on_connect_osm()
+{
+  m_mdl.connect_osm();
+}
+
 void tree_view::on_connect_postgres()
 {
   try
@@ -173,93 +187,96 @@ void tree_view::on_connect_postgres()
   catch (const std::exception& e)  { show_message(e.what()); }
 }
 
-void tree_view::on_open_sqlite()
+void tree_view::on_open_file()
 {
+  using namespace std;
   try
   {
     QSettings settings(SettingsIni, QSettings::IniFormat);
+    QStringList filters;
+    for (auto iter(begin(filter_to_code)); iter != end(filter_to_code); ++iter)
+      filters << iter->first;
     QFileDialog dlg
       ( this
-      , "open SQLite files"
-      , settings.value(QString("%1/%2").arg(SettingsSQLite).arg(SettingsPath), QDir::currentPath()).toString()
-      , "SQLite files (*.sqlite);;All files (*.*)"
+      , "new file"
+      , settings.value(QString("%1/%2").arg(SettingsFileOpen).arg(SettingsPath), QDir::currentPath()).toString()
       );
     dlg.setAcceptMode(QFileDialog::AcceptOpen);
     dlg.setFileMode(QFileDialog::ExistingFiles);
+    dlg.setNameFilters(filters);
+    dlg.selectNameFilter(settings.value(QString("%1/%2").arg(SettingsFileOpen).arg(SettingsFilter), QString(filter_to_code[0].first)).toString());
     dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
     if (dlg.exec() != QDialog::Accepted) return;
-    settings.setValue(QString("%1/%2").arg(SettingsSQLite).arg(SettingsPath), dlg.directory().absolutePath());
+
     wait_cursor w;
+    const size_t filter_selected(distance(begin(filter_to_code), find_if
+      ( begin(filter_to_code)
+      , end(filter_to_code)
+      , [&dlg](const pair<const char*, const char*>& i){ return dlg.selectedNameFilter().compare(i.first) == 0; }
+      )));
     QStringList files = dlg.selectedFiles();
     for (int i(0); i < files.size(); ++i)
-      m_mdl.connect_sqlite(files[i], false);
+    {
+      if (i == 0)
+      {
+        settings.setValue(QString("%1/%2").arg(SettingsFileOpen).arg(SettingsPath), QFileInfo(files[0]).absolutePath());
+        settings.setValue(QString("%1/%2").arg(SettingsFileOpen).arg(SettingsFilter), dlg.selectedNameFilter());
+      }
+      if (filter_selected == 0)
+        m_mdl.connect_sqlite(files[i]);
+      else
+      {
+        QFileInfo info(files[i]);
+        m_mdl.connect_gdal(info.absoluteFilePath(), QString(filter_to_code[filter_selected].second), info.baseName());
+      }
+    }
   }
-  catch (const std::exception& e)  { show_message(e.what()); }
+  catch (const exception& e)  { show_message(e.what()); }
 }
 
-void tree_view::on_new_sqlite()
+void tree_view::on_new_file()
 {
+  using namespace std;
   try
   {
     QSettings settings(SettingsIni, QSettings::IniFormat);
+    QStringList filters;
+    for (auto iter(begin(filter_to_code)); iter != end(filter_to_code); ++iter)
+      if (!string(iter->second).empty())
+        filters << iter->first;
     QFileDialog dlg
       ( this
-      , "new SQLite file"
-      , settings.value(QString("%1/%2").arg(SettingsSQLite).arg(SettingsPath), QDir::currentPath()).toString()
-      , "SQLite files (*.sqlite)"
+      , "new file"
+      , settings.value(QString("%1/%2").arg(SettingsFileNew).arg(SettingsPath), QDir::currentPath()).toString()
       );
     dlg.setAcceptMode(QFileDialog::AcceptSave);
     dlg.setFileMode(QFileDialog::AnyFile);
+    dlg.setNameFilters(filters);
+    dlg.selectNameFilter(settings.value(QString("%1/%2").arg(SettingsFileNew).arg(SettingsFilter), QString(filter_to_code[0].first)).toString());
     dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
     if (!dlg.exec()) return;
-    settings.setValue(QString("%1/%2").arg(SettingsSQLite).arg(SettingsPath), dlg.directory().absolutePath());
+
     wait_cursor w;
-    QFileInfo info(dlg.selectedFiles().value(0));
-    if (info.suffix().isEmpty()) info = QFileInfo(info.dir(), info.fileName() + ".sqlite");
+    QFileInfo info(dlg.selectedFiles()[0]);
+    settings.setValue(QString("%1/%2").arg(SettingsFileNew).arg(SettingsPath), info.absolutePath());
+    settings.setValue(QString("%1/%2").arg(SettingsFileNew).arg(SettingsFilter), dlg.selectedNameFilter());
+    const size_t filter_selected(distance(begin(filter_to_code), find_if
+      ( begin(filter_to_code)
+      , end(filter_to_code)
+      , [&dlg](const pair<const char*, const char*>& i){ return dlg.selectedNameFilter().compare(i.first) == 0; }
+      )));
+    if (info.suffix().isEmpty() && filter_selected == 0) info = QFileInfo(info.dir(), info.fileName() + ".sqlite");
     if (info.exists() && !QFile::remove(info.filePath()))
     {
       show_message("file removing error");
       return;
     }
-    m_mdl.connect_sqlite(info.filePath(), true);
+    if (filter_selected == 0)
+      m_mdl.connect_sqlite(info.absoluteFilePath(), true);
+    else
+      m_mdl.connect_gdal(info.absoluteFilePath(), QString(filter_to_code[filter_selected].second), info.baseName());
   }
-  catch (const std::exception& e)  { show_message(e.what()); }
-}
-
-void tree_view::on_copy_shp()
-{
-  try
-  {
-    m_lrs_copy.clear();
-
-    dialog_shape dlg(this);
-    if (dlg.exec() != QDialog::Accepted) return;
-
-    wait_cursor w;
-    QFileInfo file(dlg.selectedFiles().value(0));
-    std::string base(file.baseName().toUtf8().constData());
-    std::string path(QFileInfo(file.dir(), file.baseName()).filePath().toUtf8().constData());
-    std::string charset(dlg.charset().toUtf8().constData());
-    std::string epsg(dlg.epsg().toUtf8().constData());
-
-    auto allocator(std::make_shared<brig::database::sqlite::command_allocator>(":memory:"));
-    connection_link dbc(new connection(allocator, ":memory:"));
-    dbc->get_command()->exec("CREATE VIRTUAL TABLE \"" + base + "\" USING VirtualShape('" + path + "', '" + charset + "', " + epsg + ")");
-
-    brig::database::identifier id; id.name = base;
-    auto tbl(dbc->get_table_definition(id));
-    auto col_geo = tbl["Geometry"];
-    if (!col_geo) return;
-
-    col_geo->type = brig::database::Geometry;
-    col_geo->dbms_type_lcase.name = "geometry";
-    col_geo->srid = dlg.epsg().toInt();
-    col_geo->epsg = dlg.epsg().toInt();
-    col_geo->query_expression = "AsBinary(\"GEOMETRY\")";
-
-    m_lrs_copy.push_back( layer_link(new layer_geometry(dbc, id, tbl)) );
-  }
-  catch (const std::exception& e)  { show_message(e.what()); }
+  catch (const exception& e)  { show_message(e.what()); }
 }
 
 void tree_view::on_copy_rendered_layers()
@@ -291,7 +308,7 @@ void tree_view::on_show_menu(QPoint point)
   if (m_mdl.is_connection(m_idx_menu))
   {
     actions.append(m_refresh_act);
-    actions.append(m_use_in_sql_act);
+    if (m_mdl.get_connection(m_idx_menu)->is_database()) actions.append(m_sql_console_act);
     actions.append(m_paste_layers_act);
     actions.append(m_disconnect_act);
     actions.append(m_separator1_act);
@@ -309,11 +326,11 @@ void tree_view::on_show_menu(QPoint point)
   actions.append(m_connect_mysql_act);
   actions.append(m_connect_odbc_act);
   if (!brig::database::oracle::client_version().empty()) actions.append(m_connect_oracle_act);
+  actions.append(m_connect_osm_act);
   actions.append(m_connect_postgres_act);
-  actions.append(m_open_sqlite_act);
-  actions.append(m_new_sqlite_act);
+  actions.append(m_open_file_act);
+  actions.append(m_new_file_act);
   actions.append(m_separator2_act);
-  actions.append(m_copy_shp_act);
   actions.append(m_copy_rendered_layers_act);
   QMenu::exec(actions, mapToGlobal(point));
 }

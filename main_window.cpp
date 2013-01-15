@@ -1,11 +1,14 @@
 // Andrew Naplavkov
 
 #include <algorithm>
+#include <boost/version.hpp>
+#include <brig/osm/version.hpp>
 #include <brig/database/mysql/client_version.hpp>
 #include <brig/database/odbc/drivers.hpp>
 #include <brig/database/oracle/client_version.hpp>
 #include <brig/database/postgres/client_version.hpp>
 #include <brig/database/sqlite/version.hpp>
+#include <brig/gdal/version.hpp>
 #include <brig/proj/version.hpp>
 #include <exception>
 #include <QApplication>
@@ -47,6 +50,12 @@ main_window::main_window()
   status_bar->setContextMenuPolicy(Qt::CustomContextMenu);
   connect(status_bar, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(on_show_stat_menu(QPoint)));
 
+  m_proj_stat = new QLabel;
+  m_proj_stat->setDisabled(true);
+  m_proj_stat->setTextFormat(Qt::RichText);
+  m_proj_stat->setText(rich_text(":/res/map_disabled.png", "", false));
+  status_bar->addWidget(m_proj_stat);
+
   m_pos_stat = new QLabel;
   m_pos_stat->setDisabled(true);
   m_pos_stat->setTextFormat(Qt::RichText);
@@ -67,6 +76,14 @@ main_window::main_window()
 
   setCentralWidget(splitter);
   setStatusBar(status_bar);
+
+  m_copy_proj_stat = new QAction(QIcon(":/res/copy.png"), "copy to clipboard", this);
+  m_copy_proj_stat->setIconVisibleInMenu(true);
+  connect(m_copy_proj_stat, SIGNAL(triggered()), this, SLOT(on_copy_proj_stat()));
+
+  m_copy_pos_stat = new QAction(QIcon(":/res/copy.png"), "copy to clipboard", this);
+  m_copy_pos_stat->setIconVisibleInMenu(true);
+  connect(m_copy_pos_stat, SIGNAL(triggered()), this, SLOT(on_copy_pos_stat()));
 
   m_copy_map_stat = new QAction(QIcon(":/res/copy.png"), "copy to clipboard", this);
   m_copy_map_stat->setIconVisibleInMenu(true);
@@ -116,36 +133,41 @@ main_window::main_window()
   connect(map, SIGNAL(signal_task(std::shared_ptr<task>)), sql, SLOT(on_push(std::shared_ptr<task>)));
 
   setWindowIcon(QIcon(":/res/wheel.png"));
+  setWindowTitle("brigantine");
   try  { on_map_scene(latlon()); }
   catch (const std::exception&)  {}
 
   startTimer(100);
 }
 
+static QString status(QString msg, const QTime* time = 0)
+{
+  static const int MessageLimit = 18;
+  QString res;
+  if (time) res.setNum((double)time->elapsed() / 1000., 'f', 1);
+  if (msg.size() > MessageLimit) msg = msg.left(MessageLimit) + "...";
+  if (!res.isEmpty() && !msg.isEmpty()) res += " , ";
+  res += msg;
+  return res;
+}
+
 void main_window::on_map_scene(brig::proj::shared_pj pj)
 {
-  m_tab->setCurrentIndex(m_map_tab);
   const int epsg(get_epsg(pj));
-  QString def;
-  if (epsg < 0) def.fromUtf8( pj.definition().c_str() );
-  else def = QString("%1").arg(epsg);
-  setWindowTitle("brigantine , " + def);
+  if (epsg < 0) m_proj_msg = QString( pj.get_def().c_str() );
+  else m_proj_msg = QString("EPSG:%1").arg(epsg);
+
+  if (!m_proj_msg.isEmpty()) m_tab->setCurrentIndex(m_map_tab);
+  m_proj_stat->setDisabled(m_proj_msg.isEmpty());
+  m_proj_stat->setText(rich_text(m_proj_msg.isEmpty()? ":/res/map_disabled.png": ":/res/map.png", status(m_proj_msg), false));
+  m_proj_stat->setToolTip(m_proj_msg);
 }
 
 void main_window::on_map_coords(QString msg)
 {
-  m_pos_stat->setDisabled(msg.isEmpty());
-  m_pos_stat->setText(rich_text(msg.isEmpty()? ":/res/globe_disabled.png": ":/res/globe.png", msg, false));
-}
-
-QString status(const QTime& time, QString msg)
-{
-  static const int MessageLimit = 30;
-  QString res;
-  res.setNum((double)time.elapsed() / 1000., 'f', 1);
-  if (msg.size() > MessageLimit) msg = msg.left(MessageLimit) + "...";
-  if (!msg.isEmpty()) res += " , " + msg;
-  return res;
+  m_pos_msg = msg;
+  m_pos_stat->setDisabled(m_pos_msg.isEmpty());
+  m_pos_stat->setText(rich_text(m_pos_msg.isEmpty()? ":/res/globe_disabled.png": ":/res/globe.png", m_pos_msg, false));
 }
 
 void main_window::on_map_start()
@@ -159,7 +181,7 @@ void main_window::on_map_start()
 void main_window::on_map_idle()
 {
   m_map_stat->setDisabled(true);
-  m_map_stat->setText(rich_text(":/res/map_disabled.png", status(m_map_time, m_map_msg), true));
+  m_map_stat->setText(rich_text(":/res/map_disabled.png", status(m_map_msg, &m_map_time), true));
   m_map_stat->setToolTip(m_map_msg);
 }
 
@@ -174,14 +196,14 @@ void main_window::on_sql_start()
 void main_window::on_sql_idle()
 {
   m_sql_stat->setDisabled(true);
-  m_sql_stat->setText(rich_text(":/res/sql_disabled.png", status(m_sql_time, m_sql_msg), true));
+  m_sql_stat->setText(rich_text(":/res/sql_disabled.png", status(m_sql_msg, &m_sql_time), true));
   m_sql_stat->setToolTip(m_sql_msg);
 }
 
 void main_window::timerEvent(QTimerEvent*)
 {
-  if (m_map_stat->isEnabled()) m_map_stat->setText(rich_text(":/res/map.png", status(m_map_time, m_map_msg), true));
-  if (m_sql_stat->isEnabled()) m_sql_stat->setText(rich_text(":/res/sql.png", status(m_sql_time, m_sql_msg), true));
+  if (m_map_stat->isEnabled()) m_map_stat->setText(rich_text(":/res/map.png", status(m_map_msg, &m_map_time), true));
+  if (m_sql_stat->isEnabled()) m_sql_stat->setText(rich_text(":/res/sql.png", status(m_sql_msg, &m_sql_time), true));
 }
 
 void main_window::on_show_stat_menu(QPoint point)
@@ -189,12 +211,26 @@ void main_window::on_show_stat_menu(QPoint point)
   QStatusBar* status_bar(statusBar());
   QWidget* widget(status_bar->childAt(point));
   QList<QAction*> actions;
-  if (widget == m_map_stat)
+  if (widget == m_proj_stat)
+    actions.append(m_copy_proj_stat);
+  else if (widget == m_pos_stat)
+    actions.append(m_copy_pos_stat);
+  else if (widget == m_map_stat)
     actions.append(m_copy_map_stat);
   else if (widget == m_sql_stat)
     actions.append(m_copy_sql_stat);
   if (!actions.empty())
     QMenu::exec(actions, status_bar->mapToGlobal(point));
+}
+
+void main_window::on_copy_proj_stat()
+{
+  QApplication::clipboard()->setText(m_proj_msg);
+}
+
+void main_window::on_copy_pos_stat()
+{
+  QApplication::clipboard()->setText(m_pos_msg);
 }
 
 void main_window::on_copy_map_stat()
@@ -216,12 +252,15 @@ void main_window::keyPressEvent(QKeyEvent* event)
     props.append(QString("brigantine: %1, %2-bit").arg(__DATE__).arg(sizeof(void*) * 8));
     props.append(QString());
     props.append(QString("Qt: ") + qVersion());
+    props.append(QString("Boost: %1.%2.%3").arg(BOOST_VERSION / 100000).arg((BOOST_VERSION / 100) % 1000).arg(BOOST_VERSION % 100));
     if (!brig::proj::version().empty()) props.append(QString::fromStdString("Proj: " + brig::proj::version()));
+    if (!brig::gdal::version().empty()) props.append(QString::fromStdString("GDAL: " + brig::gdal::version()));
+    if (!brig::osm::curl_version().empty()) props.append(QString::fromStdString("cURL: " + brig::osm::curl_version()));
     if (!brig::database::sqlite::sqlite3_libversion().empty()) props.append(QString::fromStdString("SQLite: " + brig::database::sqlite::sqlite3_libversion()));
     if (!brig::database::sqlite::spatialite_version().empty()) props.append(QString::fromStdString("SpatiaLite: " + brig::database::sqlite::spatialite_version()));
-    if (!brig::database::mysql::client_version().empty()) props.append(QString::fromStdString("MySQL: " + brig::database::mysql::client_version()));
-    if (!brig::database::oracle::client_version().empty()) props.append(QString::fromStdString("Oracle: " + brig::database::oracle::client_version()));
-    if (!brig::database::postgres::client_version().empty()) props.append(QString::fromStdString("Postgres: " + brig::database::postgres::client_version()));
+    if (!brig::database::mysql::client_version().empty()) props.append(QString::fromStdString("MySQL client: " + brig::database::mysql::client_version()));
+    if (!brig::database::oracle::client_version().empty()) props.append(QString::fromStdString("Oracle client: " + brig::database::oracle::client_version()));
+    if (!brig::database::postgres::client_version().empty()) props.append(QString::fromStdString("Postgres client: " + brig::database::postgres::client_version()));
     vector<string> drvs;
     brig::database::odbc::drivers(drvs);
     if (!drvs.empty())
@@ -233,6 +272,7 @@ void main_window::keyPressEvent(QKeyEvent* event)
     }
     props.append(QString());
     props.append("andrew.naplavkov@gmail.com");
+    props.append("lordnn@yahoo.com");
     QMessageBox::about(this, "about", props.join("\n"));
   }
   else

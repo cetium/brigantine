@@ -17,10 +17,10 @@ class main_window : public QMainWindow {
 
   QTabWidget* m_tab;
   int m_map_tab, m_sql_tab;
-  QLabel *m_pos_stat, *m_map_stat, *m_sql_stat;
-  QString m_map_msg, m_sql_msg;
+  QLabel *m_proj_stat, *m_pos_stat, *m_map_stat, *m_sql_stat;
+  QString m_proj_msg, m_pos_msg, m_map_msg, m_sql_msg;
+  QAction *m_copy_proj_stat, *m_copy_pos_stat, *m_copy_map_stat, *m_copy_sql_stat;
   QTime m_map_time, m_sql_time;
-  QAction *m_copy_map_stat, *m_copy_sql_stat;
 
 private slots:
   void on_map_coords(QString msg);
@@ -33,6 +33,8 @@ private slots:
   void on_sql_idle();
   void on_sql_commands()  { m_tab->setCurrentIndex(m_sql_tab); }
   void on_show_stat_menu(QPoint);
+  void on_copy_proj_stat();
+  void on_copy_pos_stat();
   void on_copy_map_stat();
   void on_copy_sql_stat();
 

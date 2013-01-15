@@ -15,7 +15,7 @@ void task_mbr::run(progress* prg)
     auto dbc(m_lr->get_connection());
     auto id(m_lr->get_geometry(0));
     auto tbl(dbc->get_table_definition(id));
-    pj = ::get_pj(tbl[id.qualifier]->epsg);
+    pj = ::get_pj(*tbl[id.qualifier]);
     box = dbc->get_mbr(tbl, id.qualifier);
     dbc->set_mbr(id, box);
     if (!prg->step()) return;

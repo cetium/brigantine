@@ -5,7 +5,7 @@
 #include <brig/boost/correct.hpp>
 #include "counter_clockwise.h"
 
-bool counter_clockwise::fetch(std::vector<brig::database::variant>& row)
+bool counter_clockwise::fetch(std::vector<brig::variant>& row)
 {
   if (!m_rs->fetch(row)) return false;
   for (size_t i(0); i < m_cols.size(); ++i)

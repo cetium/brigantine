@@ -3,9 +3,9 @@
 #include "connection.h"
 #include "task_exec.h"
 
-task_exec::task_exec(connection_link dbc, const std::string& sql) : m_dbc(dbc), m_sql(sql)
-{
-}
+task_exec::task_exec(connection_link dbc, const std::string& sql)
+  : m_dbc(dbc), m_sql(sql)
+{}
 
 void task_exec::run(progress*)
 {

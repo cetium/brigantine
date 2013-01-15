@@ -75,8 +75,6 @@ QRectF transform(const QRectF& rect, const brig::proj::shared_pj& from, const br
 
 QPointF transform(const QPointF& point, const brig::proj::shared_pj& from, const brig::proj::shared_pj& to)
 {
-  if (from == to) return point;
-
   double xy[2];
   xy[0] = point.x();
   xy[1] = point.y();
@@ -84,32 +82,40 @@ QPointF transform(const QPointF& point, const brig::proj::shared_pj& from, const
   return QPointF(xy[0], xy[1]);
 }
 
-static QMutex s_mtx;
-static std::map<int, brig::proj::shared_pj> s_collection;
+static QMutex s_proj_mtx;
+static std::map<int, brig::proj::shared_pj> s_proj_map;
 
-brig::proj::shared_pj get_pj(int epsg)
+brig::proj::shared_pj get_pj(const brig::column_definition& col)
 {
-  QMutexLocker locker(&s_mtx);
-  auto iter(s_collection.find(epsg));
-  if (iter == std::end(s_collection))
+  if (col.epsg < 0)
+    return brig::proj::shared_pj(col.proj);
+  else
   {
-    try
+    QMutexLocker locker(&s_proj_mtx);
+    auto iter(s_proj_map.find(col.epsg));
+    if (iter == std::end(s_proj_map))
     {
-      brig::proj::shared_pj pj(epsg);
-      s_collection.insert(std::pair<int, brig::proj::shared_pj>(epsg, pj));
+      brig::proj::shared_pj pj(col.epsg);
+      s_proj_map.insert(std::pair<int, brig::proj::shared_pj>(col.epsg, pj));
+      iter = s_proj_map.find(col.epsg);
     }
-    catch (const std::exception&)  { return brig::proj::shared_pj(); }
-    iter = s_collection.find(epsg);
+    return iter->second;
   }
-  return iter->second;
 }
 
 int get_epsg(const brig::proj::shared_pj& pj)
 {
-  QMutexLocker locker(&s_mtx);
-  for (auto iter(std::begin(s_collection)); iter != std::end(s_collection); ++iter)
+  QMutexLocker locker(&s_proj_mtx);
+  for (auto iter(std::begin(s_proj_map)); iter != std::end(s_proj_map); ++iter)
     if (pj == iter->second) return iter->first;
   return -1;
+}
+
+brig::proj::shared_pj latlon()
+{
+  brig::column_definition col;
+  col.epsg = 4326;
+  return get_pj(col);
 }
 
 QRectF world(const brig::proj::shared_pj& pj)

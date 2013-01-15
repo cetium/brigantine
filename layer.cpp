@@ -4,6 +4,7 @@
 #include <brig/boost/as_binary.hpp>
 #include <brig/boost/envelope.hpp>
 #include <brig/boost/geom_from_wkb.hpp>
+#include <exception>
 #include "layer.h"
 #include "utilities.h"
 
@@ -20,39 +21,47 @@ brig::proj::shared_pj layer::get_pj()
 {
   auto id(get_geometry(0));
   auto tbl(get_connection()->get_table_definition(id));
-  return ::get_pj(tbl[id.qualifier]->epsg);
+  return ::get_pj(*tbl[id.qualifier]);
 }
 
 bool layer::try_pj(brig::proj::shared_pj& pj)
 {
-  auto geo(get_geometry(0));
-  brig::database::table_definition tbl;
-  if (!get_connection()->try_table_definition(geo, tbl)) return false;
-  pj = ::get_pj(tbl[geo.qualifier]->epsg);
-  return true;
+  try
+  {
+    auto geo(get_geometry(0));
+    brig::table_definition tbl;
+    if (!get_connection()->try_table_definition(geo, tbl)) return false;
+    pj = ::get_pj(*tbl[geo.qualifier]);
+    return true;
+  }
+  catch (const std::exception&)  { return false; }
 }
 
 bool layer::try_view(brig::boost::box& box, brig::proj::shared_pj& pj)
 {
-  auto geo(get_geometry(0));
-  brig::database::table_definition tbl;
-  if (!get_connection()->try_table_definition(geo, tbl)) return false;
-  auto col(tbl[geo.qualifier]);
-  pj = ::get_pj(col->epsg);
-  if (col->query_value.type() != typeid(brig::blob_t)) return false;
-  const brig::blob_t& blob(boost::get<brig::blob_t>(col->query_value));
-  if (blob.empty()) return false;
-  box = brig::boost::envelope(brig::boost::geom_from_wkb(blob));
-  return true;
+  try
+  {
+    auto geo(get_geometry(0));
+    brig::table_definition tbl;
+    if (!get_connection()->try_table_definition(geo, tbl)) return false;
+    auto col(tbl[geo.qualifier]);
+    pj = ::get_pj(*col);
+    if (col->query_value.type() != typeid(brig::blob_t)) return false;
+    const brig::blob_t& blob(boost::get<brig::blob_t>(col->query_value));
+    if (blob.empty()) return false;
+    box = brig::boost::envelope(brig::boost::geom_from_wkb(blob));
+    return true;
+  }
+  catch (const std::exception&)  { return false; }
 }
 
-brig::database::variant layer::prepare_box(const frame& fr)
+brig::variant layer::prepare_box(const frame& fr)
 {
   brig::boost::box mbr, box;
   box = rect_to_box(transform(fr.prepare_rect(), fr.get_pj(), get_pj()));
   brig::proj::shared_pj pj;
   if (try_view(mbr, pj) && boost::geometry::covered_by(mbr, box))
-    return brig::database::null_t();
+    return brig::null_t();
   if (get_pj().is_latlong()) // "out of longitude/latitude" workaround
   {
     const brig::boost::box tmp(box);

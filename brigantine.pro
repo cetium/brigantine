@@ -2,15 +2,17 @@ QT +=\
   core\
   gui
 
+greaterThan(QT_MAJOR_VERSION, 4):QT +=\
+  widgets
+
 HEADERS +=\
   connection.h\
   connection_link.h\
   counter_clockwise.h\
   dialog_connect.h\
-  dialog_do.h\
+  dialog_create.h\
   dialog_insert.h\
   dialog_odbc.h\
-  dialog_shape.h\
   frame.h\
   global.h\
   insert_item.h\
@@ -44,10 +46,9 @@ SOURCES +=\
   connection_link.cpp\
   counter_clockwise.cpp\
   dialog_connect.cpp\
-  dialog_do.cpp\
+  dialog_create.cpp\
   dialog_insert.cpp\
   dialog_odbc.cpp\
-  dialog_shape.cpp\
   frame.cpp\
   layer.cpp\
   layer_geometry.cpp\
@@ -75,28 +76,32 @@ SOURCES +=\
 
 FORMS +=\
   dialog_connect.ui\
-  dialog_do.ui\
+  dialog_create.ui\
   dialog_odbc.ui
 
 RESOURCES +=\
   resource.qrc
 
-QMAKE_CXXFLAGS +=\
-  -fno-tree-vectorize\
-  -std=c++0x
-
 # boost, brig, ...
-win32:INCLUDEPATH +=\
+INCLUDEPATH +=\
   ../include/\
-  ../include/libpq/\
-  ../include/mysql\
   ../include/oci/
+
+windows:INCLUDEPATH +=\
+  ../include/gdal/\
+  ../include/mysql/\
+  ../include/postgresql/
 
 unix:INCLUDEPATH +=\
-  ../include/\
-  /usr/include/postgresql/\
-  /usr/include/mysql\
-  ../include/oci/
+  /usr/include/mysql/\
+  /usr/include/postgresql/
 
 unix:QMAKE_RPATHDIR +=\
   '${ORIGIN}'
+
+*-g++*:QMAKE_CXXFLAGS +=\
+  -fno-tree-vectorize\
+  -std=c++0x
+
+windows:DEFINES +=\
+  NOMINMAX

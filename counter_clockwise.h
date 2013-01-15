@@ -11,13 +11,13 @@
 // MS_SQL: the interior of the polygon in an ellipsoidal system is defined by the left-hand rule
 // Oracle: counter clockwise for exterior rings, and clockwise for interior rings
 
-class counter_clockwise : public brig::database::rowset {
-  std::shared_ptr<brig::database::rowset> m_rs;
+class counter_clockwise : public brig::rowset {
+  std::shared_ptr<brig::rowset> m_rs;
   std::vector<int> m_cols;
 public:
-  counter_clockwise(std::shared_ptr<brig::database::rowset> rs, const std::vector<int>& cols) : m_rs(rs), m_cols(cols)  {}
+  counter_clockwise(std::shared_ptr<brig::rowset> rs, const std::vector<int>& cols) : m_rs(rs), m_cols(cols)  {}
   std::vector<std::string> columns() override  { return m_rs->columns(); }
-  bool fetch(std::vector<brig::database::variant>& row) override;
+  bool fetch(std::vector<brig::variant>& row) override;
 }; // counter_clockwise
 
 #endif // COUNTER_CLOCKWISE_H

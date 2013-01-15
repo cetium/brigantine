@@ -101,7 +101,7 @@ void sql_view::on_fetch()
       auto cmd(dbc->get_command());
       cmd->exec(sql);
       prg->init(cmd->columns());
-      std::vector<brig::database::variant> row;
+      std::vector<brig::variant> row;
       for (size_t counter(1); cmd->fetch(row); ++counter)
       {
         std::vector<std::string> str_row;
@@ -124,36 +124,46 @@ void sql_view::on_run()
   m_trd.push(std::shared_ptr<task>(tsk));
 }
 
-void sql_view::on_commands(connection_link dbc, std::vector<std::string> sqls)
+void sql_view::reset()
 {
-  m_dbc = dbc;
-
-  static const int TitleLimit = 40;
-  QString title = m_dbc->get_string();
-  if (title.size() > TitleLimit) title = "..." + title.right(TitleLimit);
-  m_title->setText(rich_text(m_dbc->get_icon(), title, false));
-  m_title->setToolTip(m_dbc->get_string());
-
-  m_fetch->setDisabled(m_cancel->isEnabled());
-  m_run->setDisabled(m_cancel->isEnabled());
-  m_info->setDisabled(m_cancel->isEnabled());
-  for (auto sql(std::begin(sqls)); sql != std::end(sqls); ++sql)
-  {
-    m_sql->append("");
-    m_sql->append("-- " + QString::fromUtf8(sql->c_str()));
-  }
-  emit signal_commands();
-}
-
-void sql_view::on_disconnect(connection_link dbc)
-{
-  if (dbc != m_dbc) return;
   m_dbc = connection_link();
   m_title->setText("");
   m_title->setToolTip("");
   m_fetch->setDisabled(true);
   m_run->setDisabled(true);
   m_info->setDisabled(true);
+}
+
+void sql_view::on_commands(connection_link dbc, std::vector<std::string> sqls)
+{
+  if (dbc->is_database())
+  {
+    m_dbc = dbc;
+
+    static const int TitleLimit = 40;
+    QString title = m_dbc->get_string();
+    if (title.size() > TitleLimit) title = "..." + title.right(TitleLimit);
+    m_title->setText(rich_text(m_dbc->get_icon(), title, false));
+    m_title->setToolTip(m_dbc->get_string());
+
+    m_fetch->setDisabled(m_cancel->isEnabled());
+    m_run->setDisabled(m_cancel->isEnabled());
+    m_info->setDisabled(m_cancel->isEnabled());
+    for (auto sql(std::begin(sqls)); sql != std::end(sqls); ++sql)
+    {
+      m_sql->append("");
+      m_sql->append("-- " + QString::fromUtf8(sql->c_str()));
+    }
+  }
+  else
+    reset();
+  emit signal_commands();
+}
+
+void sql_view::on_disconnect(connection_link dbc)
+{
+  if (dbc != m_dbc) return;
+  reset();
 }
 
 void sql_view::on_start()
@@ -178,16 +188,17 @@ void sql_view::on_open()
 {
   QSettings settings(SettingsIni, QSettings::IniFormat);
   QFileDialog dlg
-  ( this
-  , "open SQL file"
-  , settings.value(QString("%1/%2").arg(SettingsSQL).arg(SettingsPath), QDir::currentPath()).toString()
-  , "SQL files (*.sql);;All files (*.*)"
-  );
+    ( this
+    , "open SQL file"
+    , settings.value(QString("%1/%2").arg(SettingsSQL).arg(SettingsPath), QDir::currentPath()).toString()
+    , "SQL files (*.sql);;All files (*.*)"
+    );
   dlg.setAcceptMode(QFileDialog::AcceptOpen);
   dlg.setFileMode(QFileDialog::ExistingFile);
   dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
   if (dlg.exec() != QDialog::Accepted) return;
-  settings.setValue(QString("%1/%2").arg(SettingsSQL).arg(SettingsPath), dlg.directory().absolutePath());
+
+  settings.setValue(QString("%1/%2").arg(SettingsSQL).arg(SettingsPath), QFileInfo(dlg.selectedFiles()[0]).absolutePath());
   QFile file(dlg.selectedFiles()[0]);
   if (!file.open(QFile::ReadOnly)) return;
   QTextStream stream(&file);
@@ -207,7 +218,8 @@ void sql_view::on_save()
   dlg.setFileMode(QFileDialog::AnyFile);
   dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
   if (!dlg.exec()) return;
-  settings.setValue(QString("%1/%2").arg(SettingsSQL).arg(SettingsPath), dlg.directory().absolutePath());
+
+  settings.setValue(QString("%1/%2").arg(SettingsSQL).arg(SettingsPath), QFileInfo(dlg.selectedFiles()[0]).absolutePath());
   QFileInfo info(dlg.selectedFiles().value(0));
   if (info.suffix().isEmpty()) info = QFileInfo(info.dir(), info.fileName() + ".sql");
   if (info.exists() && !QFile::remove(info.filePath()))

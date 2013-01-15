@@ -41,8 +41,9 @@ void dialog_odbc::on_file_button_clicked()
   dlg.setFileMode(QFileDialog::ExistingFile);
   dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
   if (dlg.exec() != QDialog::Accepted) return;
-  settings.setValue(QString("%1/%2").arg(SettingsODBC).arg(SettingsPath), dlg.directory().absolutePath());
-  ui->comboBox->setEditText("FILEDSN=" + dlg.selectedFiles().value(0) + ";");
+
+  settings.setValue(QString("%1/%2").arg(SettingsODBC).arg(SettingsPath), QFileInfo(dlg.selectedFiles()[0]).absolutePath());
+  ui->comboBox->setEditText("FILEDSN=" + dlg.selectedFiles()[0] + ";");
 }
 
 void dialog_odbc::on_connect_button_clicked()

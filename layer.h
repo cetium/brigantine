@@ -18,7 +18,7 @@ class layer {
   connection_link m_dbc;
 
 protected:
-  brig::database::variant prepare_box(const frame& fr);
+  brig::variant prepare_box(const frame& fr);
 
 public:
   layer()  {}
@@ -26,21 +26,22 @@ public:
   virtual ~layer()  {}
   virtual QString get_icon() = 0;
 
-  virtual brig::database::identifier get_identifier() = 0;
+  virtual brig::identifier get_identifier() = 0;
   virtual size_t get_levels() = 0;
-  virtual brig::database::identifier get_geometry(size_t lvl) = 0;
-  virtual brig::database::table_definition get_table_definition(size_t lvl) = 0;
+  virtual brig::identifier get_geometry(size_t lvl) = 0;
+  virtual brig::table_definition get_table_definition(size_t lvl) = 0;
   virtual void reset_table_definitions() = 0;
   virtual bool is_writable() = 0;
 
-  virtual layer* reg(connection_link dbc, std::vector<std::string>& sql) = 0;
-  virtual void unreg(std::vector<std::string>& sql) = 0;
+  virtual layer* fit(connection_link dbc) = 0;
+  virtual void reg() = 0;
+  virtual void reg(std::vector<std::string>& sql) = 0;
+  virtual void unreg() = 0;
 
-  virtual size_t limit() = 0;
   virtual bool has_spatial_index(const frame& fr) = 0;
-  virtual std::shared_ptr<brig::database::rowset> attributes(const frame& fr) = 0;
-  virtual std::shared_ptr<brig::database::rowset> drawing(const frame& fr, bool limited) = 0;
-  virtual void draw(const std::vector<brig::database::variant>& row, const frame& fr, QPainter& painter) = 0;
+  virtual std::shared_ptr<brig::rowset> attributes(const frame& fr) = 0;
+  virtual std::shared_ptr<brig::rowset> drawing(const frame& fr) = 0;
+  virtual void draw(const std::vector<brig::variant>& row, const frame& fr, QPainter& painter) = 0;
 
   connection_link get_connection()  { return m_dbc; }
   QString get_string();

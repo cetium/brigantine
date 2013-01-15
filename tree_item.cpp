@@ -5,9 +5,6 @@
 #include "layer.h"
 #include "tree_item.h"
 
-Q_DECLARE_METATYPE(connection_link)
-Q_DECLARE_METATYPE(layer_link)
-
 tree_item::tree_item(const tree_item* parent, connection_link dbc) : m_parent(parent)  { m_var.setValue(dbc); }
 tree_item::tree_item(const tree_item* parent, layer_link lr) : m_parent(parent)  { m_var.setValue(lr); }
 
@@ -43,7 +40,7 @@ void tree_item::check(size_t order)
 {
   if (m_var.userType() != qMetaTypeId<layer_link>()) return;
   auto lr(qvariant_cast<layer_link>(m_var));
-  lr.m_state = Qt::CheckState((lr.m_state + 1) % 3);
+  lr.m_checked = !lr.m_checked;
   lr.m_order = order;
   m_var.setValue(lr);
 }

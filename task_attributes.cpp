@@ -13,7 +13,7 @@ void task_attributes::run(progress* prg)
 {
   auto rs(m_lr->attributes(m_fr));
   prg->init(rs->columns());
-  std::vector<brig::database::variant> row;
+  std::vector<brig::variant> row;
   for (size_t counter(1); rs->fetch(row); ++counter)
   {
     std::vector<std::string> str_row;

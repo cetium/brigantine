@@ -12,14 +12,10 @@
 class task_drop : public task {
   Q_OBJECT
   layer_link m_lr;
-  bool m_sql;
-
 signals:
-  void signal_commands(connection_link dbc, std::vector<std::string> sqls);
   void signal_refresh(connection_link dbc);
-
 public:
-  task_drop(layer_link lr, bool sql);
+  task_drop(layer_link lr);
   void run(progress* prg) override;
 }; // task_drop
 

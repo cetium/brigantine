@@ -5,17 +5,17 @@
 
 const char SettingsIni[] = "settings.ini";
 
+const char SettingsFileNew[] = "FileNew";
+const char SettingsFileOpen[] = "FileOpen";
 const char SettingsMySQL[] = "MySQL";
 const char SettingsODBC[] = "ODBC";
 const char SettingsOracle[] = "Oracle";
 const char SettingsPostgres[] = "Postgres";
 const char SettingsShapefile[] = "shapefile";
-const char SettingsSQL[] = "SQLite";
-const char SettingsSQLite[] = "SQLite";
+const char SettingsSQL[] = "SQL";
 
-const char SettingsCharset[] = "charset";
 const char SettingsDb[] = "db";
-const char SettingsEPSG[] = "EPSG";
+const char SettingsFilter[] = "filter";
 const char SettingsHost[] = "host";
 const char SettingsPath[] = "path";
 const char SettingsPort[] = "port";

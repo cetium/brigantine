@@ -54,29 +54,22 @@ void map_thread::render_layer(layer_link lr, const frame& fr, QImage& img, QStri
     // todo: lr_painter.setRenderHint(QPainter::Antialiasing);
     lr_painter.eraseRect(lr_img.rect());
     lr_painter.setBrush(QColor(0, 0, 0, 24));
-    const bool limited(lr.m_state == Qt::PartiallyChecked);
-    const size_t counter_end(limited? counter + lr->limit(): LONG_MAX);
 
-    std::vector<brig::database::variant> row;
-    if (msg.isEmpty() && !lr->has_spatial_index(fr)) msg = "no index";
-    for (auto rs(lr->drawing(fr, limited)); rs->fetch(row) && counter < counter_end; ++counter)
+    std::vector<brig::variant> row;
+    for (auto rs(lr->drawing(fr)); rs->fetch(row); ++counter)
     {
-      if (m_abort || (m_restart && !limited)) return;
+      if (m_abort || m_restart) return;
       lr->draw(row, fr, lr_painter);
       if (time.elapsed() > SignalInterval)
       {
-        if (!limited)
-        {
-          painter.drawImage(0, 0, lr_img);
-          lr_painter.eraseRect(img.rect());
-        }
+        painter.drawImage(0, 0, lr_img);
+        lr_painter.eraseRect(img.rect());
         emit signal_process(fr, img);
         emit signal_process((msg.isEmpty()? QString("%1").arg(counter + 1): msg));
         time.restart();
       }
     }
 
-    if (counter >= counter_end) painter.setOpacity(painter.opacity() / 6.);
     painter.drawImage(0, 0, lr_img);
     emit signal_process((msg.isEmpty()? QString("%1").arg(counter): msg));
   }
@@ -106,15 +99,18 @@ void map_thread::run()
       painter.eraseRect(img.rect());
     }
 
+    bool no_index(false);
     for (int i(0); i < int(lrs.size()); ++i)
     {
       if (m_abort) return;
       if (m_restart) break;
+      if (!lrs[i]->has_spatial_index(fr)) no_index = true;
       render_layer(lrs[i], fr, img, msg, counter, time);
     }
     if (m_abort) return;
     if (!m_restart)
     {
+      if (msg.isEmpty() && no_index) msg = "no index";
       emit signal_process(fr, img);
       emit signal_process(msg.isEmpty()? QString("%1").arg(counter): msg);
       emit signal_idle();

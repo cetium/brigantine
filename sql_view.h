@@ -22,6 +22,8 @@ class sql_view : public QWidget {
   QAction *m_open, *m_save, *m_fetch, *m_run, *m_cancel, *m_info;
   QTextEdit *m_sql;
 
+  void reset();
+
 private slots:
   void emit_process(QString msg)  { emit signal_process(msg); }
   void on_cancel()  { m_trd.cancel(); }

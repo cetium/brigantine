@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>dialog_do</class>
- <widget class="QDialog" name="dialog_do">
+ <class>dialog_create</class>
+ <widget class="QDialog" name="dialog_create">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -37,9 +37,9 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_2">
        <item>
-        <widget class="QPushButton" name="do_button">
+        <widget class="QPushButton" name="create_button">
          <property name="text">
-          <string/>
+          <string>create</string>
          </property>
         </widget>
        </item>
@@ -64,7 +64,7 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>do_button</tabstop>
+  <tabstop>create_button</tabstop>
   <tabstop>cancel_button</tabstop>
   <tabstop>sql_button</tabstop>
  </tabstops>

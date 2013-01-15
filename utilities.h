@@ -4,6 +4,7 @@
 #define UTILITIES_H
 
 #include <brig/boost/geometry.hpp>
+#include <brig/column_definition.hpp>
 #include <brig/proj/shared_pj.hpp>
 #include <QApplication>
 #include <QCursor>
@@ -25,9 +26,9 @@ QRectF pixel_to_proj(const QRectF& rect, const frame& fr);
 QRectF transform(const QRectF& rect, const brig::proj::shared_pj& from, const brig::proj::shared_pj& to);
 QPointF transform(const QPointF& point, const brig::proj::shared_pj& from, const brig::proj::shared_pj& to);
 
-brig::proj::shared_pj get_pj(int epsg);
+brig::proj::shared_pj get_pj(const brig::column_definition& col);
 int get_epsg(const brig::proj::shared_pj& pj);
-inline brig::proj::shared_pj latlon()  { return get_pj(4326); }
+brig::proj::shared_pj latlon();
 QRectF world(const brig::proj::shared_pj& pj);
 
 QString rich_text(const QString& icon, const QString& text, bool icon_suffix);

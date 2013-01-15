@@ -1,22 +1,28 @@
 // Andrew Naplavkov
 
 #include <algorithm>
+#include <brig/osm/connection.hpp>
+#include <brig/database/connection.hpp>
 #include <brig/database/mysql/command_allocator.hpp>
 #include <brig/database/odbc/command_allocator.hpp>
 #include <brig/database/oracle/command_allocator.hpp>
 #include <brig/database/postgres/command_allocator.hpp>
 #include <brig/database/sqlite/command_allocator.hpp>
+#include <brig/gdal/connection.hpp>
 #include <exception>
 #include <memory>
+#include <QAbstractButton>
 #include <QApplication>
 #include <QFile>
 #include <QIcon>
+#include <QMessageBox>
+#include <QPushButton>
 #include <QRegExp>
 #include <QString>
 #include <QTextStream>
 #include <vector>
 #include "connection.h"
-#include "dialog_do.h"
+#include "dialog_create.h"
 #include "dialog_insert.h"
 #include "layer.h"
 #include "layer_geometry.h"
@@ -29,9 +35,9 @@
 #include "tree_model.h"
 #include "utilities.h"
 
-tree_model::tree_model(QObject* parent) : QAbstractItemModel(parent), m_root(0, connection_link()), m_order(0)
-{
-}
+tree_model::tree_model(QObject* parent)
+  : QAbstractItemModel(parent), m_root(0, connection_link()), m_order(0)
+{}
 
 QModelIndex tree_model::index(int row, int, const QModelIndex& parent) const
 {
@@ -64,7 +70,7 @@ Qt::ItemFlags tree_model::flags(const QModelIndex& idx) const
   if (idx.isValid())
   {
     res = (Qt::ItemIsEnabled|Qt::ItemIsSelectable);
-    if (is_layer(idx)) res |= (Qt::ItemIsTristate|Qt::ItemIsUserCheckable);
+    if (is_layer(idx)) res |= Qt::ItemIsUserCheckable;
   }
   return res;
 }
@@ -81,7 +87,7 @@ QVariant tree_model::data(const QModelIndex& idx, int role) const
       else if (is_layer(idx)) return QIcon(itm->get_layer()->get_icon());
       break;
     case Qt::DisplayRole: return itm->get_string();
-    case Qt::CheckStateRole: if (is_layer(idx)) return itm->get_layer().m_state; break;
+    case Qt::CheckStateRole: if (is_layer(idx)) return itm->get_layer().m_checked? Qt::Checked: Qt::Unchecked; break;
     }
   }
   return QVariant();
@@ -94,12 +100,7 @@ void tree_model::push_back_rendered_layers(std::vector<layer_link>& lrs) const
     for (auto j(std::begin((*i)->m_children)); j != std::end((*i)->m_children); ++j)
     {
       layer_link lr((*j)->get_layer());
-      switch (lr.m_state)
-      {
-      default: break;
-      case Qt::PartiallyChecked:
-      case Qt::Checked: lrs.push_back(lr); break;
-      }
+      if (lr.m_checked) lrs.push_back(lr);
     }
   }
 }
@@ -150,35 +151,74 @@ void tree_model::connect_to(connection_link dbc)
   endInsertRows();
 }
 
+void tree_model::connect_gdal(QString file, QString drv, QString fit_identifier)
+{
+  connect_to(connection_link
+    ( new brig::gdal::connection<true>(file.toUtf8().constData(), drv.toUtf8().constData(), fit_identifier.toUtf8().constData())
+    , file
+    , QString(":/res/gdal.png")
+    ));
+}
+
 void tree_model::connect_mysql(QString host, int port, QString db, QString usr, QString pwd)
 {
-  connect_to(connection_link(new connection
-    ( std::make_shared<brig::database::mysql::command_allocator>(host.toUtf8().constData(), port, db.toUtf8().constData(), usr.toUtf8().constData(), pwd.toUtf8().constData())
+  connect_to(connection_link
+    ( new brig::database::connection<true>(std::make_shared<brig::database::mysql::command_allocator>(host.toUtf8().constData(), port, db.toUtf8().constData(), usr.toUtf8().constData(), pwd.toUtf8().constData()))
     , QString("%1:%2/%3").arg(host).arg(port).arg(db)
-    )));
+    , QString(":/res/mysql.png")
+    ));
 }
 
 void tree_model::connect_odbc(QString dsn)
 {
+  auto allocator(std::make_shared<brig::database::odbc::command_allocator>(dsn.toUtf8().constData()));
+
   QString str(dsn);
   str.replace(QRegExp("PWD=\\w*;"), "");
-  connect_to(connection_link(new connection(std::make_shared<brig::database::odbc::command_allocator>(dsn.toUtf8().constData()), str)));
+
+  QString icon;
+  switch (std::unique_ptr<brig::database::command>(allocator->allocate())->system())
+  {
+  default: icon = ":/res/anonymous.png"; break;
+  case brig::database::CUBRID: icon = ":/res/cubrid.png"; break;
+  case brig::database::DB2: icon = ":/res/db2.png"; break;
+  case brig::database::Informix: icon = ":/res/informix.png"; break;
+  case brig::database::Ingres: icon = ":/res/ingres.png"; break;
+  case brig::database::MS_SQL: icon = ":/res/ms_sql.png"; break;
+  case brig::database::MySQL: icon = ":/res/mysql.png"; break;
+  case brig::database::Oracle: icon = ":/res/oracle.png"; break;
+  case brig::database::Postgres: icon = ":/res/postgres.png"; break;
+  case brig::database::SQLite: icon = ":/res/sqlite.png"; break;
+  }
+
+  connect_to(connection_link(new brig::database::connection<true>(allocator), str, icon));
 }
 
 void tree_model::connect_oracle(QString host, int port, QString db, QString usr, QString pwd)
 {
-  connect_to(connection_link(new connection
-    ( std::make_shared<brig::database::oracle::command_allocator>(host.toUtf8().constData(), port, db.toUtf8().constData(), usr.toUtf8().constData(), pwd.toUtf8().constData())
+  connect_to(connection_link
+    ( new brig::database::connection<true>(std::make_shared<brig::database::oracle::command_allocator>(host.toUtf8().constData(), port, db.toUtf8().constData(), usr.toUtf8().constData(), pwd.toUtf8().constData()))
     , QString("%1:%2/%3").arg(host).arg(port).arg(db)
-    )));
+    , QString(":/res/oracle.png")
+    ));
+}
+
+void tree_model::connect_osm()
+{
+  connect_to(connection_link
+    ( new brig::osm::connection()
+    , "OSM"
+    , QString(":/res/osm.png")
+    ));
 }
 
 void tree_model::connect_postgres(QString host, int port, QString db, QString usr, QString pwd)
 {
-  connect_to(connection_link(new connection
-    ( std::make_shared<brig::database::postgres::command_allocator>(host.toUtf8().constData(), port, db.toUtf8().constData(), usr.toUtf8().constData(), pwd.toUtf8().constData())
+  connect_to(connection_link
+    ( new brig::database::connection<true>(std::make_shared<brig::database::postgres::command_allocator>(host.toUtf8().constData(), port, db.toUtf8().constData(), usr.toUtf8().constData(), pwd.toUtf8().constData()))
     , QString("%1:%2/%3").arg(host).arg(port).arg(db)
-    )));
+    , QString(":/res/postgres.png")
+    ));
 }
 
 void tree_model::connect_sqlite(QString file, bool init)
@@ -189,7 +229,11 @@ void tree_model::connect_sqlite(QString file, bool init)
     std::unique_ptr<brig::database::command> cmd(allocator->allocate());
     cmd->exec("SELECT InitSpatialMetaData();");
   }
-  connect_to(connection_link(new connection(allocator, file)));
+  connect_to(connection_link
+    ( new brig::database::connection<true>(allocator)
+    , file
+    , QString(":/res/sqlite.png")
+    ));
 }
 
 bool tree_model::is_connection(const QModelIndex& idx) const
@@ -219,7 +263,7 @@ void tree_model::disconnect(const QModelIndex& idx)
   bool render(std::find_if
     ( std::begin(dbc_itm->m_children)
     , std::end(dbc_itm->m_children)
-    , [&](std::unique_ptr<tree_item>& lr_itm){ return lr_itm->get_layer().m_state != Qt::Unchecked; }
+    , [&](std::unique_ptr<tree_item>& lr_itm){ return lr_itm->get_layer().m_checked; }
     ) != std::end(dbc_itm->m_children));
 
   emit signal_disconnect(dbc_itm->get_connection());
@@ -269,8 +313,7 @@ void tree_model::refresh(const QModelIndex& idx)
     else
     {
       old_lr->reset_table_definitions();
-      if (old_lr.m_state != Qt::Unchecked)
-        render = true;
+      if (old_lr.m_checked) render = true;
     }
   }
 
@@ -329,7 +372,7 @@ void tree_model::use_projection(const QModelIndex& idx)
   }
 }
 
-void tree_model::use_in_sql(const QModelIndex& idx)
+void tree_model::sql_console(const QModelIndex& idx)
 {
   if (!is_connection(idx)) return;
   const tree_item* dbc_itm(static_cast<tree_item*>(idx.internalPointer()));
@@ -348,7 +391,11 @@ void tree_model::paste_layers(std::vector<layer_link> lrs_copy, const QModelInde
   const tree_item* dbc_itm(static_cast<tree_item*>(idx_paste.internalPointer()));
   auto dbc(dbc_itm->get_connection());
 
-  dialog_do dlg(QApplication::activeWindow(), QString("create"), lrs_copy.size() == 1? lrs_copy.front()->get_string(): QString("%1 layers").arg(lrs_copy.size()));
+  dialog_create dlg
+    ( QApplication::activeWindow()
+    , lrs_copy.size() == 1? lrs_copy.front()->get_string(): QString("%1 layers").arg(lrs_copy.size())
+    , dbc->is_database()
+    );
   if (dlg.exec() != QDialog::Accepted) return;
 
   qRegisterMetaType<connection_link>("connection_link");
@@ -384,19 +431,17 @@ void tree_model::drop(const QModelIndex& idx)
   tree_item* lr_itm(static_cast<tree_item*>(idx.internalPointer()));
   auto lr(lr_itm->get_layer());
 
-  dialog_do dlg(QApplication::activeWindow(), QString("drop"), lr->get_string());
-  if (dlg.exec() != QDialog::Accepted) return;
+  QMessageBox dlg(QApplication::activeWindow());
+  dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
+  dlg.setWindowIcon(QIcon(":/res/wheel.png"));
+  auto drop(dlg.addButton("drop", QMessageBox::AcceptRole));
+  dlg.addButton("cancel", QMessageBox::RejectRole);
+  dlg.setText(QString("do you want to drop %1?").arg(lr->get_string()));
+  dlg.exec();
+  if (dlg.clickedButton() != static_cast<QAbstractButton*>(drop)) return;
 
   qRegisterMetaType<connection_link>("connection_link");
-  qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
-  task_drop* tsk(new task_drop(lr, dlg.sql()));
-  connect
-    ( tsk, SIGNAL(signal_commands(connection_link, std::vector<std::string>))
-    , this, SLOT(emit_commands(connection_link, std::vector<std::string>))
-    );
-  connect
-    ( tsk, SIGNAL(signal_refresh(connection_link))
-    , this, SLOT(on_refresh(connection_link))
-    );
+  task_drop* tsk(new task_drop(lr));
+  connect(tsk, SIGNAL(signal_refresh(connection_link)), this, SLOT(on_refresh(connection_link)));
   emit signal_task(std::shared_ptr<task>(tsk));
 }

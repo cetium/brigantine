@@ -57,10 +57,17 @@ void sql_model::push_back(const std::vector<std::string>& row)
 
 void sql_model::clear()
 {
+  beginResetModel();
   {
     QMutexLocker locker((QMutex*)&m_mutex);
     m_columns.clear();
     m_rows.clear();
   }
-  reset();
+  endResetModel();
+}
+
+void sql_model::update()
+{
+  beginResetModel();
+  endResetModel();
 }

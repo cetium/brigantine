@@ -48,14 +48,16 @@ public:
   int rowCount(const QModelIndex& parent = QModelIndex()) const override;
   bool setData(const QModelIndex& idx, const QVariant& value, int role = Qt::EditRole) override;
 
+  void connect_gdal(QString file, QString drv = QString(), QString fit_identifier = QString());
   void connect_mysql(QString host, int port, QString db, QString usr, QString pwd);
   void connect_odbc(QString dsn);
   void connect_oracle(QString host, int port, QString db, QString usr, QString pwd);
+  void connect_osm();
   void connect_postgres(QString host, int port, QString db, QString usr, QString pwd);
-  void connect_sqlite(QString file, bool init);
+  void connect_sqlite(QString file, bool init = false);
   void disconnect(const QModelIndex& idx);
   void refresh(const QModelIndex& idx);
-  void use_in_sql(const QModelIndex& idx);
+  void sql_console(const QModelIndex& idx);
   void paste_layers(std::vector<layer_link> lrs_copy, const QModelIndex& idx_paste);
   void zoom_to_fit(const QModelIndex& idx);
   void use_projection(const QModelIndex& idx);

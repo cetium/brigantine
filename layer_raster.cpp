@@ -10,11 +10,23 @@
 #include "layer_raster.h"
 #include "utilities.h"
 
-brig::database::table_definition layer_raster::get_table_definition(size_t lvl)
+layer_raster::layer_raster(connection_link dbc, const brig::raster_pyramid& raster)
+  : layer(dbc), m_raster(raster)
+{}
+
+layer_raster::layer_raster(connection_link dbc, const brig::raster_pyramid& raster, const std::vector<brig::table_definition>& tbls)
+  : layer(dbc), m_raster(raster), m_tbls(tbls)
+{}
+
+brig::table_definition layer_raster::get_table_definition(size_t lvl)
 {
   using namespace std;
 
-  auto tbl(get_connection()->get_table_definition(m_raster.levels[lvl].geometry));
+  auto tbl
+    ( m_tbls.empty()
+    ? get_connection()->get_table_definition(m_raster.levels[lvl].geometry)
+    : m_tbls[lvl]
+    );
   if (!m_raster.levels[lvl].raster.query_expression.empty())
     tbl.columns.push_back(m_raster.levels[lvl].raster);
 
@@ -29,6 +41,8 @@ brig::database::table_definition layer_raster::get_table_definition(size_t lvl)
 
 void layer_raster::reset_table_definitions()
 {
+  if (m_tbls.empty())
+    return;
   for (size_t lvl(0); lvl < m_raster.levels.size(); ++lvl)
     get_connection()->reset_table_definition(m_raster.levels[lvl].geometry);
 }
@@ -38,16 +52,32 @@ bool layer_raster::is_writable()
   return !m_raster.levels.empty() && m_raster.levels[0].raster.query_expression.empty();
 }
 
-layer* layer_raster::reg(connection_link dbc, std::vector<std::string>& sql)
+layer* layer_raster::fit(connection_link dbc)
 {
   auto raster(dbc->fit_to_reg(m_raster));
-  dbc->reg(raster, sql);
-  return new layer_raster(dbc, raster);
+  std::vector<brig::table_definition> tbls;
+  for (size_t lvl(0); lvl < get_levels(); ++lvl)
+  {
+    auto tbl(get_table_definition(lvl));
+    tbl.id.name = raster.levels[lvl].geometry.name;
+    tbls.push_back(dbc->fit_to_create(tbl));
+  }
+  return new layer_raster(dbc, raster, tbls);
 }
 
-void layer_raster::unreg(std::vector<std::string>& sql)
+void layer_raster::reg()
 {
-  get_connection()->unreg(m_raster, sql);
+  get_connection()->reg(m_raster);
+}
+
+void layer_raster::reg(std::vector<std::string>& sql)
+{
+  get_connection()->reg(m_raster, sql);
+}
+
+void layer_raster::unreg()
+{
+  get_connection()->unreg(m_raster);
 }
 
 size_t layer_raster::get_level(const frame& fr)
@@ -62,9 +92,9 @@ size_t layer_raster::get_level(const frame& fr)
     scale = fr.scale();
   else
   {
-    const QRectF rect1(pixel_to_proj(QRectF(QPointF(), fr.size()), fr).intersect(world(pj_fr)));
+    const QRectF rect1(pixel_to_proj(QRectF(QPointF(), fr.size()), fr).intersected(world(pj_fr)));
     if (!rect1.isValid()) return m_raster.levels.size() - 1;
-    const QRectF rect2(transform(rect1, pj_fr, pj_rast).intersect(world(pj_rast)));
+    const QRectF rect2(transform(rect1, pj_fr, pj_rast).intersected(world(pj_rast)));
     if (!rect2.isValid()) return m_raster.levels.size() - 1;
     const double zoom_factor(std::min<>(rect2.width() / rect1.width(), rect2.height() / rect1.height()));
     scale = fr.scale() * zoom_factor;
@@ -88,7 +118,7 @@ bool layer_raster::has_spatial_index(const frame& fr)
   return tbl.rtree(m_raster.levels[level].geometry.qualifier) != 0;
 }
 
-std::shared_ptr<brig::database::rowset> layer_raster::attributes(const frame& fr)
+std::shared_ptr<brig::rowset> layer_raster::attributes(const frame& fr)
 {
   size_t level(get_level(fr));
   auto tbl(get_table_definition(level));
@@ -99,11 +129,11 @@ std::shared_ptr<brig::database::rowset> layer_raster::attributes(const frame& fr
     else if (tbl.columns[i].name != get_raster_column(level))
       tbl.query_columns.push_back(tbl.columns[i].name);
   }
-  tbl.query_rows = int(limit());
+  tbl.query_rows = int(brig::PageSize);
   return get_connection()->select(tbl);
 }
 
-std::shared_ptr<brig::database::rowset> layer_raster::drawing(const frame& fr, bool limited)
+std::shared_ptr<brig::rowset> layer_raster::drawing(const frame& fr)
 {
   size_t level(get_level(fr));
   auto tbl(get_table_definition(level));
@@ -112,27 +142,26 @@ std::shared_ptr<brig::database::rowset> layer_raster::drawing(const frame& fr, b
       tbl.columns[i].query_value = prepare_box(fr);
   tbl.query_columns.push_back(m_raster.levels[level].geometry.qualifier);
   tbl.query_columns.push_back(get_raster_column(level));
-  if (limited) tbl.query_rows = int(limit());
   return get_connection()->select(tbl);
 }
 
-void layer_raster::draw(const std::vector<brig::database::variant>& row, const frame& fr, QPainter& painter)
+void layer_raster::draw(const std::vector<brig::variant>& row, const frame& fr, QPainter& painter)
 {
-  if (row.size() < 2 || row[0].type() != typeid(brig::blob_t) || row[1].type() != typeid(brig::blob_t)) return;
+  if (row.size() < 2|| row[0].type() != typeid(brig::blob_t)) return;
   const brig::blob_t g(boost::get<brig::blob_t>(row[0]));
-  const brig::blob_t r(boost::get<brig::blob_t>(row[1]));
   const QRectF rect_rast(box_to_rect(brig::boost::envelope(brig::boost::geom_from_wkb(g))));
   QImage img_rast;
+  if (row[1].type() != typeid(brig::blob_t)) return;
+  const brig::blob_t r(boost::get<brig::blob_t>(row[1]));
   if (!img_rast.loadFromData(r.data(), uint(r.size()))) return;
   const brig::proj::shared_pj pj_rast(get_pj());
   const brig::proj::shared_pj pj_fr(fr.get_pj());
-
   if (pj_rast == pj_fr)
     painter.drawImage(proj_to_pixel(rect_rast, fr).toAlignedRect(), img_rast);
   else
   {
     const QRectF rect_fr(transform(rect_rast, pj_rast, pj_fr));
-    const QRect rect_fr_px(proj_to_pixel(fr.prepare_rect().intersect(rect_fr), fr).toAlignedRect());
+    const QRect rect_fr_px(proj_to_pixel(fr.prepare_rect().intersected(rect_fr), fr).toAlignedRect());
     if (!rect_fr_px.isValid()) return;
     QImage img_fr(rect_fr_px.size(), QImage::Format_ARGB32_Premultiplied);
     for (int j(0); j < img_fr.height(); ++j)
@@ -144,8 +173,8 @@ void layer_raster::draw(const std::vector<brig::database::variant>& row, const f
         {
           const double dx((point_rast.x() - rect_rast.left()) / rect_rast.width());
           const double dy((point_rast.y() - rect_rast.top()) / rect_rast.height());
-          QRgb rgb(img_rast.pixel(int(dx * img_rast.width()), int((1 - dy) * img_rast.height())));
-          img_fr.setPixel(i, j, rgb);
+          auto pixel(img_rast.pixel(int(dx * img_rast.width()), int((1 - dy) * img_rast.height())));
+          img_fr.setPixel(i, j, pixel);
         }
         else
           img_fr.setPixel(i, j, QColor(0, 0, 0, 0).rgba());

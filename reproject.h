@@ -14,13 +14,13 @@ struct reproject_item {
   reproject_item() : column(-1)  {}
 }; // reproject_item
 
-class reproject : public brig::database::rowset {
-  std::shared_ptr<brig::database::rowset> m_rs;
+class reproject : public brig::rowset {
+  std::shared_ptr<brig::rowset> m_rs;
   std::vector<reproject_item> m_items;
 public:
-  reproject(std::shared_ptr<brig::database::rowset> rs, const std::vector<reproject_item>& items) : m_rs(rs), m_items(items)  {}
+  reproject(std::shared_ptr<brig::rowset> rs, const std::vector<reproject_item>& items) : m_rs(rs), m_items(items)  {}
   std::vector<std::string> columns() override  { return m_rs->columns(); }
-  bool fetch(std::vector<brig::database::variant>& row) override;
+  bool fetch(std::vector<brig::variant>& row) override;
 }; // reproject
 
 #endif // REPROJECT_H
