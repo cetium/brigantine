@@ -74,6 +74,9 @@ dialog_insert::dialog_insert(QWidget* parent, layer_link lr_from, layer_link lr_
   m_ccw = new QCheckBox("make counter-clockwise for exterior rings, and clockwise for interior rings");
   m_ccw->setCheckState(Qt::Unchecked);
 
+  m_view = new QCheckBox("current extent only");
+  m_view->setCheckState(Qt::Unchecked);
+
   QHBoxLayout* buttons(new QHBoxLayout);
   QPushButton* insert_btn(new QPushButton("insert"));
   connect(insert_btn, SIGNAL(clicked()), this, SLOT(accept()));
@@ -85,6 +88,7 @@ dialog_insert::dialog_insert(QWidget* parent, layer_link lr_from, layer_link lr_
   QVBoxLayout* layout(new QVBoxLayout);
   layout->addWidget(m_tab);
   layout->addWidget(m_ccw);
+  layout->addWidget(m_view);
   layout->addLayout(buttons);
   setLayout(layout);
 }

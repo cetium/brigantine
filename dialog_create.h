@@ -16,10 +16,12 @@ private slots:
   void on_create_button_clicked();
   void on_cancel_button_clicked();
   void on_sql_button_clicked();
+
 public:
   dialog_create(QWidget* parent, const QString& name, bool sql);
   ~dialog_create() override;
   bool sql() const;
+  bool view() const;
 }; // dialog_create
 
 #endif // DIALOG_CREATE_H

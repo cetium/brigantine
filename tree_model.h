@@ -25,7 +25,7 @@ class tree_model : public QAbstractItemModel {
   void emit_layers();
 
 private slots:
-  void emit_commands(connection_link dbc, std::vector<std::string> sqls)  { emit signal_commands(dbc, sqls); }
+  void emit_sql(connection_link dbc, std::vector<std::string> sqls)  { emit signal_sql(dbc, sqls); }
   void emit_proj(brig::proj::shared_pj pj)  { emit signal_proj(pj); }
   void emit_view(QRectF rect, brig::proj::shared_pj pj)  { emit signal_view(rect, pj); }
   void on_refresh(connection_link dbc);
@@ -34,7 +34,7 @@ signals:
   void signal_layers(std::vector<layer_link> lrs);
   void signal_view(QRectF rect, brig::proj::shared_pj pj);
   void signal_proj(brig::proj::shared_pj pj);
-  void signal_commands(connection_link dbc, std::vector<std::string> sqls);
+  void signal_sql(connection_link dbc, std::vector<std::string> sqls);
   void signal_task(std::shared_ptr<task> tsk);
   void signal_disconnect(connection_link dbc);
 
@@ -68,8 +68,8 @@ public:
   connection_link get_connection(const QModelIndex& idx) const;
   bool is_layer(const QModelIndex& idx) const;
   layer_link get_layer(const QModelIndex& idx) const;
-  bool has_rendered_layers() const;
-  void push_back_rendered_layers(std::vector<layer_link>& lrs) const;
+  bool has_checked() const;
+  void push_back_checked(std::vector<layer_link>& lrs) const;
 }; // tree_model
 
 #endif // TREE_MODEL_H

@@ -21,6 +21,7 @@
 #include "global.h"
 #include "layer.h"
 #include "layer_geometry.h"
+#include "task_attributes.h"
 #include "tree_view.h"
 #include "utilities.h"
 
@@ -69,9 +70,9 @@ tree_view::tree_view(QWidget* parent) : QTreeView(parent)
   m_new_file_act->setIconVisibleInMenu(true);
   connect(m_new_file_act, SIGNAL(triggered()), this, SLOT(on_new_file()));
 
-  m_copy_rendered_layers_act = new QAction(QIcon(":/res/copy.png"), "copy rendered layer(s)", this);
-  m_copy_rendered_layers_act->setIconVisibleInMenu(true);
-  connect(m_copy_rendered_layers_act, SIGNAL(triggered()), this, SLOT(on_copy_rendered_layers()));
+  m_copy_checked_act = new QAction(QIcon(":/res/copy.png"), "copy checked layer(s)", this);
+  m_copy_checked_act->setIconVisibleInMenu(true);
+  connect(m_copy_checked_act, SIGNAL(triggered()), this, SLOT(on_copy_checked()));
 
   m_refresh_act = new QAction(QIcon(":/res/refresh.png"), "refresh", this);
   m_refresh_act->setIconVisibleInMenu(true);
@@ -93,15 +94,15 @@ tree_view::tree_view(QWidget* parent) : QTreeView(parent)
   m_zoom_to_fit_act->setIconVisibleInMenu(true);
   connect(m_zoom_to_fit_act, SIGNAL(triggered()), this, SLOT(on_zoom_to_fit()));
 
-  m_use_projection_act = new QAction(QIcon(":/res/map.png"), "use the projection", this);
+  m_use_projection_act = new QAction(QIcon(":/res/map.png"), "use this projection", this);
   m_use_projection_act->setIconVisibleInMenu(true);
   connect(m_use_projection_act, SIGNAL(triggered()), this, SLOT(on_use_projection()));
 
   m_attributes_act = new QAction(QIcon(":/res/sql.png"), "attributes", this);
   m_attributes_act->setIconVisibleInMenu(true);
-  connect(m_attributes_act, SIGNAL(triggered()), this, SLOT(emit_attributes()));
+  connect(m_attributes_act, SIGNAL(triggered()), this, SLOT(on_attributes()));
 
-  m_copy_act = new QAction(QIcon(":/res/copy.png"), "copy", this);
+  m_copy_act = new QAction(QIcon(":/res/copy.png"), "copy this layer", this);
   m_copy_act->setIconVisibleInMenu(true);
   connect(m_copy_act, SIGNAL(triggered()), this, SLOT(on_copy()));
 
@@ -124,8 +125,8 @@ tree_view::tree_view(QWidget* parent) : QTreeView(parent)
   qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
   qRegisterMetaType<std::vector<layer_link>>("std::vector<layer_link>");
   connect
-    ( &m_mdl, SIGNAL(signal_commands(connection_link, std::vector<std::string>))
-    , this, SLOT(emit_commands(connection_link, std::vector<std::string>))
+    ( &m_mdl, SIGNAL(signal_sql(connection_link, std::vector<std::string>))
+    , this, SLOT(emit_sql(connection_link, std::vector<std::string>))
     );
   connect(&m_mdl, SIGNAL(signal_disconnect(connection_link)), this, SLOT(emit_disconnect(connection_link)));
   connect(&m_mdl, SIGNAL(signal_layers(std::vector<layer_link>)), this, SLOT(emit_layers(std::vector<layer_link>)));
@@ -279,10 +280,10 @@ void tree_view::on_new_file()
   catch (const exception& e)  { show_message(e.what()); }
 }
 
-void tree_view::on_copy_rendered_layers()
+void tree_view::on_copy_checked()
 {
   m_lrs_copy.clear();
-  m_mdl.push_back_rendered_layers(m_lrs_copy);
+  m_mdl.push_back_checked(m_lrs_copy);
 }
 
 void tree_view::on_copy()
@@ -296,7 +297,7 @@ void tree_view::on_update()
   m_drop_act->setEnabled(m_mdl.is_layer(m_idx_menu) && m_mdl.get_layer(m_idx_menu)->is_writable());
   m_paste_rows_act->setEnabled(m_drop_act->isEnabled() && (m_lrs_copy.size() == 1) && m_mdl.is_layer(m_idx_menu) && m_mdl.get_layer(m_idx_menu)->get_levels() == m_lrs_copy.front()->get_levels());
   m_paste_layers_act->setEnabled(m_mdl.is_connection(m_idx_menu) && !m_lrs_copy.empty());
-  m_copy_rendered_layers_act->setEnabled(m_mdl.has_rendered_layers());
+  m_copy_checked_act->setEnabled(m_mdl.has_checked());
 }
 
 void tree_view::on_show_menu(QPoint point)
@@ -331,8 +332,20 @@ void tree_view::on_show_menu(QPoint point)
   actions.append(m_open_file_act);
   actions.append(m_new_file_act);
   actions.append(m_separator2_act);
-  actions.append(m_copy_rendered_layers_act);
+  actions.append(m_copy_checked_act);
   QMenu::exec(actions, mapToGlobal(point));
+}
+
+void tree_view::on_attributes()
+{
+  qRegisterMetaType<connection_link>("connection_link");
+  qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
+  task_attributes* tsk(new task_attributes(m_mdl.get_layer(m_idx_menu)));
+  connect
+    ( tsk, SIGNAL(signal_sql(connection_link, std::vector<std::string>))
+    , this, SLOT(emit_sql(connection_link, std::vector<std::string>))
+    );
+  emit signal_task(std::shared_ptr<task>(tsk));
 }
 
 void tree_view::on_remove(const QModelIndex& parent, int start, int end, QModelIndex& index)

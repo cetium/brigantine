@@ -15,7 +15,6 @@
 #include <QWheelEvent>
 #include <QWidget>
 #include "map_view.h"
-#include "task_attributes.h"
 #include "utilities.h"
 
 const double ZoomInFactor = 0.8f;
@@ -212,7 +211,7 @@ void map_view::on_layers(std::vector<layer_link> lrs)
   m_lrs = lrs;
   update();
   render();
-  emit signal_scene(m_view_fr.get_pj());
+  emit signal_active(m_view_fr.get_pj());
 }
 
 void map_view::on_view(QRectF rect, brig::proj::shared_pj pj)
@@ -231,7 +230,7 @@ void map_view::on_view(QRectF rect, brig::proj::shared_pj pj)
 
     update();
     render();
-    emit signal_scene(m_view_fr.get_pj());
+    emit signal_active(m_view_fr.get_pj());
   }
   catch (const std::exception&)  {}
 }
@@ -254,19 +253,13 @@ void map_view::on_proj(brig::proj::shared_pj pj)
 
     update();
     render();
-    emit signal_scene(m_view_fr.get_pj());
+    emit signal_active(m_view_fr.get_pj());
   }
   catch (const std::exception&)  {}
 }
 
-void map_view::on_attributes(layer_link lr)
+void map_view::on_task(std::shared_ptr<task> tsk)
 {
-  qRegisterMetaType<connection_link>("connection_link");
-  qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
-  task_attributes* tsk(new task_attributes(m_view_fr, lr));
-  connect
-    ( tsk, SIGNAL(signal_commands(connection_link, std::vector<std::string>))
-    , this, SLOT(emit_commands(connection_link, std::vector<std::string>))
-    );
-  emit signal_task(std::shared_ptr<task>(tsk));
+  tsk->set_frame(m_view_fr);
+  emit signal_task(tsk);
 }

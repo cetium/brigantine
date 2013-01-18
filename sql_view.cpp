@@ -134,7 +134,7 @@ void sql_view::reset()
   m_info->setDisabled(true);
 }
 
-void sql_view::on_commands(connection_link dbc, std::vector<std::string> sqls)
+void sql_view::on_sql(connection_link dbc, std::vector<std::string> sqls)
 {
   if (dbc->is_database())
   {
@@ -157,7 +157,7 @@ void sql_view::on_commands(connection_link dbc, std::vector<std::string> sqls)
   }
   else
     reset();
-  emit signal_commands();
+  emit signal_active();
 }
 
 void sql_view::on_disconnect(connection_link dbc)

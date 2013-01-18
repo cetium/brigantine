@@ -36,15 +36,15 @@ private slots:
   void on_start();
 
 public slots:
-  void on_push(std::shared_ptr<task> tsk)  { m_trd.push(tsk); }
-  void on_commands(connection_link dbc, std::vector<std::string> sqls);
+  void on_task(std::shared_ptr<task> tsk)  { m_trd.push(tsk); }
+  void on_sql(connection_link dbc, std::vector<std::string> sqls);
   void on_disconnect(connection_link dbc);
 
 signals:
   void signal_start();
   void signal_process(QString msg);
   void signal_idle();
-  void signal_commands();
+  void signal_active();
 
 public:
   explicit sql_view(QWidget* parent);

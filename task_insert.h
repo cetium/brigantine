@@ -10,14 +10,17 @@
 
 class task_insert : public task {
   Q_OBJECT
+
   layer_link m_lr_from, m_lr_to;
   std::vector<insert_item> m_items;
-  bool m_ccw;
+  bool m_ccw, m_view;
+
 public:
-  task_insert(layer_link lr_from, layer_link lr_to, const std::vector<insert_item>& items, bool ccw)
-    : m_lr_from(lr_from), m_lr_to(lr_to), m_items(items), m_ccw(ccw)
+  size_t m_counter;
+
+  task_insert(layer_link lr_from, layer_link lr_to, const std::vector<insert_item>& items, bool ccw, bool view)
+    : m_lr_from(lr_from), m_lr_to(lr_to), m_items(items), m_ccw(ccw), m_view(view), m_counter(0)
     {}
-  static void run(layer_link lr_from, layer_link lr_to, const std::vector<insert_item>& items, bool ccw, size_t& counter, progress* prg);
   void run(progress* prg) override;
 }; // task_insert
 

@@ -93,11 +93,12 @@ QVariant tree_model::data(const QModelIndex& idx, int role) const
   return QVariant();
 }
 
-void tree_model::push_back_rendered_layers(std::vector<layer_link>& lrs) const
+void tree_model::push_back_checked(std::vector<layer_link>& lrs) const
 {
-  for (auto i(std::begin(m_root.m_children)); i != std::end(m_root.m_children); ++i)
+  using namespace std;
+  for (auto i(begin(m_root.m_children)); i != end(m_root.m_children); ++i)
   {
-    for (auto j(std::begin((*i)->m_children)); j != std::end((*i)->m_children); ++j)
+    for (auto j(begin((*i)->m_children)); j != end((*i)->m_children); ++j)
     {
       layer_link lr((*j)->get_layer());
       if (lr.m_checked) lrs.push_back(lr);
@@ -105,17 +106,17 @@ void tree_model::push_back_rendered_layers(std::vector<layer_link>& lrs) const
   }
 }
 
-bool tree_model::has_rendered_layers() const
+bool tree_model::has_checked() const
 {
   std::vector<layer_link> lrs;
-  push_back_rendered_layers(lrs);
+  push_back_checked(lrs);
   return !lrs.empty();
 }
 
 void tree_model::emit_layers()
 {
   std::vector<layer_link> lrs;
-  push_back_rendered_layers(lrs);
+  push_back_checked(lrs);
   emit signal_layers(lrs);
 }
 
@@ -376,7 +377,7 @@ void tree_model::sql_console(const QModelIndex& idx)
 {
   if (!is_connection(idx)) return;
   const tree_item* dbc_itm(static_cast<tree_item*>(idx.internalPointer()));
-  emit signal_commands(dbc_itm->get_connection(), std::vector<std::string>());
+  emit signal_sql(dbc_itm->get_connection(), std::vector<std::string>());
 }
 
 void tree_model::on_refresh(connection_link dbc)
@@ -400,10 +401,10 @@ void tree_model::paste_layers(std::vector<layer_link> lrs_copy, const QModelInde
 
   qRegisterMetaType<connection_link>("connection_link");
   qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
-  task_create* tsk(new task_create(lrs_copy, dbc, dlg.sql()));
+  task_create* tsk(new task_create(lrs_copy, dbc, dlg.sql(), dlg.view()));
   connect
-    ( tsk, SIGNAL(signal_commands(connection_link, std::vector<std::string>))
-    , this, SLOT(emit_commands(connection_link, std::vector<std::string>))
+    ( tsk, SIGNAL(signal_sql(connection_link, std::vector<std::string>))
+    , this, SLOT(emit_sql(connection_link, std::vector<std::string>))
     );
   connect
     ( tsk, SIGNAL(signal_refresh(connection_link))
@@ -421,7 +422,7 @@ void tree_model::paste_rows(layer_link lr_copy, const QModelIndex& idx_paste)
 
   dialog_insert dlg(QApplication::activeWindow(), lr_copy, lr_paste);
   if (dlg.exec() != QDialog::Accepted) return;
-  task_insert* tsk(new task_insert(lr_copy, lr_paste, dlg.get_items(), dlg.ccw()));
+  task_insert* tsk(new task_insert(lr_copy, lr_paste, dlg.get_items(), dlg.ccw(), dlg.view()));
   emit signal_task(std::shared_ptr<task>(tsk));
 }
 

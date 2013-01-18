@@ -28,7 +28,7 @@ class tree_view : public QTreeView {
     *m_connect_postgres_act,
     *m_open_file_act,
     *m_new_file_act,
-    *m_copy_rendered_layers_act,
+    *m_copy_checked_act,
     *m_refresh_act,
     *m_sql_console_act,
     *m_paste_layers_act,
@@ -56,7 +56,7 @@ private slots:
   void on_connect_postgres();
   void on_open_file();
   void on_new_file();
-  void on_copy_rendered_layers();
+  void on_copy_checked();
   void on_disconnect()  { m_mdl.disconnect(m_idx_menu); }
   void on_refresh()  { m_mdl.refresh(m_idx_menu); }
   void on_sql_console()  { m_mdl.sql_console(m_idx_menu); }
@@ -67,8 +67,8 @@ private slots:
   void on_paste_rows()  { m_mdl.paste_rows(m_lrs_copy.front(), m_idx_menu); }
   void on_drop()  { m_mdl.drop(m_idx_menu); }
   void on_show_menu(QPoint point);
-  void emit_attributes()  { emit signal_attributes(m_mdl.get_layer(m_idx_menu)); }
-  void emit_commands(connection_link dbc, std::vector<std::string> sqls)  { emit signal_commands(dbc, sqls); }
+  void on_attributes();
+  void emit_sql(connection_link dbc, std::vector<std::string> sqls)  { emit signal_sql(dbc, sqls); }
   void emit_disconnect(connection_link dbc)  { emit signal_disconnect(dbc); }
   void emit_layers(std::vector<layer_link> lim)  { emit signal_layers(lim); }
   void emit_proj(brig::proj::shared_pj pj)  { emit signal_proj(pj); }
@@ -77,12 +77,11 @@ private slots:
 
 signals:
   void signal_layers(std::vector<layer_link> lrs);
-  void signal_view(QRectF rect, brig::proj::shared_pj pj);
   void signal_proj(brig::proj::shared_pj pj);
-  void signal_commands(connection_link dbc, std::vector<std::string> sqls);
-  void signal_disconnect(connection_link dbc);
+  void signal_view(QRectF rect, brig::proj::shared_pj pj);
   void signal_task(std::shared_ptr<task> tsk);
-  void signal_attributes(layer_link lr);
+  void signal_sql(connection_link dbc, std::vector<std::string> sqls);
+  void signal_disconnect(connection_link dbc);
 
 public:
   explicit tree_view(QWidget* parent);

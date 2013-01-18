@@ -107,34 +107,29 @@ main_window::main_window()
   qRegisterMetaType<std::shared_ptr<task>>("std::shared_ptr<task>");
   qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
   qRegisterMetaType<std::vector<layer_link>>("std::vector<layer_link>");
-  connect(tree, SIGNAL(signal_attributes(layer_link)), map, SLOT(on_attributes(layer_link)));
+
   connect(tree, SIGNAL(signal_layers(std::vector<layer_link>)), map, SLOT(on_layers(std::vector<layer_link>)));
   connect(tree, SIGNAL(signal_proj(brig::proj::shared_pj)), map, SLOT(on_proj(brig::proj::shared_pj)));
   connect(tree, SIGNAL(signal_view(QRectF, brig::proj::shared_pj)), map, SLOT(on_view(QRectF, brig::proj::shared_pj)));
-  connect
-    ( tree, SIGNAL(signal_commands(connection_link, std::vector<std::string>))
-    , sql, SLOT(on_commands(connection_link, std::vector<std::string>))
-    );
+  connect(tree, SIGNAL(signal_task(std::shared_ptr<task>)), map, SLOT(on_task(std::shared_ptr<task>)));
+  connect(tree, SIGNAL(signal_sql(connection_link, std::vector<std::string>)), sql, SLOT(on_sql(connection_link, std::vector<std::string>)));
   connect(tree, SIGNAL(signal_disconnect(connection_link)), sql, SLOT(on_disconnect(connection_link)));
-  connect(tree, SIGNAL(signal_task(std::shared_ptr<task>)), sql, SLOT(on_push(std::shared_ptr<task>)));
-  connect(sql, SIGNAL(signal_start()), this, SLOT(on_sql_start()));
-  connect(sql, SIGNAL(signal_process(QString)), this, SLOT(on_sql_process(QString)));
-  connect(sql, SIGNAL(signal_idle()), this, SLOT(on_sql_idle()));
-  connect(sql, SIGNAL(signal_commands()), this, SLOT(on_sql_commands()));
+
+  connect(map, SIGNAL(signal_task(std::shared_ptr<task>)), sql, SLOT(on_task(std::shared_ptr<task>)));
   connect(map, SIGNAL(signal_start()), this, SLOT(on_map_start()));
   connect(map, SIGNAL(signal_process(QString)), this, SLOT(on_map_process(QString)));
   connect(map, SIGNAL(signal_idle()), this, SLOT(on_map_idle()));
+  connect(map, SIGNAL(signal_active(brig::proj::shared_pj)), this, SLOT(on_map_active(brig::proj::shared_pj)));
   connect(map, SIGNAL(signal_coords(QString)), this, SLOT(on_map_coords(QString)));
-  connect(map, SIGNAL(signal_scene(brig::proj::shared_pj)), this, SLOT(on_map_scene(brig::proj::shared_pj)));
-  connect
-    ( map, SIGNAL(signal_commands(connection_link, std::vector<std::string>))
-    , sql, SLOT(on_commands(connection_link, std::vector<std::string>))
-    );
-  connect(map, SIGNAL(signal_task(std::shared_ptr<task>)), sql, SLOT(on_push(std::shared_ptr<task>)));
+
+  connect(sql, SIGNAL(signal_start()), this, SLOT(on_sql_start()));
+  connect(sql, SIGNAL(signal_process(QString)), this, SLOT(on_sql_process(QString)));
+  connect(sql, SIGNAL(signal_idle()), this, SLOT(on_sql_idle()));
+  connect(sql, SIGNAL(signal_active()), this, SLOT(on_sql_active()));
 
   setWindowIcon(QIcon(":/res/wheel.png"));
   setWindowTitle("brigantine");
-  try  { on_map_scene(latlon()); }
+  try  { on_map_active(latlon()); }
   catch (const std::exception&)  {}
 
   startTimer(100);
@@ -151,7 +146,7 @@ static QString status(QString msg, const QTime* time = 0)
   return res;
 }
 
-void main_window::on_map_scene(brig::proj::shared_pj pj)
+void main_window::on_map_active(brig::proj::shared_pj pj)
 {
   const int epsg(get_epsg(pj));
   if (epsg < 0) m_proj_msg = QString( pj.get_def().c_str() );

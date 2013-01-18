@@ -1,5 +1,6 @@
 // Andrew Naplavkov
 
+#include <brig/boost/as_binary.hpp>
 #include <brig/threaded_rowset.hpp>
 #include <QTime>
 #include <stdexcept>
@@ -12,18 +13,20 @@
 #include "task_insert.h"
 #include "utilities.h"
 
-void task_insert::run(layer_link lr_from, layer_link lr_to, const std::vector<insert_item>& insert_items, bool ccw, size_t& counter, progress* prg)
+void task_insert::run(progress* prg)
 {
-  if (lr_from->get_levels() != lr_to->get_levels()) throw std::runtime_error("insert error");
+  using namespace std;
 
-  for (size_t level(0); level < lr_from->get_levels(); ++level)
+  if (m_lr_from->get_levels() != m_lr_to->get_levels()) throw runtime_error("level count error");
+
+  for (size_t level(0); level < m_lr_from->get_levels(); ++level)
   {
-    auto tbl_from(lr_from->get_table_definition(level));
-    auto tbl_to(lr_to->get_table_definition(level));
-    std::vector<int> counter_clockwise_cols;
-    std::vector<reproject_item> reproject_items;
+    auto tbl_from(m_lr_from->get_table_definition(level));
+    auto tbl_to(m_lr_to->get_table_definition(level));
+    vector<int> ccw_cols;
+    vector<reproject_item> reproject_items;
 
-    for (auto iter(std::begin(insert_items)); iter != std::end(insert_items); ++iter)
+    for (auto iter(begin(m_items)); iter != end(m_items); ++iter)
     {
       if (size_t(iter->level) != level) continue;
 
@@ -42,8 +45,8 @@ void task_insert::run(layer_link lr_from, layer_link lr_to, const std::vector<in
         col_to->epsg = col_from->epsg;
       }
 
-      if (col_to->type == brig::Geometry && ccw)
-        counter_clockwise_cols.push_back( int(tbl_from.query_columns.size()) );
+      if (col_to->type == brig::Geometry && m_ccw)
+        ccw_cols.push_back( int(tbl_from.query_columns.size()) );
 
       if (col_from->epsg != col_to->epsg)
       {
@@ -58,35 +61,36 @@ void task_insert::run(layer_link lr_from, layer_link lr_to, const std::vector<in
       tbl_to.query_columns.push_back(col_to->name);
     }
 
-    auto rowset(lr_from->get_connection()->select(tbl_from));
-    if (!counter_clockwise_cols.empty()) rowset = std::make_shared<brig::threaded_rowset>(std::make_shared<counter_clockwise>(rowset, counter_clockwise_cols));
-    if (!reproject_items.empty()) rowset = std::make_shared<brig::threaded_rowset>(std::make_shared<reproject>(rowset, reproject_items));
+    if (m_view)
+    {
+      auto col_from(tbl_from[m_lr_from->get_geometry(level).qualifier]);
+      QRectF rect(transform(m_fr.prepare_rect(), m_fr.get_pj(), get_pj(*col_from)));
+      col_from->query_value = brig::boost::as_binary(rect_to_box(rect));
+    }
 
-    auto dbc_to(lr_to->get_connection());
+    auto rowset(m_lr_from->get_connection()->select(tbl_from));
+    if (!ccw_cols.empty()) rowset = make_shared<brig::threaded_rowset>(make_shared<counter_clockwise>(rowset, ccw_cols));
+    if (!reproject_items.empty()) rowset = make_shared<brig::threaded_rowset>(make_shared<reproject>(rowset, reproject_items));
+
+    auto dbc_to(m_lr_to->get_connection());
     auto ins(dbc_to->get_inserter(tbl_to));
-    std::vector<brig::variant> row;
+    vector<brig::variant> row;
     QTime time; time.start();
 
-    for (; rowset->fetch(row); ++counter)
+    for (; rowset->fetch(row); ++m_counter)
     {
-      if (!prg->step(counter)) return;
+      if (!prg->step(m_counter)) return;
       ins->insert(row);
       if (time.elapsed() > BatchInterval)
       {
         ins->flush();
-        if (!prg->step(counter)) return;
+        if (!prg->step(m_counter)) return;
         time.restart();
       }
     }
     ins->flush();
-    prg->step(counter);
+    prg->step(m_counter);
   }
 
-  lr_to->reset_table_definitions();
-}
-
-void task_insert::run(progress* prg)
-{
-  size_t counter(0);
-  run(m_lr_from, m_lr_to, m_items, m_ccw, counter, prg);
+  m_lr_to->reset_table_definitions();
 }

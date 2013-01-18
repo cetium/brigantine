@@ -14,14 +14,14 @@ class task_create : public task {
   Q_OBJECT
   std::vector<layer_link> m_lrs_from;
   connection_link m_dbc_to;
-  bool m_sql;
+  bool m_sql, m_view;
 
 signals:
-  void signal_commands(connection_link dbc, std::vector<std::string> sqls);
+  void signal_sql(connection_link dbc, std::vector<std::string> sqls);
   void signal_refresh(connection_link dbc);
 
 public:
-  task_create(std::vector<layer_link> lrs_from, connection_link dbc_to, bool sql);
+  task_create(std::vector<layer_link> lrs_from, connection_link dbc_to, bool sql, bool view);
   void run(progress* prg) override;
 }; // task_create
 

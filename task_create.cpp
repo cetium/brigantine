@@ -2,8 +2,12 @@
 
 #include <algorithm>
 #include <brig/boost/as_binary.hpp>
+#include <brig/boost/envelope.hpp>
+#include <brig/boost/geom_from_wkb.hpp>
+#include <brig/boost/geometry.hpp>
 #include <iterator>
 #include <Qt>
+#include <stdexcept>
 #include "connection.h"
 #include "layer.h"
 #include "progress.h"
@@ -11,8 +15,8 @@
 #include "task_insert.h"
 #include "utilities.h"
 
-task_create::task_create(std::vector<layer_link> lrs_from, connection_link dbc_to, bool sql)
-  : m_lrs_from(lrs_from), m_dbc_to(dbc_to), m_sql(sql)
+task_create::task_create(std::vector<layer_link> lrs_from, connection_link dbc_to, bool sql, bool view)
+  : m_lrs_from(lrs_from), m_dbc_to(dbc_to), m_sql(sql), m_view(view)
 {
 }
 
@@ -49,14 +53,31 @@ void task_create::run(progress* prg)
 
         if ( brig::Geometry == col_to.type
           && typeid(brig::blob_t) == col_to.query_value.type()
-          && boost::get<brig::blob_t>(col_to.query_value).empty()
            )
         {
-          auto box(dbc_from->get_mbr(tbl_from, col_from.name));
-          brig::identifier id = tbl_from.id; id.qualifier = col_from.name;
-          dbc_from->set_mbr(id, box);
-          if (!prg->step(counter)) return;
-          col_to.query_value = brig::boost::as_binary(box);
+          using namespace brig::boost;
+
+          box mbr;
+          if (boost::get<brig::blob_t>(col_to.query_value).empty())
+          {
+            mbr = dbc_from->get_mbr(tbl_from, col_from.name);
+            brig::identifier id = tbl_from.id; id.qualifier = col_from.name;
+            dbc_from->set_mbr(id, mbr);
+            if (!prg->step(counter)) return;
+          }
+          else
+            mbr = envelope(geom_from_wkb(boost::get<brig::blob_t>(col_to.query_value)));
+
+          if (m_view)
+          {
+            QRectF rect = ::transform(m_fr.prepare_rect(), m_fr.get_pj(), ::get_pj(col_to));
+            box intersetion;
+            if (!boost::geometry::intersection(rect_to_box(rect), mbr, intersetion))
+               throw runtime_error("current extent error");
+            col_to.query_value = as_binary(intersetion);
+          }
+          else
+            col_to.query_value = as_binary(mbr);
         }
       }
 
@@ -71,12 +92,16 @@ void task_create::run(progress* prg)
     else
     {
       lr_to->reg();
-      task_insert::run(lr_from, lr_to, items, false, counter, prg);
+      task_insert tsk(lr_from, lr_to, items, false, m_view);
+      tsk.m_counter = counter;
+      tsk.set_frame(m_fr);
+      tsk.run(prg);
+      counter = tsk.m_counter;
     }
   }
 
   if (m_sql)
-    emit signal_commands(m_dbc_to, sql);
+    emit signal_sql(m_dbc_to, sql);
   else
     emit signal_refresh(m_dbc_to);
 }

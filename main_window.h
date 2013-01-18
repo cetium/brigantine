@@ -27,11 +27,11 @@ private slots:
   void on_map_start();
   void on_map_process(QString msg)  { m_map_msg = msg; }
   void on_map_idle();
-  void on_map_scene(brig::proj::shared_pj pj);
+  void on_map_active(brig::proj::shared_pj pj);
   void on_sql_start();
   void on_sql_process(QString msg)  { m_sql_msg = msg; }
   void on_sql_idle();
-  void on_sql_commands()  { m_tab->setCurrentIndex(m_sql_tab); }
+  void on_sql_active()  { m_tab->setCurrentIndex(m_sql_tab); }
   void on_show_stat_menu(QPoint);
   void on_copy_proj_stat();
   void on_copy_pos_stat();

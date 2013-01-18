@@ -39,26 +39,24 @@ protected:
   void leaveEvent(QEvent*) override  { emit signal_coords(""); }
 
 private slots:
-  void emit_commands(connection_link dbc, std::vector<std::string> sqls)  { emit signal_commands(dbc, sqls); }
   void emit_idle()  { emit signal_idle(); }
   void emit_process(QString msg)  { emit signal_process(msg); }
   void emit_start()  { emit signal_start(); }
   void on_process(frame fr, QImage image);
 
 public slots:
-  void on_attributes(layer_link lr);
   void on_layers(std::vector<layer_link> lrs);
   void on_proj(brig::proj::shared_pj pj);
   void on_view(QRectF rect, brig::proj::shared_pj pj);
+  void on_task(std::shared_ptr<task> tsk);
 
 signals:
+  void signal_task(std::shared_ptr<task> tsk);
   void signal_start();
   void signal_process(QString msg);
   void signal_idle();
+  void signal_active(brig::proj::shared_pj pj);
   void signal_coords(QString msg);
-  void signal_scene(brig::proj::shared_pj pj);
-  void signal_commands(connection_link dbc, std::vector<std::string> sqls);
-  void signal_task(std::shared_ptr<task> tsk);
 
 public:
   explicit map_view(QWidget* parent);

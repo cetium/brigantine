@@ -7,8 +7,6 @@
 #include "task_attributes.h"
 #include "utilities.h"
 
-task_attributes::task_attributes(frame fr, layer_link lr) : m_fr(fr), m_lr(lr)  {}
-
 void task_attributes::run(progress* prg)
 {
   auto rs(m_lr->attributes(m_fr));
@@ -21,5 +19,5 @@ void task_attributes::run(progress* prg)
       str_row.push_back(brig::string_cast<char>(*iter));
     if (!prg->step(counter, str_row)) return;
   }
-  emit signal_commands(m_lr->get_connection(), std::vector<std::string>());
+  emit signal_sql(m_lr->get_connection(), std::vector<std::string>());
 }

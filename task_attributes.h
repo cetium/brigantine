@@ -6,18 +6,16 @@
 #include <string>
 #include <vector>
 #include "connection_link.h"
-#include "frame.h"
 #include "layer_link.h"
 #include "task.h"
 
 class task_attributes : public task {
   Q_OBJECT
-  frame m_fr;
   layer_link m_lr;
 signals:
-  void signal_commands(connection_link dbc, std::vector<std::string> sqls);
+  void signal_sql(connection_link dbc, std::vector<std::string> sqls);
 public:
-  task_attributes(frame fr, layer_link lr);
+  task_attributes(layer_link lr) : m_lr(lr)  {}
   void run(progress* prg) override;
 }; // task_attributes
 
