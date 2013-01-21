@@ -47,11 +47,6 @@ void layer_raster::reset_table_definitions()
     get_connection()->reset_table_definition(m_raster.levels[lvl].geometry);
 }
 
-bool layer_raster::is_writable()
-{
-  return !m_raster.levels.empty() && m_raster.levels[0].raster.query_expression.empty();
-}
-
 layer* layer_raster::fit(connection_link dbc)
 {
   auto raster(dbc->fit_to_reg(m_raster));
@@ -123,12 +118,8 @@ std::shared_ptr<brig::rowset> layer_raster::attributes(const frame& fr)
   size_t level(get_level(fr));
   auto tbl(get_table_definition(level));
   for (size_t i(0); i < tbl.columns.size(); ++i)
-  {
     if (tbl.columns[i].name == m_raster.levels[level].geometry.qualifier)
       tbl.columns[i].query_value = prepare_box(fr);
-    else if (tbl.columns[i].name != get_raster_column(level))
-      tbl.query_columns.push_back(tbl.columns[i].name);
-  }
   tbl.query_rows = int(brig::PageSize);
   return get_connection()->select(tbl);
 }
@@ -181,4 +172,13 @@ void layer_raster::draw(const std::vector<brig::variant>& row, const frame& fr, 
       }
     painter.drawImage(rect_fr_px, img_fr);
   }
+}
+
+frame layer_raster::snap_to_pixels(const frame& fr)
+{
+  auto pj(get_pj());
+  size_t level(get_level(fr));
+  auto center(fr.center());
+  if (!(fr.get_pj() == pj)) center = transform(center, fr.get_pj(), pj);
+  return frame(center, m_raster.levels[level].resolution_x, fr.size(), pj);
 }

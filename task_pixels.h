@@ -1,21 +1,22 @@
 // Andrew Naplavkov
 
-#ifndef TASK_MBR_H
-#define TASK_MBR_H
+#ifndef TASK_PIXELS_H
+#define TASK_PIXELS_H
 
 #include <brig/proj/shared_pj.hpp>
 #include <QRectF>
 #include "layer_link.h"
 #include "task.h"
 
-class task_mbr : public task {
+class task_pixels : public task {
   Q_OBJECT
   layer_link m_lr;
 signals:
+  void signal_proj(brig::proj::shared_pj pj);
   void signal_rect(QRectF rect, brig::proj::shared_pj pj);
 public:
-  task_mbr(layer_link lr) : m_lr(lr)  {}
+  task_pixels(layer_link lr) : m_lr(lr)  {}
   void run(progress* prg) override;
-}; // task_mbr
+}; // task_pixels
 
-#endif // TASK_MBR_H
+#endif // TASK_PIXELS_H

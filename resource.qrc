@@ -34,5 +34,6 @@
         <file>res/save.png</file>
         <file>res/gdal.png</file>
         <file>res/osm.png</file>
+        <file>res/pixels.png</file>
     </qresource>
 </RCC>

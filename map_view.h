@@ -47,7 +47,7 @@ private slots:
 public slots:
   void on_layers(std::vector<layer_link> lrs);
   void on_proj(brig::proj::shared_pj pj);
-  void on_view(QRectF rect, brig::proj::shared_pj pj);
+  void on_rect(QRectF rect, brig::proj::shared_pj pj);
   void on_task(std::shared_ptr<task> tsk);
 
 signals:

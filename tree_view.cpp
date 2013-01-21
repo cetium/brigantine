@@ -94,6 +94,10 @@ tree_view::tree_view(QWidget* parent) : QTreeView(parent)
   m_zoom_to_fit_act->setIconVisibleInMenu(true);
   connect(m_zoom_to_fit_act, SIGNAL(triggered()), this, SLOT(on_zoom_to_fit()));
 
+  m_snap_to_pixels_act = new QAction(QIcon(":/res/pixels.png"), "snap to pixels", this);
+  m_snap_to_pixels_act->setIconVisibleInMenu(true);
+  connect(m_snap_to_pixels_act, SIGNAL(triggered()), this, SLOT(on_snap_to_pixels()));
+
   m_use_projection_act = new QAction(QIcon(":/res/map.png"), "use this projection", this);
   m_use_projection_act->setIconVisibleInMenu(true);
   connect(m_use_projection_act, SIGNAL(triggered()), this, SLOT(on_use_projection()));
@@ -132,7 +136,7 @@ tree_view::tree_view(QWidget* parent) : QTreeView(parent)
   connect(&m_mdl, SIGNAL(signal_layers(std::vector<layer_link>)), this, SLOT(emit_layers(std::vector<layer_link>)));
   connect(&m_mdl, SIGNAL(signal_proj(brig::proj::shared_pj)), this, SLOT(emit_proj(brig::proj::shared_pj)));
   connect(&m_mdl, SIGNAL(signal_task(std::shared_ptr<task>)), this, SLOT(emit_task(std::shared_ptr<task>)));
-  connect(&m_mdl, SIGNAL(signal_view(QRectF, brig::proj::shared_pj)), this, SLOT(emit_view(QRectF, brig::proj::shared_pj)));
+  connect(&m_mdl, SIGNAL(signal_rect(QRectF, brig::proj::shared_pj)), this, SLOT(emit_rect(QRectF, brig::proj::shared_pj)));
 }
 
 void tree_view::on_connect_mysql()
@@ -294,7 +298,7 @@ void tree_view::on_copy()
 
 void tree_view::on_update()
 {
-  m_drop_act->setEnabled(m_mdl.is_layer(m_idx_menu) && m_mdl.get_layer(m_idx_menu)->is_writable());
+  m_drop_act->setEnabled(m_mdl.is_layer(m_idx_menu));
   m_paste_rows_act->setEnabled(m_drop_act->isEnabled() && (m_lrs_copy.size() == 1) && m_mdl.is_layer(m_idx_menu) && m_mdl.get_layer(m_idx_menu)->get_levels() == m_lrs_copy.front()->get_levels());
   m_paste_layers_act->setEnabled(m_mdl.is_connection(m_idx_menu) && !m_lrs_copy.empty());
   m_copy_checked_act->setEnabled(m_mdl.has_checked());
@@ -317,6 +321,7 @@ void tree_view::on_show_menu(QPoint point)
   else if (m_mdl.is_layer(m_idx_menu))
   {
     actions.append(m_zoom_to_fit_act);
+    if (m_mdl.get_layer(m_idx_menu)->is_raster()) actions.append(m_snap_to_pixels_act);
     actions.append(m_use_projection_act);
     actions.append(m_attributes_act);
     actions.append(m_copy_act);

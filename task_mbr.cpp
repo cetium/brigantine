@@ -20,5 +20,5 @@ void task_mbr::run(progress* prg)
     dbc->set_mbr(id, box);
     if (!prg->step()) return;
   }
-  emit signal_view(box_to_rect(box), pj);
+  emit signal_rect(box_to_rect(box), pj);
 }

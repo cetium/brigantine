@@ -27,12 +27,12 @@ class tree_model : public QAbstractItemModel {
 private slots:
   void emit_sql(connection_link dbc, std::vector<std::string> sqls)  { emit signal_sql(dbc, sqls); }
   void emit_proj(brig::proj::shared_pj pj)  { emit signal_proj(pj); }
-  void emit_view(QRectF rect, brig::proj::shared_pj pj)  { emit signal_view(rect, pj); }
+  void emit_rect(QRectF rect, brig::proj::shared_pj pj)  { emit signal_rect(rect, pj); }
   void on_refresh(connection_link dbc);
 
 signals:
   void signal_layers(std::vector<layer_link> lrs);
-  void signal_view(QRectF rect, brig::proj::shared_pj pj);
+  void signal_rect(QRectF rect, brig::proj::shared_pj pj);
   void signal_proj(brig::proj::shared_pj pj);
   void signal_sql(connection_link dbc, std::vector<std::string> sqls);
   void signal_task(std::shared_ptr<task> tsk);
@@ -60,6 +60,7 @@ public:
   void sql_console(const QModelIndex& idx);
   void paste_layers(std::vector<layer_link> lrs_copy, const QModelIndex& idx_paste);
   void zoom_to_fit(const QModelIndex& idx);
+  void snap_to_pixels(const QModelIndex& idx);
   void use_projection(const QModelIndex& idx);
   void paste_rows(layer_link lr_copy, const QModelIndex& idx_paste);
   void drop(const QModelIndex& idx);

@@ -110,7 +110,7 @@ main_window::main_window()
 
   connect(tree, SIGNAL(signal_layers(std::vector<layer_link>)), map, SLOT(on_layers(std::vector<layer_link>)));
   connect(tree, SIGNAL(signal_proj(brig::proj::shared_pj)), map, SLOT(on_proj(brig::proj::shared_pj)));
-  connect(tree, SIGNAL(signal_view(QRectF, brig::proj::shared_pj)), map, SLOT(on_view(QRectF, brig::proj::shared_pj)));
+  connect(tree, SIGNAL(signal_rect(QRectF, brig::proj::shared_pj)), map, SLOT(on_rect(QRectF, brig::proj::shared_pj)));
   connect(tree, SIGNAL(signal_task(std::shared_ptr<task>)), map, SLOT(on_task(std::shared_ptr<task>)));
   connect(tree, SIGNAL(signal_sql(connection_link, std::vector<std::string>)), sql, SLOT(on_sql(connection_link, std::vector<std::string>)));
   connect(tree, SIGNAL(signal_disconnect(connection_link)), sql, SLOT(on_disconnect(connection_link)));

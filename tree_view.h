@@ -34,6 +34,7 @@ class tree_view : public QTreeView {
     *m_paste_layers_act,
     *m_disconnect_act,
     *m_zoom_to_fit_act,
+    *m_snap_to_pixels_act,
     *m_use_projection_act,
     *m_attributes_act,
     *m_copy_act,
@@ -62,6 +63,7 @@ private slots:
   void on_sql_console()  { m_mdl.sql_console(m_idx_menu); }
   void on_paste_layers()  { m_mdl.paste_layers(m_lrs_copy, m_idx_menu); }
   void on_zoom_to_fit()  { m_mdl.zoom_to_fit(m_idx_menu); }
+  void on_snap_to_pixels()  { m_mdl.snap_to_pixels(m_idx_menu); }
   void on_use_projection()  { m_mdl.use_projection(m_idx_menu); }
   void on_copy();
   void on_paste_rows()  { m_mdl.paste_rows(m_lrs_copy.front(), m_idx_menu); }
@@ -73,12 +75,12 @@ private slots:
   void emit_layers(std::vector<layer_link> lim)  { emit signal_layers(lim); }
   void emit_proj(brig::proj::shared_pj pj)  { emit signal_proj(pj); }
   void emit_task(std::shared_ptr<task> tsk)  { emit signal_task(tsk); }
-  void emit_view(QRectF rect, brig::proj::shared_pj pj)  { emit signal_view(rect, pj); }
+  void emit_rect(QRectF rect, brig::proj::shared_pj pj)  { emit signal_rect(rect, pj); }
 
 signals:
   void signal_layers(std::vector<layer_link> lrs);
   void signal_proj(brig::proj::shared_pj pj);
-  void signal_view(QRectF rect, brig::proj::shared_pj pj);
+  void signal_rect(QRectF rect, brig::proj::shared_pj pj);
   void signal_task(std::shared_ptr<task> tsk);
   void signal_sql(connection_link dbc, std::vector<std::string> sqls);
   void signal_disconnect(connection_link dbc);

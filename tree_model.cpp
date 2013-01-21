@@ -31,6 +31,7 @@
 #include "task_drop.h"
 #include "task_insert.h"
 #include "task_mbr.h"
+#include "task_pixels.h"
 #include "task_proj.h"
 #include "tree_model.h"
 #include "utilities.h"
@@ -344,15 +345,27 @@ void tree_model::zoom_to_fit(const QModelIndex& idx)
   brig::boost::box box;
   brig::proj::shared_pj pj;
   if (lr->try_view(box, pj))
-    emit signal_view(box_to_rect(box), pj);
+    emit signal_rect(box_to_rect(box), pj);
   else
   {
     qRegisterMetaType<brig::proj::shared_pj>("brig::proj::shared_pj");
     task_mbr* tsk(new task_mbr(lr));
-    connect(tsk, SIGNAL(signal_view(QRectF, brig::proj::shared_pj)), this, SLOT(emit_view(QRectF, brig::proj::shared_pj)));
+    connect(tsk, SIGNAL(signal_rect(QRectF, brig::proj::shared_pj)), this, SLOT(emit_rect(QRectF, brig::proj::shared_pj)));
     emit signal_task(std::shared_ptr<task>(tsk));
   }
+}
 
+void tree_model::snap_to_pixels(const QModelIndex& idx)
+{
+  if (!is_layer(idx)) return;
+  tree_item* lr_itm(static_cast<tree_item*>(idx.internalPointer()));
+  layer_link lr(lr_itm->get_layer());
+
+  qRegisterMetaType<brig::proj::shared_pj>("brig::proj::shared_pj");
+  task_pixels* tsk(new task_pixels(lr));
+  connect(tsk, SIGNAL(signal_proj(brig::proj::shared_pj)), this, SLOT(emit_proj(brig::proj::shared_pj)));
+  connect(tsk, SIGNAL(signal_rect(QRectF, brig::proj::shared_pj)), this, SLOT(emit_rect(QRectF, brig::proj::shared_pj)));
+  emit signal_task(std::shared_ptr<task>(tsk));
 }
 
 void tree_model::use_projection(const QModelIndex& idx)
