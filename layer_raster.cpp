@@ -174,11 +174,7 @@ void layer_raster::draw(const std::vector<brig::variant>& row, const frame& fr, 
   }
 }
 
-frame layer_raster::snap_to_pixels(const frame& fr)
+double layer_raster::snap_to_pixels(const frame& fr)
 {
-  auto pj(get_pj());
-  size_t level(get_level(fr));
-  auto center(fr.center());
-  if (!(fr.get_pj() == pj)) center = transform(center, fr.get_pj(), pj);
-  return frame(center, m_raster.levels[level].resolution_x, fr.size(), pj);
+  return m_raster.levels[get_level(fr)].resolution_x;
 }

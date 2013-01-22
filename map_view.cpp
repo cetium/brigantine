@@ -214,6 +214,27 @@ void map_view::on_layers(std::vector<layer_link> lrs)
   emit signal_active(m_view_fr.get_pj());
 }
 
+void map_view::on_proj(brig::proj::shared_pj pj)
+{
+  try
+  {
+    if (projPJ(pj) == 0 || pj == m_view_fr.get_pj()) return;
+    const QRectF rect_fr(m_view_fr.prepare_rect());
+    const QRectF rect(transform(rect_fr, m_view_fr.get_pj(), pj).intersected(world(pj)));
+    if (!rect.isValid()) return;
+    const double zoom_factor(std::min<>(rect.width() / rect_fr.width(), rect.height() / rect_fr.height()));
+    const double scale(m_view_fr.scale() * zoom_factor);
+    QPointF center(m_view_fr.center());
+    if (!(pj == m_view_fr.get_pj())) center = transform(center, m_view_fr.get_pj(), pj);
+    m_pix = QPixmap();
+    m_view_fr = frame(center, scale, m_view_fr.size(), pj);
+    update();
+    render();
+    emit signal_active(m_view_fr.get_pj());
+  }
+  catch (const std::exception&)  {}
+}
+
 void map_view::on_rect(QRectF rect, brig::proj::shared_pj pj)
 {
   try
@@ -234,20 +255,20 @@ void map_view::on_rect(QRectF rect, brig::proj::shared_pj pj)
   catch (const std::exception&)  {}
 }
 
-void map_view::on_proj(brig::proj::shared_pj pj)
+void map_view::on_scale(double scale, brig::proj::shared_pj pj)
 {
   try
   {
-    if (projPJ(pj) == 0 || pj == m_view_fr.get_pj()) return;
-    const QRectF rect_fr(m_view_fr.prepare_rect());
-    const QRectF rect(transform(rect_fr, m_view_fr.get_pj(), pj).intersected(world(pj)));
-    if (!rect.isValid()) return;
-    const double zoom_factor(std::min<>(rect.width() / rect_fr.width(), rect.height() / rect_fr.height()));
-    const double scale(m_view_fr.scale() * zoom_factor);
+    if (projPJ(pj) == 0) return;
     QPointF center(m_view_fr.center());
-    if (!(pj == m_view_fr.get_pj())) center = transform(center, m_view_fr.get_pj(), pj);
-    m_pix = QPixmap();
-    m_view_fr = frame(center, scale, m_view_fr.size(), pj);
+    if (!(pj == m_view_fr.get_pj()))
+    {
+      center = transform(center, m_view_fr.get_pj(), pj);
+      m_pix = QPixmap();
+    }
+    const frame view_fr(center, scale, m_view_fr.size(), pj);
+    if (view_fr == m_view_fr) return;
+    m_view_fr = view_fr;
     update();
     render();
     emit signal_active(m_view_fr.get_pj());

@@ -25,17 +25,19 @@ class tree_model : public QAbstractItemModel {
   void emit_layers();
 
 private slots:
-  void emit_sql(connection_link dbc, std::vector<std::string> sqls)  { emit signal_sql(dbc, sqls); }
   void emit_proj(brig::proj::shared_pj pj)  { emit signal_proj(pj); }
   void emit_rect(QRectF rect, brig::proj::shared_pj pj)  { emit signal_rect(rect, pj); }
+  void emit_scale(double scale, brig::proj::shared_pj pj)  { emit signal_scale(scale, pj); }
+  void emit_sql(connection_link dbc, std::vector<std::string> sqls)  { emit signal_sql(dbc, sqls); }
   void on_refresh(connection_link dbc);
 
 signals:
   void signal_layers(std::vector<layer_link> lrs);
-  void signal_rect(QRectF rect, brig::proj::shared_pj pj);
   void signal_proj(brig::proj::shared_pj pj);
-  void signal_sql(connection_link dbc, std::vector<std::string> sqls);
+  void signal_rect(QRectF rect, brig::proj::shared_pj pj);
+  void signal_scale(double scale, brig::proj::shared_pj pj);
   void signal_task(std::shared_ptr<task> tsk);
+  void signal_sql(connection_link dbc, std::vector<std::string> sqls);
   void signal_disconnect(connection_link dbc);
 
 public:

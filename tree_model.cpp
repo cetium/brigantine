@@ -363,8 +363,7 @@ void tree_model::snap_to_pixels(const QModelIndex& idx)
 
   qRegisterMetaType<brig::proj::shared_pj>("brig::proj::shared_pj");
   task_pixels* tsk(new task_pixels(lr));
-  connect(tsk, SIGNAL(signal_proj(brig::proj::shared_pj)), this, SLOT(emit_proj(brig::proj::shared_pj)));
-  connect(tsk, SIGNAL(signal_rect(QRectF, brig::proj::shared_pj)), this, SLOT(emit_rect(QRectF, brig::proj::shared_pj)));
+  connect(tsk, SIGNAL(signal_scale(double, brig::proj::shared_pj)), this, SLOT(emit_scale(double, brig::proj::shared_pj)));
   emit signal_task(std::shared_ptr<task>(tsk));
 }
 

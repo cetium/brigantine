@@ -34,7 +34,7 @@ public:
   std::shared_ptr<brig::rowset> drawing(const frame& fr) override;
   void draw(const std::vector<brig::variant>& row, const frame& fr, QPainter& painter) override;
   bool has_spatial_index(const frame& fr) override;
-  frame snap_to_pixels(const frame& fr) override;
+  double snap_to_pixels(const frame& fr) override;
 }; // layer_raster
 
 #endif // LAYER_RASTER_H

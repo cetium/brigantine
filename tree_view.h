@@ -70,17 +70,19 @@ private slots:
   void on_drop()  { m_mdl.drop(m_idx_menu); }
   void on_show_menu(QPoint point);
   void on_attributes();
-  void emit_sql(connection_link dbc, std::vector<std::string> sqls)  { emit signal_sql(dbc, sqls); }
-  void emit_disconnect(connection_link dbc)  { emit signal_disconnect(dbc); }
   void emit_layers(std::vector<layer_link> lim)  { emit signal_layers(lim); }
   void emit_proj(brig::proj::shared_pj pj)  { emit signal_proj(pj); }
-  void emit_task(std::shared_ptr<task> tsk)  { emit signal_task(tsk); }
   void emit_rect(QRectF rect, brig::proj::shared_pj pj)  { emit signal_rect(rect, pj); }
+  void emit_scale(double scale, brig::proj::shared_pj pj)  { emit signal_scale(scale, pj); }
+  void emit_task(std::shared_ptr<task> tsk)  { emit signal_task(tsk); }
+  void emit_sql(connection_link dbc, std::vector<std::string> sqls)  { emit signal_sql(dbc, sqls); }
+  void emit_disconnect(connection_link dbc)  { emit signal_disconnect(dbc); }
 
 signals:
   void signal_layers(std::vector<layer_link> lrs);
   void signal_proj(brig::proj::shared_pj pj);
   void signal_rect(QRectF rect, brig::proj::shared_pj pj);
+  void signal_scale(double scale, brig::proj::shared_pj pj);
   void signal_task(std::shared_ptr<task> tsk);
   void signal_sql(connection_link dbc, std::vector<std::string> sqls);
   void signal_disconnect(connection_link dbc);

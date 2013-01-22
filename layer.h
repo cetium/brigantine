@@ -42,7 +42,7 @@ public:
   virtual std::shared_ptr<brig::rowset> drawing(const frame& fr) = 0;
   virtual void draw(const std::vector<brig::variant>& row, const frame& fr, QPainter& painter) = 0;
   virtual bool has_spatial_index(const frame& fr) = 0;
-  virtual frame snap_to_pixels(const frame& fr) = 0;
+  virtual double snap_to_pixels(const frame& fr) = 0;
 
   connection_link get_connection()  { return m_dbc; }
   QString get_string();
