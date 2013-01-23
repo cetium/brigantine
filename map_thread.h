@@ -3,6 +3,7 @@
 #ifndef MAP_THREAD_H
 #define MAP_THREAD_H
 
+#include <atomic>
 #include <QImage>
 #include <QMutex>
 #include <QThread>
@@ -17,7 +18,7 @@ class map_thread : public QThread {
 
   QMutex m_mutex;
   QWaitCondition m_condition;
-  bool m_abort, m_restart;
+  std::atomic_bool m_abort, m_restart;
   std::vector<layer_link> m_lrs;
   frame m_fr;
 

@@ -3,6 +3,7 @@
 #ifndef SQL_THREAD_H
 #define SQL_THREAD_H
 
+#include <atomic>
 #include <memory>
 #include <QMutex>
 #include <QString>
@@ -20,7 +21,7 @@ class sql_thread : public QThread {
   QMutex m_mutex;
   QWaitCondition m_condition;
   std::queue<std::shared_ptr<task>> m_queue;
-  bool m_abort, m_cancel;
+  std::atomic_bool m_abort, m_cancel;
 
 protected:
   void run() override;

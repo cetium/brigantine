@@ -10,7 +10,12 @@
 #include "map_thread.h"
 #include "utilities.h"
 
-map_thread::map_thread(QObject* parent) : QThread(parent), m_abort(false), m_restart(false)  {}
+map_thread::map_thread(QObject* parent) : QThread(parent)
+{
+  // todo: MSVC November 2012 CTP - atomic_bool constructor problem
+  m_abort = false;
+  m_restart = false;
+}
 
 map_thread::~map_thread()
 {
@@ -58,7 +63,7 @@ void map_thread::render_layer(layer_link lr, const frame& fr, QImage& img, QStri
     std::vector<brig::variant> row;
     for (auto rs(lr->drawing(fr)); rs->fetch(row); ++counter)
     {
-      if (m_abort || m_restart) return;
+      if (m_abort.load() || m_restart.load()) return;
       lr->draw(row, fr, lr_painter);
       if (time.elapsed() > SignalInterval)
       {
@@ -87,7 +92,7 @@ void map_thread::run()
 
     std::sort(std::begin(lrs), std::end(lrs), [](const layer_link& a, const layer_link& b){ return a.m_order < b.m_order; });
     if (projPJ(fr.get_pj()) == 0) return;
-    if (m_abort) return;
+    if (m_abort.load()) return;
     emit signal_start();
 
     QString msg;
@@ -102,13 +107,13 @@ void map_thread::run()
     bool no_index(false);
     for (int i(0); i < int(lrs.size()); ++i)
     {
-      if (m_abort) return;
-      if (m_restart) break;
+      if (m_abort.load()) return;
+      if (m_restart.load()) break;
       if (!lrs[i]->has_spatial_index(fr)) no_index = true;
       render_layer(lrs[i], fr, img, msg, counter, time);
     }
-    if (m_abort) return;
-    if (!m_restart)
+    if (m_abort.load()) return;
+    if (!m_restart.load())
     {
       if (msg.isEmpty() && no_index) msg = "no index";
       emit signal_process(fr, img);
@@ -117,7 +122,7 @@ void map_thread::run()
     }
 
     m_mutex.lock();
-    if (!m_restart) m_condition.wait(&m_mutex);
+    if (!m_restart.load()) m_condition.wait(&m_mutex);
     m_restart = false;
     m_mutex.unlock();
   }

@@ -7,7 +7,12 @@
 #include "sql_thread.h"
 #include "utilities.h"
 
-sql_thread::sql_thread(std::shared_ptr<sql_model> mdl) : m_mdl(mdl), m_abort(false), m_cancel(false)  {}
+sql_thread::sql_thread(std::shared_ptr<sql_model> mdl) : m_mdl(mdl)
+{
+  // todo: MSVC November 2012 CTP - atomic_bool constructor problem
+  m_abort = false;
+  m_cancel = false;
+}
 
 sql_thread::~sql_thread()
 {
@@ -58,8 +63,8 @@ void sql_thread::run()
 
     bool step(size_t counter = 0, const std::vector<std::string>& row = std::vector<std::string>()) override
     {
-      if (m_thread->m_abort) return false;
-      if (m_thread->m_cancel) return false;
+      if (m_thread->m_abort.load()) return false;
+      if (m_thread->m_cancel.load()) return false;
       m_counter = counter;
       if (!row.empty()) m_thread->m_mdl->push_back(row);
       if (m_time.elapsed() > SignalInterval)
@@ -75,7 +80,7 @@ void sql_thread::run()
   forever
   {
     m_mutex.lock();
-    while (m_queue.empty() && !m_abort)
+    while (m_queue.empty() && !m_abort.load())
     {
       emit signal_idle();
       m_condition.wait(&m_mutex);
@@ -89,7 +94,7 @@ void sql_thread::run()
     }
     m_mutex.unlock();
 
-    if (m_abort) return;
+    if (m_abort.load()) return;
     emit signal_start();
     progress_impl prg(this);
     try  { tsk->run(&prg); }
@@ -99,8 +104,8 @@ void sql_thread::run()
       if (prg.m_msg.isEmpty()) prg.m_msg = "error";
     }
 
-    if (m_abort) return;
-    if (prg.m_msg.isEmpty() && m_cancel) prg.m_msg = "canceled";
+    if (m_abort.load()) return;
+    if (prg.m_msg.isEmpty() && m_cancel.load()) prg.m_msg = "canceled";
     if (prg.m_msg.isEmpty()) prg.m_msg = QString("%1").arg(prg.m_counter);
     m_mdl->update();
     emit signal_process(prg.m_msg);
