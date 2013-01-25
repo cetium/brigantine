@@ -82,10 +82,20 @@ QPointF transform(const QPointF& point, const brig::proj::shared_pj& from, const
   return QPointF(xy[0], xy[1]);
 }
 
+frame transform(const frame& fr, const brig::proj::shared_pj& pj_to)
+{
+  auto pj_from(fr.get_pj());
+  if (pj_from == pj_to) return fr;
+  const QRectF rect_from(fr.prepare_rect());
+  const QRectF rect_to(transform(rect_from, pj_from, pj_to));
+  const double zoom_factor(std::min<>(rect_to.width() / rect_from.width(), rect_to.height() / rect_from.height()));
+  return frame(transform(fr.center(), pj_from, pj_to), fr.scale() * zoom_factor, fr.size(), pj_to);
+}
+
 static QMutex s_proj_mtx;
 static std::map<int, brig::proj::shared_pj> s_proj_map;
 
-brig::proj::shared_pj get_pj(const brig::column_definition& col)
+brig::proj::shared_pj get_pj(const brig::column_def& col)
 {
   if (col.epsg < 0)
     return brig::proj::shared_pj(col.proj);
@@ -113,7 +123,7 @@ int get_epsg(const brig::proj::shared_pj& pj)
 
 brig::proj::shared_pj latlon()
 {
-  brig::column_definition col;
+  brig::column_def col;
   col.epsg = 4326;
   return get_pj(col);
 }

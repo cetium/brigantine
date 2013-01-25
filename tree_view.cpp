@@ -94,13 +94,13 @@ tree_view::tree_view(QWidget* parent) : QTreeView(parent)
   m_zoom_to_fit_act->setIconVisibleInMenu(true);
   connect(m_zoom_to_fit_act, SIGNAL(triggered()), this, SLOT(on_zoom_to_fit()));
 
-  m_snap_to_pixels_act = new QAction(QIcon(":/res/pixels.png"), "snap to pixels", this);
-  m_snap_to_pixels_act->setIconVisibleInMenu(true);
-  connect(m_snap_to_pixels_act, SIGNAL(triggered()), this, SLOT(on_snap_to_pixels()));
-
   m_use_projection_act = new QAction(QIcon(":/res/map.png"), "use this projection", this);
   m_use_projection_act->setIconVisibleInMenu(true);
   connect(m_use_projection_act, SIGNAL(triggered()), this, SLOT(on_use_projection()));
+
+  m_snap_to_pixels_act = new QAction(QIcon(":/res/pixels.png"), "snap to pixels", this);
+  m_snap_to_pixels_act->setIconVisibleInMenu(true);
+  connect(m_snap_to_pixels_act, SIGNAL(triggered()), this, SLOT(on_snap_to_pixels()));
 
   m_attributes_act = new QAction(QIcon(":/res/sql.png"), "attributes", this);
   m_attributes_act->setIconVisibleInMenu(true);
@@ -322,8 +322,8 @@ void tree_view::on_show_menu(QPoint point)
   else if (m_mdl.is_layer(m_idx_menu))
   {
     actions.append(m_zoom_to_fit_act);
-    if (m_mdl.get_layer(m_idx_menu)->is_raster()) actions.append(m_snap_to_pixels_act);
     actions.append(m_use_projection_act);
+    if (m_mdl.get_layer(m_idx_menu)->is_raster()) actions.append(m_snap_to_pixels_act);
     actions.append(m_attributes_act);
     actions.append(m_copy_act);
     actions.append(m_paste_rows_act);

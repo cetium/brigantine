@@ -16,6 +16,6 @@ void task_drop::run(progress*)
   m_lr->unreg();
   auto dbc(m_lr->get_connection());
   for (size_t level(0), levels(m_lr->get_levels()); level < levels; ++level)
-    dbc->drop(m_lr->get_table_definition(level));
+    dbc->drop(m_lr->get_table_def(level));
   emit signal_refresh(dbc);
 }

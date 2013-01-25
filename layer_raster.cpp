@@ -10,21 +10,21 @@
 #include "layer_raster.h"
 #include "utilities.h"
 
-layer_raster::layer_raster(connection_link dbc, const brig::raster_pyramid& raster)
+layer_raster::layer_raster(connection_link dbc, const brig::pyramid_def& raster)
   : layer(dbc), m_raster(raster)
 {}
 
-layer_raster::layer_raster(connection_link dbc, const brig::raster_pyramid& raster, const std::vector<brig::table_definition>& tbls)
+layer_raster::layer_raster(connection_link dbc, const brig::pyramid_def& raster, const std::vector<brig::table_def>& tbls)
   : layer(dbc), m_raster(raster), m_tbls(tbls)
 {}
 
-brig::table_definition layer_raster::get_table_definition(size_t lvl)
+brig::table_def layer_raster::get_table_def(size_t lvl)
 {
   using namespace std;
 
   auto tbl
     ( m_tbls.empty()
-    ? get_connection()->get_table_definition(m_raster.levels[lvl].geometry)
+    ? get_connection()->get_table_def(m_raster.levels[lvl].geometry)
     : m_tbls[lvl]
     );
   if (!m_raster.levels[lvl].raster.query_expression.empty())
@@ -39,21 +39,21 @@ brig::table_definition layer_raster::get_table_definition(size_t lvl)
   return tbl;
 }
 
-void layer_raster::reset_table_definitions()
+void layer_raster::reset_table_defs()
 {
   if (m_tbls.empty())
     return;
   for (size_t lvl(0); lvl < m_raster.levels.size(); ++lvl)
-    get_connection()->reset_table_definition(m_raster.levels[lvl].geometry);
+    get_connection()->reset_table_def(m_raster.levels[lvl].geometry);
 }
 
 layer* layer_raster::fit(connection_link dbc)
 {
   auto raster(dbc->fit_to_reg(m_raster));
-  std::vector<brig::table_definition> tbls;
+  std::vector<brig::table_def> tbls;
   for (size_t lvl(0); lvl < get_levels(); ++lvl)
   {
-    auto tbl(get_table_definition(lvl));
+    auto tbl(get_table_def(lvl));
     tbl.id.name = raster.levels[lvl].geometry.name;
     tbls.push_back(dbc->fit_to_create(tbl));
   }
@@ -77,28 +77,11 @@ void layer_raster::unreg()
 
 size_t layer_raster::get_level(const frame& fr)
 {
-  using namespace std;
-
   const brig::proj::shared_pj pj_rast(get_pj());
   const brig::proj::shared_pj pj_fr(fr.get_pj());
   if (projPJ(pj_rast) == 0 || projPJ(pj_fr) == 0) return m_raster.levels.size() - 1;
-  double scale(1);
-  if (pj_rast == pj_fr)
-    scale = fr.scale();
-  else
-  {
-    const QRectF rect1(pixel_to_proj(QRectF(QPointF(), fr.size()), fr).intersected(world(pj_fr)));
-    if (!rect1.isValid()) return m_raster.levels.size() - 1;
-    const QRectF rect2(transform(rect1, pj_fr, pj_rast).intersected(world(pj_rast)));
-    if (!rect2.isValid()) return m_raster.levels.size() - 1;
-    const double zoom_factor(std::min<>(rect2.width() / rect1.width(), rect2.height() / rect1.height()));
-    scale = fr.scale() * zoom_factor;
-  }
-
-  vector<double> dists;
-  for (size_t level(0); level < m_raster.levels.size(); ++level)
-    dists.push_back(pow(m_raster.levels[level].resolution_x - scale, 2) + pow(m_raster.levels[level].resolution_y - scale, 2));
-  return distance(begin(dists), min_element(begin(dists), end(dists)));
+  const double scale(pj_rast == pj_fr? fr.scale(): transform(fr, pj_rast).scale());
+  return m_raster.snap_to_level(scale * scale);
 }
 
 std::string layer_raster::get_raster_column(size_t level) const
@@ -109,14 +92,14 @@ std::string layer_raster::get_raster_column(size_t level) const
 bool layer_raster::has_spatial_index(const frame& fr)
 {
   size_t level(get_level(fr));
-  auto tbl(get_table_definition(level));
+  auto tbl(get_table_def(level));
   return tbl.rtree(m_raster.levels[level].geometry.qualifier) != 0;
 }
 
 std::shared_ptr<brig::rowset> layer_raster::attributes(const frame& fr)
 {
   size_t level(get_level(fr));
-  auto tbl(get_table_definition(level));
+  auto tbl(get_table_def(level));
   for (size_t i(0); i < tbl.columns.size(); ++i)
     if (tbl.columns[i].name == m_raster.levels[level].geometry.qualifier)
       tbl.columns[i].query_value = prepare_box(fr);
@@ -127,7 +110,7 @@ std::shared_ptr<brig::rowset> layer_raster::attributes(const frame& fr)
 std::shared_ptr<brig::rowset> layer_raster::drawing(const frame& fr)
 {
   size_t level(get_level(fr));
-  auto tbl(get_table_definition(level));
+  auto tbl(get_table_def(level));
   for (size_t i(0); i < tbl.columns.size(); ++i)
     if (tbl.columns[i].name == m_raster.levels[level].geometry.qualifier)
       tbl.columns[i].query_value = prepare_box(fr);
@@ -174,7 +157,7 @@ void layer_raster::draw(const std::vector<brig::variant>& row, const frame& fr, 
   }
 }
 
-double layer_raster::snap_to_pixels(const frame& fr)
+double layer_raster::native_scale(const frame& fr)
 {
   return m_raster.levels[get_level(fr)].resolution_x;
 }

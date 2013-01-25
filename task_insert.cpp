@@ -21,8 +21,8 @@ void task_insert::run(progress* prg)
 
   for (size_t level(0); level < m_lr_from->get_levels(); ++level)
   {
-    auto tbl_from(m_lr_from->get_table_definition(level));
-    auto tbl_to(m_lr_to->get_table_definition(level));
+    auto tbl_from(m_lr_from->get_table_def(level));
+    auto tbl_to(m_lr_to->get_table_def(level));
     vector<int> ccw_cols;
     vector<reproject_item> reproject_items;
 
@@ -92,5 +92,5 @@ void task_insert::run(progress* prg)
     prg->step(m_counter);
   }
 
-  m_lr_to->reset_table_definitions();
+  m_lr_to->reset_table_defs();
 }

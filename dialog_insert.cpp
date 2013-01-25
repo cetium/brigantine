@@ -26,8 +26,8 @@ dialog_insert::dialog_insert(QWidget* parent, layer_link lr_from, layer_link lr_
   m_tab = new QTabWidget;
   for (size_t lvl(0); lvl < lr_from->get_levels(); ++lvl)
   {
-    auto tbl_from(lr_from->get_table_definition(lvl));
-    auto tbl_to(lr_to->get_table_definition(lvl));
+    auto tbl_from(lr_from->get_table_def(lvl));
+    auto tbl_to(lr_to->get_table_def(lvl));
 
     QStringList cols_from;
     for (auto col_from(std::begin(tbl_from.columns)); col_from != std::end(tbl_from.columns); ++col_from)

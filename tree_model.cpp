@@ -31,8 +31,8 @@
 #include "task_drop.h"
 #include "task_insert.h"
 #include "task_mbr.h"
-#include "task_pixels.h"
 #include "task_proj.h"
+#include "task_scale.h"
 #include "tree_model.h"
 #include "utilities.h"
 
@@ -314,7 +314,7 @@ void tree_model::refresh(const QModelIndex& idx)
       *new_iter = std::unique_ptr<tree_item>(new tree_item(dbc_itm, old_lr));
     else
     {
-      old_lr->reset_table_definitions();
+      old_lr->reset_table_defs();
       if (old_lr.m_checked) render = true;
     }
   }
@@ -362,7 +362,7 @@ void tree_model::snap_to_pixels(const QModelIndex& idx)
   layer_link lr(lr_itm->get_layer());
 
   qRegisterMetaType<brig::proj::shared_pj>("brig::proj::shared_pj");
-  task_pixels* tsk(new task_pixels(lr));
+  task_scale* tsk(new task_scale(lr));
   connect(tsk, SIGNAL(signal_scale(double, brig::proj::shared_pj)), this, SLOT(emit_scale(double, brig::proj::shared_pj)));
   emit signal_task(std::shared_ptr<task>(tsk));
 }

@@ -37,13 +37,13 @@ void task_create::run(progress* prg)
     for (size_t lvl(0); lvl < lr_from->get_levels(); ++lvl)
     {
       if (!prg->step(counter)) return;
-      auto tbl_from(lr_from->get_table_definition(lvl));
-      auto tbl_to(lr_to->get_table_definition(lvl));
+      auto tbl_from(lr_from->get_table_def(lvl));
+      auto tbl_to(lr_to->get_table_def(lvl));
 
       for (size_t col(0), cols(min<>(tbl_from.columns.size(), tbl_to.columns.size())); col < cols; ++col)
       {
-        const brig::column_definition& col_from(tbl_from.columns[col]);
-        brig::column_definition& col_to(tbl_to.columns[col]);
+        const brig::column_def& col_from(tbl_from.columns[col]);
+        brig::column_def& col_to(tbl_to.columns[col]);
 
         insert_item item;
         item.level = int(lvl);

@@ -20,7 +20,7 @@ QString layer::get_string()
 brig::proj::shared_pj layer::get_pj()
 {
   auto id(get_geometry(0));
-  auto tbl(get_connection()->get_table_definition(id));
+  auto tbl(get_connection()->get_table_def(id));
   return ::get_pj(*tbl[id.qualifier]);
 }
 
@@ -29,8 +29,8 @@ bool layer::try_pj(brig::proj::shared_pj& pj)
   try
   {
     auto geo(get_geometry(0));
-    brig::table_definition tbl;
-    if (!get_connection()->try_table_definition(geo, tbl)) return false;
+    brig::table_def tbl;
+    if (!get_connection()->try_table_def(geo, tbl)) return false;
     pj = ::get_pj(*tbl[geo.qualifier]);
     return true;
   }
@@ -42,8 +42,8 @@ bool layer::try_view(brig::boost::box& box, brig::proj::shared_pj& pj)
   try
   {
     auto geo(get_geometry(0));
-    brig::table_definition tbl;
-    if (!get_connection()->try_table_definition(geo, tbl)) return false;
+    brig::table_def tbl;
+    if (!get_connection()->try_table_def(geo, tbl)) return false;
     auto col(tbl[geo.qualifier]);
     pj = ::get_pj(*col);
     if (col->query_value.type() != typeid(brig::blob_t)) return false;

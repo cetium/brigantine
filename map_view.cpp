@@ -219,15 +219,8 @@ void map_view::on_proj(brig::proj::shared_pj pj)
   try
   {
     if (projPJ(pj) == 0 || pj == m_view_fr.get_pj()) return;
-    const QRectF rect_fr(m_view_fr.prepare_rect());
-    const QRectF rect(transform(rect_fr, m_view_fr.get_pj(), pj).intersected(world(pj)));
-    if (!rect.isValid()) return;
-    const double zoom_factor(std::min<>(rect.width() / rect_fr.width(), rect.height() / rect_fr.height()));
-    const double scale(m_view_fr.scale() * zoom_factor);
-    QPointF center(m_view_fr.center());
-    if (!(pj == m_view_fr.get_pj())) center = transform(center, m_view_fr.get_pj(), pj);
+    m_view_fr = transform(m_view_fr, pj);
     m_pix = QPixmap();
-    m_view_fr = frame(center, scale, m_view_fr.size(), pj);
     update();
     render();
     emit signal_active(m_view_fr.get_pj());

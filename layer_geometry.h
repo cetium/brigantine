@@ -7,9 +7,9 @@
 
 class layer_geometry : public layer {
   const brig::identifier m_id;
-  const brig::table_definition m_tbl;
+  const brig::table_def m_tbl;
 
-  layer_geometry(connection_link dbc, const brig::table_definition& tbl);
+  layer_geometry(connection_link dbc, const brig::table_def& tbl);
 
 public:
   layer_geometry(connection_link dbc, const brig::identifier& id);
@@ -18,8 +18,8 @@ public:
   brig::identifier get_identifier() override  { return m_id; }
   size_t get_levels() override  { return 1; }
   brig::identifier get_geometry(size_t) override  { return m_id; }
-  brig::table_definition get_table_definition(size_t lvl) override;
-  void reset_table_definitions() override;
+  brig::table_def get_table_def(size_t lvl) override;
+  void reset_table_defs() override;
   bool is_raster() override  { return false; }
 
   layer* fit(connection_link dbc) override;
@@ -31,7 +31,7 @@ public:
   std::shared_ptr<brig::rowset> drawing(const frame& fr) override;
   void draw(const std::vector<brig::variant>& row, const frame& fr, QPainter& painter) override;
   bool has_spatial_index(const frame& fr) override;
-  double snap_to_pixels(const frame&) override  { return 0; }
+  double native_scale(const frame&) override  { return 0; }
 }; // layer_geometry
 
 #endif // LAYER_GEOMETRY_H

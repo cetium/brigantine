@@ -10,22 +10,22 @@ connection::connection(brig::connection* dbc, QString str, QString icon)
 {
 }
 
-brig::table_definition connection::get_table_definition(const brig::identifier& tbl)
+brig::table_def connection::get_table_def(const brig::identifier& tbl)
 {
   QMutexLocker locker(&m_mutex);
   if (m_tables.find(tbl) == std::end(m_tables))
-    m_tables[tbl] = m_dbc->get_table_definition(tbl);
+    m_tables[tbl] = m_dbc->get_table_def(tbl);
   return m_tables[tbl];
 }
 
-void connection::reset_table_definition(const brig::identifier& tbl)
+void connection::reset_table_def(const brig::identifier& tbl)
 {
   QMutexLocker locker(&m_mutex);
   if (m_tables.find(tbl) != std::end(m_tables))
     m_tables.erase(tbl);
 }
 
-bool connection::try_table_definition(const brig::identifier& tbl, brig::table_definition& def)
+bool connection::try_table_def(const brig::identifier& tbl, brig::table_def& def)
 {
   QMutexLocker locker(&m_mutex);
   if (m_tables.find(tbl) == std::end(m_tables))

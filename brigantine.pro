@@ -35,8 +35,8 @@ HEADERS +=\
   task_exec.h\
   task_insert.h\
   task_mbr.h\
-  task_pixels.h\
   task_proj.h\
+  task_scale.h\
   tree_item.h\
   tree_model.h\
   tree_view.h\
@@ -69,8 +69,8 @@ SOURCES +=\
   task_exec.cpp\
   task_insert.cpp\
   task_mbr.cpp\
-  task_pixels.cpp\
   task_proj.cpp\
+  task_scale.cpp\
   tree_item.cpp\
   tree_model.cpp\
   tree_view.cpp\

@@ -29,8 +29,8 @@ public:
   virtual brig::identifier get_identifier() = 0;
   virtual size_t get_levels() = 0;
   virtual brig::identifier get_geometry(size_t lvl) = 0;
-  virtual brig::table_definition get_table_definition(size_t lvl) = 0;
-  virtual void reset_table_definitions() = 0;
+  virtual brig::table_def get_table_def(size_t lvl) = 0;
+  virtual void reset_table_defs() = 0;
   virtual bool is_raster() = 0;
 
   virtual layer* fit(connection_link dbc) = 0;
@@ -42,7 +42,7 @@ public:
   virtual std::shared_ptr<brig::rowset> drawing(const frame& fr) = 0;
   virtual void draw(const std::vector<brig::variant>& row, const frame& fr, QPainter& painter) = 0;
   virtual bool has_spatial_index(const frame& fr) = 0;
-  virtual double snap_to_pixels(const frame& fr) = 0;
+  virtual double native_scale(const frame& fr) = 0;
 
   connection_link get_connection()  { return m_dbc; }
   QString get_string();

@@ -12,23 +12,23 @@ layer_geometry::layer_geometry(connection_link dbc, const brig::identifier& id)
   : layer(dbc), m_id(id)
 {}
 
-layer_geometry::layer_geometry(connection_link dbc, const brig::table_definition& tbl)
+layer_geometry::layer_geometry(connection_link dbc, const brig::table_def& tbl)
   : layer(dbc), m_id(tbl.id), m_tbl(tbl)
 {}
 
-brig::table_definition layer_geometry::get_table_definition(size_t)
+brig::table_def layer_geometry::get_table_def(size_t)
 {
-  return m_tbl.columns.empty()? get_connection()->get_table_definition(m_id): m_tbl;
+  return m_tbl.columns.empty()? get_connection()->get_table_def(m_id): m_tbl;
 }
 
-void layer_geometry::reset_table_definitions()
+void layer_geometry::reset_table_defs()
 {
-  if (m_tbl.columns.empty()) get_connection()->reset_table_definition(m_id);
+  if (m_tbl.columns.empty()) get_connection()->reset_table_def(m_id);
 }
 
 layer* layer_geometry::fit(connection_link dbc)
 {
-  auto tbl_from(get_table_definition(0));
+  auto tbl_from(get_table_def(0));
   auto tbl_to(dbc->fit_to_create(tbl_from));
 
   for (size_t col(0), cols(std::min<>(tbl_from.columns.size(), tbl_to.columns.size())); col < cols; ++col)
@@ -40,13 +40,13 @@ layer* layer_geometry::fit(connection_link dbc)
 
 bool layer_geometry::has_spatial_index(const frame&)
 {
-  auto tbl(get_table_definition(0));
+  auto tbl(get_table_def(0));
   return tbl.rtree(m_id.qualifier) != 0;
 }
 
 std::shared_ptr<brig::rowset> layer_geometry::attributes(const frame& fr)
 {
-  auto tbl(get_table_definition(0));
+  auto tbl(get_table_def(0));
   for (size_t i(0); i < tbl.columns.size(); ++i)
     if (tbl.columns[i].name == m_id.qualifier)
       tbl.columns[i].query_value = prepare_box(fr);
@@ -56,7 +56,7 @@ std::shared_ptr<brig::rowset> layer_geometry::attributes(const frame& fr)
 
 std::shared_ptr<brig::rowset> layer_geometry::drawing(const frame& fr)
 {
-  auto tbl(get_table_definition(0));
+  auto tbl(get_table_def(0));
   for (size_t i(0); i < tbl.columns.size(); ++i)
     if (tbl.columns[i].name == m_id.qualifier)
       tbl.columns[i].query_value = prepare_box(fr);
