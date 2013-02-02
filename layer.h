@@ -10,19 +10,19 @@
 #include <Qt>
 #include <string>
 #include <vector>
-#include "connection.h"
-#include "connection_link.h"
 #include "frame.h"
+#include "provider.h"
+#include "provider_ptr.h"
 
 class layer {
-  connection_link m_dbc;
+  provider_ptr m_pvd;
 
 protected:
   brig::variant prepare_box(const frame& fr);
 
 public:
   layer()  {}
-  explicit layer(connection_link dbc) : m_dbc(dbc)  {}
+  explicit layer(provider_ptr pvd) : m_pvd(pvd)  {}
   virtual ~layer()  {}
   virtual QString get_icon() = 0;
 
@@ -33,7 +33,7 @@ public:
   virtual void reset_table_defs() = 0;
   virtual bool is_raster() = 0;
 
-  virtual layer* fit(connection_link dbc) = 0;
+  virtual layer* fit(provider_ptr pvd) = 0;
   virtual void reg() = 0;
   virtual void reg(std::vector<std::string>& sql) = 0;
   virtual void unreg() = 0;
@@ -44,7 +44,7 @@ public:
   virtual bool has_spatial_index(const frame& fr) = 0;
   virtual double native_scale(const frame& fr) = 0;
 
-  connection_link get_connection()  { return m_dbc; }
+  provider_ptr get_provider()  { return m_pvd; }
   QString get_string();
   brig::proj::shared_pj get_pj();
   bool try_pj(brig::proj::shared_pj& pj);

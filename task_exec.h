@@ -4,17 +4,17 @@
 #define TASK_EXEC_H
 
 #include <string>
-#include "connection_link.h"
+#include "provider_ptr.h"
 #include "task.h"
 
 class task_exec : public task {
   Q_OBJECT
-  connection_link m_dbc;
+  provider_ptr m_pvd;
   std::string m_sql;
 signals:
-  void signal_refresh(connection_link dbc);
+  void signal_refresh(provider_ptr pvd);
 public:
-  task_exec(connection_link dbc, const std::string& sql);
+  task_exec(provider_ptr pvd, const std::string& sql);
   void run(progress* prg) override;
 }; // task_exec
 

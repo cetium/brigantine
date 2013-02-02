@@ -9,10 +9,10 @@ class layer_geometry : public layer {
   const brig::identifier m_id;
   const brig::table_def m_tbl;
 
-  layer_geometry(connection_link dbc, const brig::table_def& tbl);
+  layer_geometry(provider_ptr pvd, const brig::table_def& tbl);
 
 public:
-  layer_geometry(connection_link dbc, const brig::identifier& id);
+  layer_geometry(provider_ptr pvd, const brig::identifier& id);
   QString get_icon() override  { return ":/res/compasses.png"; }
 
   brig::identifier get_identifier() override  { return m_id; }
@@ -22,7 +22,7 @@ public:
   void reset_table_defs() override;
   bool is_raster() override  { return false; }
 
-  layer* fit(connection_link dbc) override;
+  layer* fit(provider_ptr pvd) override;
   void reg() override  {}
   void reg(std::vector<std::string>&) override  {}
   void unreg() override  {}

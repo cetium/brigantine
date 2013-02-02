@@ -8,34 +8,34 @@
 #include "reproject.h"
 #include "utilities.h"
 
-layer_geometry::layer_geometry(connection_link dbc, const brig::identifier& id)
-  : layer(dbc), m_id(id)
+layer_geometry::layer_geometry(provider_ptr pvd, const brig::identifier& id)
+  : layer(pvd), m_id(id)
 {}
 
-layer_geometry::layer_geometry(connection_link dbc, const brig::table_def& tbl)
-  : layer(dbc), m_id(tbl.id), m_tbl(tbl)
+layer_geometry::layer_geometry(provider_ptr pvd, const brig::table_def& tbl)
+  : layer(pvd), m_id(tbl.id), m_tbl(tbl)
 {}
 
 brig::table_def layer_geometry::get_table_def(size_t)
 {
-  return m_tbl.columns.empty()? get_connection()->get_table_def(m_id): m_tbl;
+  return m_tbl.columns.empty()? get_provider()->get_table_def(m_id): m_tbl;
 }
 
 void layer_geometry::reset_table_defs()
 {
-  if (m_tbl.columns.empty()) get_connection()->reset_table_def(m_id);
+  if (m_tbl.columns.empty()) get_provider()->reset_table_def(m_id);
 }
 
-layer* layer_geometry::fit(connection_link dbc)
+layer* layer_geometry::fit(provider_ptr pvd)
 {
   auto tbl_from(get_table_def(0));
-  auto tbl_to(dbc->fit_to_create(tbl_from));
+  auto tbl_to(pvd->fit_to_create(tbl_from));
 
   for (size_t col(0), cols(std::min<>(tbl_from.columns.size(), tbl_to.columns.size())); col < cols; ++col)
     if (tbl_from.columns[col].name.compare(m_id.qualifier) == 0)
       tbl_to.id.qualifier = tbl_to.columns[col].name;
 
-  return new layer_geometry(dbc, tbl_to);
+  return new layer_geometry(pvd, tbl_to);
 }
 
 bool layer_geometry::has_spatial_index(const frame&)
@@ -51,7 +51,7 @@ std::shared_ptr<brig::rowset> layer_geometry::attributes(const frame& fr)
     if (tbl.columns[i].name == m_id.qualifier)
       tbl.columns[i].query_value = prepare_box(fr);
   tbl.query_rows = int(brig::PageSize);
-  return get_connection()->select(tbl);
+  return get_provider()->select(tbl);
 }
 
 std::shared_ptr<brig::rowset> layer_geometry::drawing(const frame& fr)
@@ -62,7 +62,7 @@ std::shared_ptr<brig::rowset> layer_geometry::drawing(const frame& fr)
       tbl.columns[i].query_value = prepare_box(fr);
   tbl.query_columns.push_back(m_id.qualifier);
 
-  auto rs(get_connection()->select(tbl));
+  auto rs(get_provider()->select(tbl));
   reproject_item item;
   item.column = 0;
   item.pj_from = get_pj();

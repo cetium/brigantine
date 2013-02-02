@@ -9,9 +9,9 @@
 #include <QWidget>
 #include <vector>
 #include "frame.h"
-#include "connection_link.h"
-#include "layer_link.h"
+#include "layer_ptr.h"
 #include "map_thread.h"
+#include "provider_ptr.h"
 #include "task.h"
 
 class map_view : public QWidget {
@@ -20,7 +20,7 @@ class map_view : public QWidget {
   map_thread m_trd;
   frame m_view_fr, m_pix_fr;
   QPixmap m_pix;
-  std::vector<layer_link> m_lrs;
+  std::vector<layer_ptr> m_lrs;
   QPointF m_press_center;
   QPoint m_press_event;
 
@@ -45,7 +45,7 @@ private slots:
   void on_process(frame fr, QImage image);
 
 public slots:
-  void on_layers(std::vector<layer_link> lrs);
+  void on_layers(std::vector<layer_ptr> lrs);
   void on_proj(brig::proj::shared_pj pj);
   void on_rect(QRectF rect, brig::proj::shared_pj pj);
   void on_scale(double scale, brig::proj::shared_pj pj);

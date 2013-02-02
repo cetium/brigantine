@@ -10,12 +10,12 @@
 #include "layer_raster.h"
 #include "utilities.h"
 
-layer_raster::layer_raster(connection_link dbc, const brig::pyramid_def& raster)
-  : layer(dbc), m_raster(raster)
+layer_raster::layer_raster(provider_ptr pvd, const brig::pyramid_def& raster)
+  : layer(pvd), m_raster(raster)
 {}
 
-layer_raster::layer_raster(connection_link dbc, const brig::pyramid_def& raster, const std::vector<brig::table_def>& tbls)
-  : layer(dbc), m_raster(raster), m_tbls(tbls)
+layer_raster::layer_raster(provider_ptr pvd, const brig::pyramid_def& raster, const std::vector<brig::table_def>& tbls)
+  : layer(pvd), m_raster(raster), m_tbls(tbls)
 {}
 
 brig::table_def layer_raster::get_table_def(size_t lvl)
@@ -24,7 +24,7 @@ brig::table_def layer_raster::get_table_def(size_t lvl)
 
   auto tbl
     ( m_tbls.empty()
-    ? get_connection()->get_table_def(m_raster.levels[lvl].geometry)
+    ? get_provider()->get_table_def(m_raster.levels[lvl].geometry)
     : m_tbls[lvl]
     );
   if (!m_raster.levels[lvl].raster.query_expression.empty())
@@ -44,35 +44,35 @@ void layer_raster::reset_table_defs()
   if (m_tbls.empty())
     return;
   for (size_t lvl(0); lvl < m_raster.levels.size(); ++lvl)
-    get_connection()->reset_table_def(m_raster.levels[lvl].geometry);
+    get_provider()->reset_table_def(m_raster.levels[lvl].geometry);
 }
 
-layer* layer_raster::fit(connection_link dbc)
+layer* layer_raster::fit(provider_ptr pvd)
 {
-  auto raster(dbc->fit_to_reg(m_raster));
+  auto raster(pvd->fit_to_reg(m_raster));
   std::vector<brig::table_def> tbls;
   for (size_t lvl(0); lvl < get_levels(); ++lvl)
   {
     auto tbl(get_table_def(lvl));
     tbl.id.name = raster.levels[lvl].geometry.name;
-    tbls.push_back(dbc->fit_to_create(tbl));
+    tbls.push_back(pvd->fit_to_create(tbl));
   }
-  return new layer_raster(dbc, raster, tbls);
+  return new layer_raster(pvd, raster, tbls);
 }
 
 void layer_raster::reg()
 {
-  get_connection()->reg(m_raster);
+  get_provider()->reg(m_raster);
 }
 
 void layer_raster::reg(std::vector<std::string>& sql)
 {
-  get_connection()->reg(m_raster, sql);
+  get_provider()->reg(m_raster, sql);
 }
 
 void layer_raster::unreg()
 {
-  get_connection()->unreg(m_raster);
+  get_provider()->unreg(m_raster);
 }
 
 size_t layer_raster::get_level(const frame& fr)
@@ -104,7 +104,7 @@ std::shared_ptr<brig::rowset> layer_raster::attributes(const frame& fr)
     if (tbl.columns[i].name == m_raster.levels[level].geometry.qualifier)
       tbl.columns[i].query_value = prepare_box(fr);
   tbl.query_rows = int(brig::PageSize);
-  return get_connection()->select(tbl);
+  return get_provider()->select(tbl);
 }
 
 std::shared_ptr<brig::rowset> layer_raster::drawing(const frame& fr)
@@ -116,14 +116,14 @@ std::shared_ptr<brig::rowset> layer_raster::drawing(const frame& fr)
       tbl.columns[i].query_value = prepare_box(fr);
   tbl.query_columns.push_back(m_raster.levels[level].geometry.qualifier);
   tbl.query_columns.push_back(get_raster_column(level));
-  return get_connection()->select(tbl);
+  return get_provider()->select(tbl);
 }
 
 void layer_raster::draw(const std::vector<brig::variant>& row, const frame& fr, QPainter& painter)
 {
   if (row.size() < 2|| row[0].type() != typeid(brig::blob_t)) return;
   const brig::blob_t g(boost::get<brig::blob_t>(row[0]));
-  const QRectF rect_rast(box_to_rect(brig::boost::envelope(brig::boost::geom_from_wkb(g))));
+  const QRectF rect_rast(box_to_rect(brig::boost::envelope(brig::boost::geom_from_wkb(g)))); // todo: rotated raster
   QImage img_rast;
   if (row[1].type() != typeid(brig::blob_t)) return;
   const brig::blob_t r(boost::get<brig::blob_t>(row[1]));

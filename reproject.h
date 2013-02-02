@@ -1,7 +1,7 @@
 // Andrew Naplavkov
 
-#include <brig/database/connection.hpp>
 #include <brig/proj/shared_pj.hpp>
+#include <brig/rowset.hpp>
 #include <memory>
 #include <vector>
 

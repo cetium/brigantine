@@ -1,9 +1,9 @@
 // Andrew Naplavkov
 
 #include <brig/string_cast.hpp>
-#include "connection.h"
 #include "layer.h"
 #include "progress.h"
+#include "provider.h"
 #include "task_attributes.h"
 #include "utilities.h"
 
@@ -19,5 +19,5 @@ void task_attributes::run(progress* prg)
       str_row.push_back(brig::string_cast<char>(*iter));
     if (!prg->step(counter, str_row)) return;
   }
-  emit signal_sql(m_lr->get_connection(), std::vector<std::string>());
+  emit signal_sql(m_lr->get_provider(), std::vector<std::string>());
 }

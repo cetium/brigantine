@@ -10,17 +10,14 @@
 
 QString layer::get_string()
 {
-  QString str;
   auto id(get_identifier());
-  if (!id.schema.empty()) str += QString::fromUtf8(id.schema.c_str()) + ".";
-  str += QString::fromUtf8(id.name.c_str()) + "." + QString::fromUtf8(id.qualifier.c_str());
-  return str;
+  return QString("%1.%2").arg(QString::fromUtf8(id.to_string().c_str())).arg(QString::fromUtf8(id.qualifier.c_str()));
 }
 
 brig::proj::shared_pj layer::get_pj()
 {
   auto id(get_geometry(0));
-  auto tbl(get_connection()->get_table_def(id));
+  auto tbl(get_provider()->get_table_def(id));
   return ::get_pj(*tbl[id.qualifier]);
 }
 
@@ -30,7 +27,7 @@ bool layer::try_pj(brig::proj::shared_pj& pj)
   {
     auto geo(get_geometry(0));
     brig::table_def tbl;
-    if (!get_connection()->try_table_def(geo, tbl)) return false;
+    if (!get_provider()->try_table_def(geo, tbl)) return false;
     pj = ::get_pj(*tbl[geo.qualifier]);
     return true;
   }
@@ -43,7 +40,7 @@ bool layer::try_view(brig::boost::box& box, brig::proj::shared_pj& pj)
   {
     auto geo(get_geometry(0));
     brig::table_def tbl;
-    if (!get_connection()->try_table_def(geo, tbl)) return false;
+    if (!get_provider()->try_table_def(geo, tbl)) return false;
     auto col(tbl[geo.qualifier]);
     pj = ::get_pj(*col);
     if (col->query_value.type() != typeid(brig::blob_t)) return false;

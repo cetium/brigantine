@@ -11,7 +11,7 @@
 #include <QWaitCondition>
 #include <vector>
 #include "frame.h"
-#include "layer_link.h"
+#include "layer_ptr.h"
 
 class map_thread : public QThread {
   Q_OBJECT
@@ -19,10 +19,10 @@ class map_thread : public QThread {
   QMutex m_mutex;
   QWaitCondition m_condition;
   std::atomic_bool m_abort, m_restart;
-  std::vector<layer_link> m_lrs;
+  std::vector<layer_ptr> m_lrs;
   frame m_fr;
 
-  void render_layer(layer_link lr, const frame& fr, QImage& img, QString& msg, size_t& rows, QTime& time);
+  void render_layer(layer_ptr lr, const frame& fr, QImage& img, QString& msg, size_t& rows, QTime& time);
 
 protected:
   void run() override;
@@ -36,7 +36,7 @@ signals:
 public:
   explicit map_thread(QObject* parent = 0);
   ~map_thread() override;
-  void render(std::vector<layer_link> lrs, const frame& fr);
+  void render(std::vector<layer_ptr> lrs, const frame& fr);
 }; // map_thread
 
 #endif // MAP_THREAD_H

@@ -206,7 +206,7 @@ void map_view::scroll(int delta_x, int delta_y)
   catch (const std::exception&)  {}
 }
 
-void map_view::on_layers(std::vector<layer_link> lrs)
+void map_view::on_layers(std::vector<layer_ptr> lrs)
 {
   m_lrs = lrs;
   update();

@@ -31,7 +31,7 @@ map_thread::~map_thread()
   }
 }
 
-void map_thread::render(std::vector<layer_link> lrs, const frame& fr)
+void map_thread::render(std::vector<layer_ptr> lrs, const frame& fr)
 {
   QMutexLocker locker(&m_mutex);
 
@@ -47,7 +47,7 @@ void map_thread::render(std::vector<layer_link> lrs, const frame& fr)
   }
 }
 
-void map_thread::render_layer(layer_link lr, const frame& fr, QImage& img, QString& msg, size_t& counter, QTime& time)
+void map_thread::render_layer(layer_ptr lr, const frame& fr, QImage& img, QString& msg, size_t& counter, QTime& time)
 {
   if (!lr) return;
   try
@@ -86,11 +86,11 @@ void map_thread::run()
   forever
   {
     m_mutex.lock();
-    std::vector<layer_link> lrs = m_lrs;
+    std::vector<layer_ptr> lrs = m_lrs;
     const frame fr(m_fr);
     m_mutex.unlock();
 
-    std::sort(std::begin(lrs), std::end(lrs), [](const layer_link& a, const layer_link& b){ return a.m_order < b.m_order; });
+    std::sort(std::begin(lrs), std::end(lrs), [](const layer_ptr& a, const layer_ptr& b){ return a.m_order < b.m_order; });
     if (projPJ(fr.get_pj()) == 0) return;
     if (m_abort.load()) return;
     emit signal_start();

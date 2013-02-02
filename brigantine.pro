@@ -6,8 +6,6 @@ greaterThan(QT_MAJOR_VERSION, 4):QT +=\
   widgets
 
 HEADERS +=\
-  connection.h\
-  connection_link.h\
   counter_clockwise.h\
   dialog_connect.h\
   dialog_create.h\
@@ -18,12 +16,14 @@ HEADERS +=\
   insert_item.h\
   layer.h\
   layer_geometry.h\
-  layer_link.h\
+  layer_ptr.h\
   layer_raster.h\
   main_window.h\
   map_thread.h\
   map_view.h\
   progress.h\
+  provider.h\
+  provider_ptr.h\
   reproject.h\
   sql_model.h\
   sql_thread.h\
@@ -43,8 +43,6 @@ HEADERS +=\
   utilities.h
 
 SOURCES +=\
-  connection.cpp\
-  connection_link.cpp\
   counter_clockwise.cpp\
   dialog_connect.cpp\
   dialog_create.cpp\
@@ -53,12 +51,14 @@ SOURCES +=\
   frame.cpp\
   layer.cpp\
   layer_geometry.cpp\
-  layer_link.cpp\
+  layer_ptr.cpp\
   layer_raster.cpp\
   main.cpp\
   main_window.cpp\
   map_thread.cpp\
   map_view.cpp\
+  provider.cpp\
+  provider_ptr.cpp\
   reproject.cpp\
   sql_model.cpp\
   sql_thread.cpp\

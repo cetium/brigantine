@@ -12,10 +12,10 @@ class layer_raster : public layer {
   size_t get_level(const frame& fr);
   std::string get_raster_column(size_t level) const;
 
-  layer_raster(connection_link dbc, const brig::pyramid_def& raster, const std::vector<brig::table_def>& tbls);
+  layer_raster(provider_ptr pvd, const brig::pyramid_def& raster, const std::vector<brig::table_def>& tbls);
 
 public:
-  layer_raster(connection_link dbc, const brig::pyramid_def& raster);
+  layer_raster(provider_ptr pvd, const brig::pyramid_def& raster);
   QString get_icon() override  { return ":/res/palette.png"; }
 
   brig::identifier get_identifier() override  { return m_raster.id; }
@@ -25,7 +25,7 @@ public:
   void reset_table_defs() override;
   bool is_raster() override  { return true; }
 
-  layer* fit(connection_link dbc) override;
+  layer* fit(provider_ptr pvd) override;
   void reg() override;
   void reg(std::vector<std::string>& sql) override;
   void unreg() override;

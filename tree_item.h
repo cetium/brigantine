@@ -7,8 +7,8 @@
 #include <QString>
 #include <QVariant>
 #include <vector>
-#include "connection_link.h"
-#include "layer_link.h"
+#include "provider_ptr.h"
+#include "layer_ptr.h"
 
 class tree_item {
   QVariant m_var;
@@ -17,11 +17,11 @@ public:
   const tree_item* m_parent;
   std::vector<std::unique_ptr<tree_item>> m_children;
 
-  tree_item(const tree_item* parent, connection_link dbc);
-  tree_item(const tree_item* parent, layer_link lr);
+  tree_item(const tree_item* parent, provider_ptr pvd);
+  tree_item(const tree_item* parent, layer_ptr lr);
 
-  connection_link get_connection() const;
-  layer_link get_layer() const;
+  provider_ptr get_provider() const;
+  layer_ptr get_layer() const;
   QString get_string() const;
 
   void check(size_t order);

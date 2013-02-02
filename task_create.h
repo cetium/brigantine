@@ -6,22 +6,22 @@
 #include <QString>
 #include <string>
 #include <vector>
-#include "connection_link.h"
-#include "layer_link.h"
+#include "provider_ptr.h"
+#include "layer_ptr.h"
 #include "task.h"
 
 class task_create : public task {
   Q_OBJECT
-  std::vector<layer_link> m_lrs_from;
-  connection_link m_dbc_to;
+  std::vector<layer_ptr> m_lrs_from;
+  provider_ptr m_pvd_to;
   bool m_sql, m_view;
 
 signals:
-  void signal_sql(connection_link dbc, std::vector<std::string> sqls);
-  void signal_refresh(connection_link dbc);
+  void signal_sql(provider_ptr pvd, std::vector<std::string> sqls);
+  void signal_refresh(provider_ptr pvd);
 
 public:
-  task_create(std::vector<layer_link> lrs_from, connection_link dbc_to, bool sql, bool view);
+  task_create(std::vector<layer_ptr> lrs_from, provider_ptr pvd_to, bool sql, bool view);
   void run(progress* prg) override;
 }; // task_create
 

@@ -5,10 +5,10 @@
 #include <QTime>
 #include <stdexcept>
 #include <vector>
-#include "connection.h"
 #include "counter_clockwise.h"
 #include "layer.h"
 #include "progress.h"
+#include "provider.h"
 #include "reproject.h"
 #include "task_insert.h"
 #include "utilities.h"
@@ -68,12 +68,12 @@ void task_insert::run(progress* prg)
       col_from->query_value = brig::boost::as_binary(rect_to_box(rect));
     }
 
-    auto rowset(m_lr_from->get_connection()->select(tbl_from));
+    auto rowset(m_lr_from->get_provider()->select(tbl_from));
     if (!ccw_cols.empty()) rowset = make_shared<brig::threaded_rowset>(make_shared<counter_clockwise>(rowset, ccw_cols));
     if (!reproject_items.empty()) rowset = make_shared<brig::threaded_rowset>(make_shared<reproject>(rowset, reproject_items));
 
-    auto dbc_to(m_lr_to->get_connection());
-    auto ins(dbc_to->get_inserter(tbl_to));
+    auto pvd_to(m_lr_to->get_provider());
+    auto ins(pvd_to->get_inserter(tbl_to));
     vector<brig::variant> row;
     QTime time; time.start();
 

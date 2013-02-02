@@ -17,7 +17,7 @@ dialog_odbc::dialog_odbc(QWidget* parent) : QDialog(parent), ui(new Ui::dialog_o
   std::vector<std::string> dsns;
   brig::database::odbc::datasources(dsns);
   for (size_t i(0); i < dsns.size(); ++i)
-    ui->comboBox->addItem("DSN=" + QString::fromUtf8(dsns[i].c_str()) + ";");
+    ui->comboBox->addItem(QString("DSN=%1;").arg(QString::fromUtf8(dsns[i].c_str())));
 
   QSettings settings(SettingsIni, QSettings::IniFormat);
   ui->comboBox->setEditText(settings.value(QString("%1/%2").arg(SettingsODBC).arg(SettingsStr), "").toString());

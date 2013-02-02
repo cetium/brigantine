@@ -3,29 +3,29 @@
 #include <algorithm>
 #include <brig/boost/as_binary.hpp>
 #include <QMutexLocker>
-#include "connection.h"
+#include "provider.h"
 
-connection::connection(brig::connection* dbc, QString str, QString icon)
-  : m_dbc(dbc), m_str(str), m_icon(icon)
+provider::provider(brig::provider* pvd, QString str, QString icon)
+  : m_pvd(pvd), m_str(str), m_icon(icon)
 {
 }
 
-brig::table_def connection::get_table_def(const brig::identifier& tbl)
+brig::table_def provider::get_table_def(const brig::identifier& tbl)
 {
   QMutexLocker locker(&m_mutex);
   if (m_tables.find(tbl) == std::end(m_tables))
-    m_tables[tbl] = m_dbc->get_table_def(tbl);
+    m_tables[tbl] = m_pvd->get_table_def(tbl);
   return m_tables[tbl];
 }
 
-void connection::reset_table_def(const brig::identifier& tbl)
+void provider::reset_table_def(const brig::identifier& tbl)
 {
   QMutexLocker locker(&m_mutex);
   if (m_tables.find(tbl) != std::end(m_tables))
     m_tables.erase(tbl);
 }
 
-bool connection::try_table_def(const brig::identifier& tbl, brig::table_def& def)
+bool provider::try_table_def(const brig::identifier& tbl, brig::table_def& def)
 {
   QMutexLocker locker(&m_mutex);
   if (m_tables.find(tbl) == std::end(m_tables))
@@ -34,7 +34,7 @@ bool connection::try_table_def(const brig::identifier& tbl, brig::table_def& def
   return true;
 }
 
-void connection::set_mbr(const brig::identifier& col, const brig::boost::box& box)
+void provider::set_mbr(const brig::identifier& col, const brig::boost::box& box)
 {
   QMutexLocker locker(&m_mutex);
   if (m_tables.find(col) != std::end(m_tables))

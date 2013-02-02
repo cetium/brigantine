@@ -14,9 +14,9 @@
 #include <QVBoxLayout>
 #include <string>
 #include <vector>
-#include "connection.h"
 #include "global.h"
 #include "progress.h"
+#include "provider.h"
 #include "sql_view.h"
 #include "task_exec.h"
 #include "utilities.h"
@@ -65,7 +65,7 @@ sql_view::sql_view(QWidget* parent) : QWidget(parent), m_mdl(new sql_model()), m
 void sql_view::on_info()
 {
   struct tables : task {
-    connection_link dbc;
+    provider_ptr pvd;
 
     void run(progress* prg) override
     {
@@ -74,7 +74,7 @@ void sql_view::on_info()
       row.push_back("TABLE");
       prg->init(row);
 
-      auto ids(dbc->get_tables());
+      auto ids(pvd->get_tables());
       size_t counter(1);
       for (auto id(std::begin(ids)); id != std::end(ids); ++id, ++counter)
       {
@@ -86,19 +86,19 @@ void sql_view::on_info()
   }; // tables
 
   tables* tsk(new tables());
-  tsk->dbc = m_dbc;
+  tsk->pvd = m_pvd;
   m_trd.push(std::shared_ptr<task>(tsk));
 }
 
 void sql_view::on_fetch()
 {
   struct select : task {
-    connection_link dbc;
+    provider_ptr pvd;
     std::string sql;
 
     void run(progress* prg) override
     {
-      auto cmd(dbc->get_command());
+      auto cmd(pvd->get_command());
       cmd->exec(sql);
       prg->init(cmd->columns());
       std::vector<brig::variant> row;
@@ -113,20 +113,20 @@ void sql_view::on_fetch()
   }; // select
 
   select* tsk(new select());
-  tsk->dbc = m_dbc;
+  tsk->pvd = m_pvd;
   tsk->sql = m_sql->toPlainText().toUtf8().constData();
   m_trd.push(std::shared_ptr<task>(tsk));
 }
 
 void sql_view::on_run()
 {
-  task_exec* tsk(new task_exec(m_dbc, m_sql->toPlainText().toUtf8().constData()));
+  task_exec* tsk(new task_exec(m_pvd, m_sql->toPlainText().toUtf8().constData()));
   m_trd.push(std::shared_ptr<task>(tsk));
 }
 
 void sql_view::reset()
 {
-  m_dbc = connection_link();
+  m_pvd = provider_ptr();
   m_title->setText("");
   m_title->setToolTip("");
   m_fetch->setDisabled(true);
@@ -134,17 +134,17 @@ void sql_view::reset()
   m_info->setDisabled(true);
 }
 
-void sql_view::on_sql(connection_link dbc, std::vector<std::string> sqls)
+void sql_view::on_sql(provider_ptr pvd, std::vector<std::string> sqls)
 {
-  if (dbc->is_database())
+  if (pvd->is_database())
   {
-    m_dbc = dbc;
+    m_pvd = pvd;
 
     static const int TitleLimit = 40;
-    QString title = m_dbc->get_string();
+    QString title = m_pvd->get_string();
     if (title.size() > TitleLimit) title = "..." + title.right(TitleLimit);
-    m_title->setText(rich_text(m_dbc->get_icon(), title, false));
-    m_title->setToolTip(m_dbc->get_string());
+    m_title->setText(rich_text(m_pvd->get_icon(), title, false));
+    m_title->setToolTip(m_pvd->get_string());
 
     m_fetch->setDisabled(m_cancel->isEnabled());
     m_run->setDisabled(m_cancel->isEnabled());
@@ -152,7 +152,7 @@ void sql_view::on_sql(connection_link dbc, std::vector<std::string> sqls)
     for (auto sql(std::begin(sqls)); sql != std::end(sqls); ++sql)
     {
       m_sql->append("");
-      m_sql->append("-- " + QString::fromUtf8(sql->c_str()));
+      m_sql->append(QString("-- %1").arg(QString::fromUtf8(sql->c_str())));
     }
   }
   else
@@ -160,9 +160,9 @@ void sql_view::on_sql(connection_link dbc, std::vector<std::string> sqls)
   emit signal_active();
 }
 
-void sql_view::on_disconnect(connection_link dbc)
+void sql_view::on_disconnect(provider_ptr pvd)
 {
-  if (dbc != m_dbc) return;
+  if (pvd != m_pvd) return;
   reset();
 }
 
@@ -177,10 +177,10 @@ void sql_view::on_start()
 
 void sql_view::on_idle()
 {
-  m_fetch->setEnabled(m_dbc);
-  m_run->setEnabled(m_dbc);
+  m_fetch->setEnabled(m_pvd);
+  m_run->setEnabled(m_pvd);
   m_cancel->setDisabled(true);
-  m_info->setEnabled(m_dbc);
+  m_info->setEnabled(m_pvd);
   emit signal_idle();
 }
 

@@ -1,7 +1,7 @@
 // Andrew Naplavkov
 
-#ifndef LAYER_LINK_H
-#define LAYER_LINK_H
+#ifndef LAYER_PTR_H
+#define LAYER_PTR_H
 
 #include <memory>
 #include <QMetaType>
@@ -9,18 +9,18 @@
 
 class layer; // https://svn.boost.org/trac/boost/ticket/6687
 
-class layer_link {
+class layer_ptr {
   std::shared_ptr<layer> m_lr;
 
 public:
   bool m_checked;
   size_t m_order;
 
-  explicit layer_link(layer* lr = 0);
+  explicit layer_ptr(layer* lr = 0);
   layer* operator ->() const;
   operator bool() const;
-}; // layer_link
+}; // layer_ptr
 
-Q_DECLARE_METATYPE(layer_link)
+Q_DECLARE_METATYPE(layer_ptr)
 
-#endif // LAYER_LINK_H
+#endif // LAYER_PTR_H

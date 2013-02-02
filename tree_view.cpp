@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <brig/database/oracle/client_version.hpp>
+#include <brig/proj/shared_pj.hpp>
 #include <exception>
 #include <QCheckBox>
 #include <QDir>
@@ -15,24 +16,37 @@
 #include <QString>
 #include <QStringList>
 #include <utility>
-#include "connection.h"
 #include "dialog_connect.h"
 #include "dialog_odbc.h"
 #include "global.h"
 #include "layer.h"
 #include "layer_geometry.h"
+#include "provider.h"
 #include "task_attributes.h"
 #include "tree_view.h"
 #include "utilities.h"
 
-static const std::pair<const char*, const char*> filter_to_code[] =
-{
-std::make_pair("SQLite files (*.sqlite)", "SQLite"),
-std::make_pair("Arc/Info ASCII Coverage (*.e00)", ""),
-std::make_pair("ESRI Shapefiles (*.shp)", "ESRI Shapefile"),
-std::make_pair("Mapinfo interchange format (*.mif)", ""), // todo:
-std::make_pair("Mapinfo native format (*.tab)", ""), // todo:
-std::make_pair("S-57 Base file (*.000)", ""),
+enum Provider {
+  SQLite = 0,
+  OGR,
+  GDAL
+};
+
+struct file_open_def {
+  Provider pvd;
+  bool writable;
+  const char* filter;
+  const char* code;
+  const char* ext;
+};
+
+static const file_open_def s_filters[] = {
+{ OGR, false, "Arc/Info ASCII Coverage (*.e00)", "", "" },
+{ OGR, true, "ESRI Shapefiles (*.shp)", "ESRI Shapefile", "shp" },
+{ GDAL, false, "GeoTIFF (*.tif *.tiff)", "", "" },
+{ OGR, false, "Mapinfo (*.mif *.tab)", "", "" }, // todo:
+{ OGR, false, "S-57 Base file (*.000)", "", "" },
+{ SQLite, true, "SQLite (*.sqlite)", "", "sqlite" },
 };
 
 tree_view::tree_view(QWidget* parent) : QTreeView(parent)
@@ -123,21 +137,21 @@ tree_view::tree_view(QWidget* parent) : QTreeView(parent)
   m_separator2_act = new QAction(QIcon(""), "", this);
   m_separator2_act->setSeparator(true);
 
-  qRegisterMetaType<connection_link>("connection_link");
+  qRegisterMetaType<provider_ptr>("provider_ptr");
   qRegisterMetaType<brig::proj::shared_pj>("brig::proj::shared_pj");
   qRegisterMetaType<std::shared_ptr<task>>("std::shared_ptr<task>");
   qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
-  qRegisterMetaType<std::vector<layer_link>>("std::vector<layer_link>");
+  qRegisterMetaType<std::vector<layer_ptr>>("std::vector<layer_ptr>");
   connect
-    ( &m_mdl, SIGNAL(signal_sql(connection_link, std::vector<std::string>))
-    , this, SLOT(emit_sql(connection_link, std::vector<std::string>))
+    ( &m_mdl, SIGNAL(signal_sql(provider_ptr, std::vector<std::string>))
+    , this, SLOT(emit_sql(provider_ptr, std::vector<std::string>))
     );
-  connect(&m_mdl, SIGNAL(signal_layers(std::vector<layer_link>)), this, SLOT(emit_layers(std::vector<layer_link>)));
+  connect(&m_mdl, SIGNAL(signal_layers(std::vector<layer_ptr>)), this, SLOT(emit_layers(std::vector<layer_ptr>)));
   connect(&m_mdl, SIGNAL(signal_proj(brig::proj::shared_pj)), this, SLOT(emit_proj(brig::proj::shared_pj)));
   connect(&m_mdl, SIGNAL(signal_task(std::shared_ptr<task>)), this, SLOT(emit_task(std::shared_ptr<task>)));
   connect(&m_mdl, SIGNAL(signal_rect(QRectF, brig::proj::shared_pj)), this, SLOT(emit_rect(QRectF, brig::proj::shared_pj)));
   connect(&m_mdl, SIGNAL(signal_scale(double, brig::proj::shared_pj)), this, SLOT(emit_scale(double, brig::proj::shared_pj)));
-  connect(&m_mdl, SIGNAL(signal_disconnect(connection_link)), this, SLOT(emit_disconnect(connection_link)));
+  connect(&m_mdl, SIGNAL(signal_disconnect(provider_ptr)), this, SLOT(emit_disconnect(provider_ptr)));
 }
 
 void tree_view::on_connect_mysql()
@@ -200,8 +214,8 @@ void tree_view::on_open_file()
   {
     QSettings settings(SettingsIni, QSettings::IniFormat);
     QStringList filters;
-    for (auto iter(begin(filter_to_code)); iter != end(filter_to_code); ++iter)
-      filters << iter->first;
+    for (auto iter(begin(s_filters)); iter != end(s_filters); ++iter)
+      filters << iter->filter;
     QFileDialog dlg
       ( this
       , "new file"
@@ -210,15 +224,15 @@ void tree_view::on_open_file()
     dlg.setAcceptMode(QFileDialog::AcceptOpen);
     dlg.setFileMode(QFileDialog::ExistingFiles);
     dlg.setNameFilters(filters);
-    dlg.selectNameFilter(settings.value(QString("%1/%2").arg(SettingsFileOpen).arg(SettingsFilter), QString(filter_to_code[0].first)).toString());
+    dlg.selectNameFilter(settings.value(QString("%1/%2").arg(SettingsFileOpen).arg(SettingsFilter), QString(s_filters[0].filter)).toString());
     dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
     if (dlg.exec() != QDialog::Accepted) return;
 
     wait_cursor w;
-    const size_t filter_selected(distance(begin(filter_to_code), find_if
-      ( begin(filter_to_code)
-      , end(filter_to_code)
-      , [&dlg](const pair<const char*, const char*>& i){ return dlg.selectedNameFilter().compare(i.first) == 0; }
+    const size_t filter_selected(distance(begin(s_filters), find_if
+      ( begin(s_filters)
+      , end(s_filters)
+      , [&dlg](const file_open_def& i){ return dlg.selectedNameFilter().compare(i.filter) == 0; }
       )));
     QStringList files = dlg.selectedFiles();
     for (int i(0); i < files.size(); ++i)
@@ -228,12 +242,11 @@ void tree_view::on_open_file()
         settings.setValue(QString("%1/%2").arg(SettingsFileOpen).arg(SettingsPath), QFileInfo(files[0]).absolutePath());
         settings.setValue(QString("%1/%2").arg(SettingsFileOpen).arg(SettingsFilter), dlg.selectedNameFilter());
       }
-      if (filter_selected == 0)
-        m_mdl.connect_sqlite(files[i]);
-      else
+      switch (s_filters[filter_selected].pvd)
       {
-        QFileInfo info(files[i]);
-        m_mdl.connect_gdal(info.absoluteFilePath(), QString(filter_to_code[filter_selected].second), info.baseName());
+      case SQLite: m_mdl.connect_sqlite(files[i]); break;
+      case OGR: m_mdl.connect_ogr(files[i]); break;
+      case GDAL: m_mdl.connect_gdal(files[i]); break;
       }
     }
   }
@@ -247,9 +260,9 @@ void tree_view::on_new_file()
   {
     QSettings settings(SettingsIni, QSettings::IniFormat);
     QStringList filters;
-    for (auto iter(begin(filter_to_code)); iter != end(filter_to_code); ++iter)
-      if (!string(iter->second).empty())
-        filters << iter->first;
+    for (auto iter(begin(s_filters)); iter != end(s_filters); ++iter)
+      if (iter->writable)
+        filters << iter->filter;
     QFileDialog dlg
       ( this
       , "new file"
@@ -258,7 +271,7 @@ void tree_view::on_new_file()
     dlg.setAcceptMode(QFileDialog::AcceptSave);
     dlg.setFileMode(QFileDialog::AnyFile);
     dlg.setNameFilters(filters);
-    dlg.selectNameFilter(settings.value(QString("%1/%2").arg(SettingsFileNew).arg(SettingsFilter), QString(filter_to_code[0].first)).toString());
+    dlg.selectNameFilter(settings.value(QString("%1/%2").arg(SettingsFileNew).arg(SettingsFilter), QString(s_filters[0].filter)).toString());
     dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
     if (!dlg.exec()) return;
 
@@ -266,21 +279,23 @@ void tree_view::on_new_file()
     QFileInfo info(dlg.selectedFiles()[0]);
     settings.setValue(QString("%1/%2").arg(SettingsFileNew).arg(SettingsPath), info.absolutePath());
     settings.setValue(QString("%1/%2").arg(SettingsFileNew).arg(SettingsFilter), dlg.selectedNameFilter());
-    const size_t filter_selected(distance(begin(filter_to_code), find_if
-      ( begin(filter_to_code)
-      , end(filter_to_code)
-      , [&dlg](const pair<const char*, const char*>& i){ return dlg.selectedNameFilter().compare(i.first) == 0; }
+    const size_t filter_selected(distance(begin(s_filters), find_if
+      ( begin(s_filters)
+      , end(s_filters)
+      , [&dlg](const file_open_def& i){ return dlg.selectedNameFilter().compare(i.filter) == 0; }
       )));
-    if (info.suffix().isEmpty() && filter_selected == 0) info = QFileInfo(info.dir(), info.fileName() + ".sqlite");
+    if (info.suffix().isEmpty()) info = QFileInfo(info.dir(), QString("%1.%2").arg(info.fileName()).arg(s_filters[filter_selected].ext));
     if (info.exists() && !QFile::remove(info.filePath()))
     {
       show_message("file removing error");
       return;
     }
-    if (filter_selected == 0)
-      m_mdl.connect_sqlite(info.absoluteFilePath(), true);
-    else
-      m_mdl.connect_gdal(info.absoluteFilePath(), QString(filter_to_code[filter_selected].second), info.baseName());
+    switch (s_filters[filter_selected].pvd)
+    {
+    case SQLite: m_mdl.connect_sqlite(info.absoluteFilePath(), true); break;
+    case OGR: m_mdl.connect_ogr(info.absoluteFilePath(), QString(s_filters[filter_selected].code), info.baseName()); break;
+    case GDAL: break;
+    }
   }
   catch (const exception& e)  { show_message(e.what()); }
 }
@@ -301,7 +316,7 @@ void tree_view::on_update()
 {
   m_drop_act->setEnabled(m_mdl.is_layer(m_idx_menu));
   m_paste_rows_act->setEnabled(m_drop_act->isEnabled() && (m_lrs_copy.size() == 1) && m_mdl.is_layer(m_idx_menu) && m_mdl.get_layer(m_idx_menu)->get_levels() == m_lrs_copy.front()->get_levels());
-  m_paste_layers_act->setEnabled(m_mdl.is_connection(m_idx_menu) && !m_lrs_copy.empty());
+  m_paste_layers_act->setEnabled(m_mdl.is_provider(m_idx_menu) && !m_lrs_copy.empty());
   m_copy_checked_act->setEnabled(m_mdl.has_checked());
 }
 
@@ -311,10 +326,10 @@ void tree_view::on_show_menu(QPoint point)
   on_update();
 
   QList<QAction*> actions;
-  if (m_mdl.is_connection(m_idx_menu))
+  if (m_mdl.is_provider(m_idx_menu))
   {
     actions.append(m_refresh_act);
-    if (m_mdl.get_connection(m_idx_menu)->is_database()) actions.append(m_sql_console_act);
+    if (m_mdl.get_provider(m_idx_menu)->is_database()) actions.append(m_sql_console_act);
     actions.append(m_paste_layers_act);
     actions.append(m_disconnect_act);
     actions.append(m_separator1_act);
@@ -344,12 +359,12 @@ void tree_view::on_show_menu(QPoint point)
 
 void tree_view::on_attributes()
 {
-  qRegisterMetaType<connection_link>("connection_link");
+  qRegisterMetaType<provider_ptr>("provider_ptr");
   qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
   task_attributes* tsk(new task_attributes(m_mdl.get_layer(m_idx_menu)));
   connect
-    ( tsk, SIGNAL(signal_sql(connection_link, std::vector<std::string>))
-    , this, SLOT(emit_sql(connection_link, std::vector<std::string>))
+    ( tsk, SIGNAL(signal_sql(provider_ptr, std::vector<std::string>))
+    , this, SLOT(emit_sql(provider_ptr, std::vector<std::string>))
     );
   emit signal_task(std::shared_ptr<task>(tsk));
 }

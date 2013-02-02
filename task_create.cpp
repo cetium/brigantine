@@ -8,15 +8,15 @@
 #include <iterator>
 #include <Qt>
 #include <stdexcept>
-#include "connection.h"
 #include "layer.h"
 #include "progress.h"
+#include "provider.h"
 #include "task_create.h"
 #include "task_insert.h"
 #include "utilities.h"
 
-task_create::task_create(std::vector<layer_link> lrs_from, connection_link dbc_to, bool sql, bool view)
-  : m_lrs_from(lrs_from), m_dbc_to(dbc_to), m_sql(sql), m_view(view)
+task_create::task_create(std::vector<layer_ptr> lrs_from, provider_ptr pvd_to, bool sql, bool view)
+  : m_lrs_from(lrs_from), m_pvd_to(pvd_to), m_sql(sql), m_view(view)
 {
 }
 
@@ -30,9 +30,9 @@ void task_create::run(progress* prg)
   {
     if (!m_sql) sql.clear();
     auto lr_from(m_lrs_from[lr]);
-    auto dbc_from(lr_from->get_connection());
+    auto pvd_from(lr_from->get_provider());
     vector<insert_item> items;
-    layer_link lr_to(lr_from->fit(m_dbc_to));
+    layer_ptr lr_to(lr_from->fit(m_pvd_to));
 
     for (size_t lvl(0); lvl < lr_from->get_levels(); ++lvl)
     {
@@ -60,9 +60,9 @@ void task_create::run(progress* prg)
           box mbr;
           if (boost::get<brig::blob_t>(col_to.query_value).empty())
           {
-            mbr = dbc_from->get_mbr(tbl_from, col_from.name);
+            mbr = pvd_from->get_mbr(tbl_from, col_from.name);
             brig::identifier id = tbl_from.id; id.qualifier = col_from.name;
-            dbc_from->set_mbr(id, mbr);
+            pvd_from->set_mbr(id, mbr);
             if (!prg->step(counter)) return;
           }
           else
@@ -82,9 +82,9 @@ void task_create::run(progress* prg)
       }
 
       if (m_sql)
-        m_dbc_to->create(tbl_to, sql);
+        m_pvd_to->create(tbl_to, sql);
       else
-        m_dbc_to->create(tbl_to);
+        m_pvd_to->create(tbl_to);
     }
 
     if (m_sql)
@@ -101,7 +101,7 @@ void task_create::run(progress* prg)
   }
 
   if (m_sql)
-    emit signal_sql(m_dbc_to, sql);
+    emit signal_sql(m_pvd_to, sql);
   else
-    emit signal_refresh(m_dbc_to);
+    emit signal_refresh(m_pvd_to);
 }

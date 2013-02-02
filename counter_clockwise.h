@@ -1,6 +1,6 @@
 // Andrew Naplavkov
 
-#include <brig/database/connection.hpp>
+#include <brig/rowset.hpp>
 #include <memory>
 #include <vector>
 

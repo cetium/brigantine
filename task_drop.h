@@ -5,17 +5,17 @@
 
 #include <string>
 #include <vector>
-#include "connection_link.h"
-#include "layer_link.h"
+#include "layer_ptr.h"
+#include "provider_ptr.h"
 #include "task.h"
 
 class task_drop : public task {
   Q_OBJECT
-  layer_link m_lr;
+  layer_ptr m_lr;
 signals:
-  void signal_refresh(connection_link dbc);
+  void signal_refresh(provider_ptr pvd);
 public:
-  task_drop(layer_link lr);
+  task_drop(layer_ptr lr);
   void run(progress* prg) override;
 }; // task_drop
 

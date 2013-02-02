@@ -8,7 +8,7 @@
 #include <QLabel>
 #include <QTextEdit>
 #include <QWidget>
-#include "connection_link.h"
+#include "provider_ptr.h"
 #include "sql_model.h"
 #include "sql_thread.h"
 
@@ -17,7 +17,7 @@ class sql_view : public QWidget {
 
   std::shared_ptr<sql_model> m_mdl;
   sql_thread m_trd;
-  connection_link m_dbc;
+  provider_ptr m_pvd;
   QLabel* m_title;
   QAction *m_open, *m_save, *m_fetch, *m_run, *m_cancel, *m_info;
   QTextEdit *m_sql;
@@ -37,8 +37,8 @@ private slots:
 
 public slots:
   void on_task(std::shared_ptr<task> tsk)  { m_trd.push(tsk); }
-  void on_sql(connection_link dbc, std::vector<std::string> sqls);
-  void on_disconnect(connection_link dbc);
+  void on_sql(provider_ptr pvd, std::vector<std::string> sqls);
+  void on_disconnect(provider_ptr pvd);
 
 signals:
   void signal_start();

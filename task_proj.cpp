@@ -1,6 +1,5 @@
 // Andrew Naplavkov
 
-#include "connection.h"
 #include "layer.h"
 #include "progress.h"
 #include "task_proj.h"

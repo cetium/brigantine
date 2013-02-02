@@ -1,45 +1,45 @@
 // Andrew Naplavkov
 
 #include <algorithm>
-#include "connection.h"
 #include "layer.h"
+#include "provider.h"
 #include "tree_item.h"
 
-tree_item::tree_item(const tree_item* parent, connection_link dbc) : m_parent(parent)  { m_var.setValue(dbc); }
-tree_item::tree_item(const tree_item* parent, layer_link lr) : m_parent(parent)  { m_var.setValue(lr); }
+tree_item::tree_item(const tree_item* parent, provider_ptr pvd) : m_parent(parent)  { m_var.setValue(pvd); }
+tree_item::tree_item(const tree_item* parent, layer_ptr lr) : m_parent(parent)  { m_var.setValue(lr); }
 
-connection_link tree_item::get_connection() const
+provider_ptr tree_item::get_provider() const
 {
-  if (m_var.userType() == qMetaTypeId<connection_link>())
-    return qvariant_cast<connection_link>(m_var);
-  else if (m_var.userType() == qMetaTypeId<layer_link>())
-    return qvariant_cast<layer_link>(m_var)->get_connection();
+  if (m_var.userType() == qMetaTypeId<provider_ptr>())
+    return qvariant_cast<provider_ptr>(m_var);
+  else if (m_var.userType() == qMetaTypeId<layer_ptr>())
+    return qvariant_cast<layer_ptr>(m_var)->get_provider();
   else
-    return connection_link();
+    return provider_ptr();
 }
 
-layer_link tree_item::get_layer() const
+layer_ptr tree_item::get_layer() const
 {
-  if (m_var.userType() == qMetaTypeId<layer_link>())
-    return qvariant_cast<layer_link>(m_var);
+  if (m_var.userType() == qMetaTypeId<layer_ptr>())
+    return qvariant_cast<layer_ptr>(m_var);
   else
-    return layer_link();
+    return layer_ptr();
 }
 
 QString tree_item::get_string() const
 {
-  if (m_var.userType() == qMetaTypeId<connection_link>())
-    return qvariant_cast<connection_link>(m_var)->get_string();
-  else if (m_var.userType() == qMetaTypeId<layer_link>())
-    return qvariant_cast<layer_link>(m_var)->get_string();
+  if (m_var.userType() == qMetaTypeId<provider_ptr>())
+    return qvariant_cast<provider_ptr>(m_var)->get_string();
+  else if (m_var.userType() == qMetaTypeId<layer_ptr>())
+    return qvariant_cast<layer_ptr>(m_var)->get_string();
   else
     return QString();
 }
 
 void tree_item::check(size_t order)
 {
-  if (m_var.userType() != qMetaTypeId<layer_link>()) return;
-  auto lr(qvariant_cast<layer_link>(m_var));
+  if (m_var.userType() != qMetaTypeId<layer_ptr>()) return;
+  auto lr(qvariant_cast<layer_ptr>(m_var));
   lr.m_checked = !lr.m_checked;
   lr.m_order = order;
   m_var.setValue(lr);

@@ -17,7 +17,7 @@
 #include "dialog_insert.h"
 #include "layer.h"
 
-dialog_insert::dialog_insert(QWidget* parent, layer_link lr_from, layer_link lr_to) : QDialog(parent)
+dialog_insert::dialog_insert(QWidget* parent, layer_ptr lr_from, layer_ptr lr_to) : QDialog(parent)
 {
   setWindowTitle("inserting rows");
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);

@@ -102,19 +102,19 @@ main_window::main_window()
   sizes.push_back(splitter->size().width() * .7);
   splitter->setSizes(sizes);
 
-  qRegisterMetaType<connection_link>("connection_link");
+  qRegisterMetaType<provider_ptr>("provider_ptr");
   qRegisterMetaType<brig::proj::shared_pj>("brig::proj::shared_pj");
   qRegisterMetaType<std::shared_ptr<task>>("std::shared_ptr<task>");
   qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
-  qRegisterMetaType<std::vector<layer_link>>("std::vector<layer_link>");
+  qRegisterMetaType<std::vector<layer_ptr>>("std::vector<layer_ptr>");
 
-  connect(tree, SIGNAL(signal_layers(std::vector<layer_link>)), map, SLOT(on_layers(std::vector<layer_link>)));
+  connect(tree, SIGNAL(signal_layers(std::vector<layer_ptr>)), map, SLOT(on_layers(std::vector<layer_ptr>)));
   connect(tree, SIGNAL(signal_proj(brig::proj::shared_pj)), map, SLOT(on_proj(brig::proj::shared_pj)));
   connect(tree, SIGNAL(signal_rect(QRectF, brig::proj::shared_pj)), map, SLOT(on_rect(QRectF, brig::proj::shared_pj)));
   connect(tree, SIGNAL(signal_scale(double, brig::proj::shared_pj)), map, SLOT(on_scale(double, brig::proj::shared_pj)));
   connect(tree, SIGNAL(signal_task(std::shared_ptr<task>)), map, SLOT(on_task(std::shared_ptr<task>)));
-  connect(tree, SIGNAL(signal_sql(connection_link, std::vector<std::string>)), sql, SLOT(on_sql(connection_link, std::vector<std::string>)));
-  connect(tree, SIGNAL(signal_disconnect(connection_link)), sql, SLOT(on_disconnect(connection_link)));
+  connect(tree, SIGNAL(signal_sql(provider_ptr, std::vector<std::string>)), sql, SLOT(on_sql(provider_ptr, std::vector<std::string>)));
+  connect(tree, SIGNAL(signal_disconnect(provider_ptr)), sql, SLOT(on_disconnect(provider_ptr)));
 
   connect(map, SIGNAL(signal_task(std::shared_ptr<task>)), sql, SLOT(on_task(std::shared_ptr<task>)));
   connect(map, SIGNAL(signal_start()), this, SLOT(on_map_start()));

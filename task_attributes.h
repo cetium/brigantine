@@ -5,17 +5,17 @@
 
 #include <string>
 #include <vector>
-#include "connection_link.h"
-#include "layer_link.h"
+#include "layer_ptr.h"
+#include "provider_ptr.h"
 #include "task.h"
 
 class task_attributes : public task {
   Q_OBJECT
-  layer_link m_lr;
+  layer_ptr m_lr;
 signals:
-  void signal_sql(connection_link dbc, std::vector<std::string> sqls);
+  void signal_sql(provider_ptr pvd, std::vector<std::string> sqls);
 public:
-  task_attributes(layer_link lr) : m_lr(lr)  {}
+  task_attributes(layer_ptr lr) : m_lr(lr)  {}
   void run(progress* prg) override;
 }; // task_attributes
 
