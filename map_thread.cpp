@@ -47,11 +47,13 @@ void map_thread::render(std::vector<layer_ptr> lrs, const frame& fr)
   }
 }
 
-void map_thread::render_layer(layer_ptr lr, const frame& fr, QImage& img, QString& msg, size_t& counter, QTime& time)
+void map_thread::render_layer(layer_ptr lr, const frame& fr, QImage& img, QString& msg, bool& no_idx, size_t& counter, QTime& time)
 {
   if (!lr) return;
   try
   {
+    if (!lr->has_spatial_index(fr)) no_idx = true;
+
     QPainter painter(&img);
     painter.setCompositionMode(QPainter::CompositionMode_Darken);
     QImage lr_img(img.size(), QImage::Format_ARGB32_Premultiplied);
@@ -104,18 +106,17 @@ void map_thread::run()
       painter.eraseRect(img.rect());
     }
 
-    bool no_index(false);
+    bool no_idx(false);
     for (int i(0); i < int(lrs.size()); ++i)
     {
       if (m_abort.load()) return;
       if (m_restart.load()) break;
-      if (!lrs[i]->has_spatial_index(fr)) no_index = true;
-      render_layer(lrs[i], fr, img, msg, counter, time);
+      render_layer(lrs[i], fr, img, msg, no_idx, counter, time);
     }
     if (m_abort.load()) return;
     if (!m_restart.load())
     {
-      if (msg.isEmpty() && no_index) msg = "no index";
+      if (msg.isEmpty() && no_idx) msg = "no index";
       emit signal_process(fr, img);
       emit signal_process(msg.isEmpty()? QString("%1").arg(counter): msg);
       emit signal_idle();

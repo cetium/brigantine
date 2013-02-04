@@ -22,7 +22,7 @@ class map_thread : public QThread {
   std::vector<layer_ptr> m_lrs;
   frame m_fr;
 
-  void render_layer(layer_ptr lr, const frame& fr, QImage& img, QString& msg, size_t& rows, QTime& time);
+  void render_layer(layer_ptr lr, const frame& fr, QImage& img, QString& msg, bool& no_idx, size_t& rows, QTime& time);
 
 protected:
   void run() override;

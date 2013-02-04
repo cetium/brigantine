@@ -122,11 +122,11 @@ std::shared_ptr<brig::rowset> layer_raster::drawing(const frame& fr)
 void layer_raster::draw(const std::vector<brig::variant>& row, const frame& fr, QPainter& painter)
 {
   if (row.size() < 2|| row[0].type() != typeid(brig::blob_t)) return;
-  const brig::blob_t g(boost::get<brig::blob_t>(row[0]));
+  const brig::blob_t& g(boost::get<brig::blob_t>(row[0]));
   const QRectF rect_rast(box_to_rect(brig::boost::envelope(brig::boost::geom_from_wkb(g)))); // todo: rotated raster
   QImage img_rast;
   if (row[1].type() != typeid(brig::blob_t)) return;
-  const brig::blob_t r(boost::get<brig::blob_t>(row[1]));
+  const brig::blob_t& r(boost::get<brig::blob_t>(row[1]));
   if (!img_rast.loadFromData(r.data(), uint(r.size()))) return;
   const brig::proj::shared_pj pj_rast(get_pj());
   const brig::proj::shared_pj pj_fr(fr.get_pj());

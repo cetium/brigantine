@@ -42,11 +42,15 @@ struct file_open_def {
 
 static const file_open_def s_filters[] = {
 { OGR, false, "Arc/Info ASCII Coverage (*.e00)", "", "" },
+{ GDAL, false, "Arc/Info Binary Grid (hdr.adf)", "", "" },
+{ GDAL, false, "DTED - Military Elevation Data (*.dt0 *.dt1 *.dt2)", "", "" },
+{ GDAL, false, "ESRI hdr Labelled (*.bil)", "", "" },
 { OGR, true, "ESRI Shapefiles (*.shp)", "ESRI Shapefile", "shp" },
 { GDAL, false, "GeoTIFF (*.tif *.tiff)", "", "" },
 { OGR, false, "Mapinfo (*.mif *.tab)", "", "" }, // todo:
 { OGR, false, "S-57 Base file (*.000)", "", "" },
 { SQLite, true, "SQLite (*.sqlite)", "", "sqlite" },
+{ GDAL, false, "USGS ASCII DEM / CDED (*.dem)", "", "" },
 };
 
 tree_view::tree_view(QWidget* parent) : QTreeView(parent)
@@ -210,38 +214,41 @@ void tree_view::on_connect_postgres()
 void tree_view::on_open_file()
 {
   using namespace std;
-  try
-  {
-    QSettings settings(SettingsIni, QSettings::IniFormat);
-    QStringList filters;
-    for (auto iter(begin(s_filters)); iter != end(s_filters); ++iter)
-      filters << iter->filter;
-    QFileDialog dlg
-      ( this
-      , "new file"
-      , settings.value(QString("%1/%2").arg(SettingsFileOpen).arg(SettingsPath), QDir::currentPath()).toString()
-      );
-    dlg.setAcceptMode(QFileDialog::AcceptOpen);
-    dlg.setFileMode(QFileDialog::ExistingFiles);
-    dlg.setNameFilters(filters);
-    dlg.selectNameFilter(settings.value(QString("%1/%2").arg(SettingsFileOpen).arg(SettingsFilter), QString(s_filters[0].filter)).toString());
-    dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
-    if (dlg.exec() != QDialog::Accepted) return;
 
-    wait_cursor w;
-    const size_t filter_selected(distance(begin(s_filters), find_if
-      ( begin(s_filters)
-      , end(s_filters)
-      , [&dlg](const file_open_def& i){ return dlg.selectedNameFilter().compare(i.filter) == 0; }
-      )));
-    QStringList files = dlg.selectedFiles();
-    for (int i(0); i < files.size(); ++i)
+  QSettings settings(SettingsIni, QSettings::IniFormat);
+  QStringList filters;
+  for (auto iter(begin(s_filters)); iter != end(s_filters); ++iter)
+    filters << iter->filter;
+  QFileDialog dlg
+    ( this
+    , "new file"
+    , settings.value(QString("%1/%2").arg(SettingsFileOpen).arg(SettingsPath), QDir::currentPath()).toString()
+    );
+  dlg.setAcceptMode(QFileDialog::AcceptOpen);
+  dlg.setFileMode(QFileDialog::ExistingFiles);
+  dlg.setNameFilters(filters);
+  dlg.selectNameFilter(settings.value(QString("%1/%2").arg(SettingsFileOpen).arg(SettingsFilter), QString(s_filters[0].filter)).toString());
+  dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
+  if (dlg.exec() != QDialog::Accepted) return;
+
+  wait_cursor w;
+  const size_t filter_selected(distance(begin(s_filters), find_if
+    ( begin(s_filters)
+    , end(s_filters)
+    , [&dlg](const file_open_def& i){ return dlg.selectedNameFilter().compare(i.filter) == 0; }
+    )));
+  QStringList files = dlg.selectedFiles();
+  string msg;
+  for (int i(0); i < files.size(); ++i)
+  {
+    if (i == 0)
     {
-      if (i == 0)
-      {
-        settings.setValue(QString("%1/%2").arg(SettingsFileOpen).arg(SettingsPath), QFileInfo(files[0]).absolutePath());
-        settings.setValue(QString("%1/%2").arg(SettingsFileOpen).arg(SettingsFilter), dlg.selectedNameFilter());
-      }
+      settings.setValue(QString("%1/%2").arg(SettingsFileOpen).arg(SettingsPath), QFileInfo(files[0]).absolutePath());
+      settings.setValue(QString("%1/%2").arg(SettingsFileOpen).arg(SettingsFilter), dlg.selectedNameFilter());
+    }
+
+    try
+    {
       switch (s_filters[filter_selected].pvd)
       {
       case SQLite: m_mdl.connect_sqlite(files[i]); break;
@@ -249,47 +256,50 @@ void tree_view::on_open_file()
       case GDAL: m_mdl.connect_gdal(files[i]); break;
       }
     }
+    catch (const exception& e)  { if (!msg.empty()) msg = e.what(); }
   }
-  catch (const exception& e)  { show_message(e.what()); }
+  if (!msg.empty()) show_message(msg.c_str());
 }
 
 void tree_view::on_new_file()
 {
   using namespace std;
+
+  QSettings settings(SettingsIni, QSettings::IniFormat);
+  QStringList filters;
+  for (auto iter(begin(s_filters)); iter != end(s_filters); ++iter)
+    if (iter->writable)
+      filters << iter->filter;
+  QFileDialog dlg
+    ( this
+    , "new file"
+    , settings.value(QString("%1/%2").arg(SettingsFileNew).arg(SettingsPath), QDir::currentPath()).toString()
+    );
+  dlg.setAcceptMode(QFileDialog::AcceptSave);
+  dlg.setFileMode(QFileDialog::AnyFile);
+  dlg.setNameFilters(filters);
+  dlg.selectNameFilter(settings.value(QString("%1/%2").arg(SettingsFileNew).arg(SettingsFilter), QString(s_filters[0].filter)).toString());
+  dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
+  if (!dlg.exec()) return;
+
+  wait_cursor w;
+  QFileInfo info(dlg.selectedFiles()[0]);
+  settings.setValue(QString("%1/%2").arg(SettingsFileNew).arg(SettingsPath), info.absolutePath());
+  settings.setValue(QString("%1/%2").arg(SettingsFileNew).arg(SettingsFilter), dlg.selectedNameFilter());
+  const size_t filter_selected(distance(begin(s_filters), find_if
+    ( begin(s_filters)
+    , end(s_filters)
+    , [&dlg](const file_open_def& i){ return dlg.selectedNameFilter().compare(i.filter) == 0; }
+    )));
+  if (info.suffix().isEmpty()) info = QFileInfo(info.dir(), QString("%1.%2").arg(info.fileName()).arg(s_filters[filter_selected].ext));
+  if (info.exists() && !QFile::remove(info.filePath()))
+  {
+    show_message("file removing error");
+    return;
+  }
+
   try
   {
-    QSettings settings(SettingsIni, QSettings::IniFormat);
-    QStringList filters;
-    for (auto iter(begin(s_filters)); iter != end(s_filters); ++iter)
-      if (iter->writable)
-        filters << iter->filter;
-    QFileDialog dlg
-      ( this
-      , "new file"
-      , settings.value(QString("%1/%2").arg(SettingsFileNew).arg(SettingsPath), QDir::currentPath()).toString()
-      );
-    dlg.setAcceptMode(QFileDialog::AcceptSave);
-    dlg.setFileMode(QFileDialog::AnyFile);
-    dlg.setNameFilters(filters);
-    dlg.selectNameFilter(settings.value(QString("%1/%2").arg(SettingsFileNew).arg(SettingsFilter), QString(s_filters[0].filter)).toString());
-    dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
-    if (!dlg.exec()) return;
-
-    wait_cursor w;
-    QFileInfo info(dlg.selectedFiles()[0]);
-    settings.setValue(QString("%1/%2").arg(SettingsFileNew).arg(SettingsPath), info.absolutePath());
-    settings.setValue(QString("%1/%2").arg(SettingsFileNew).arg(SettingsFilter), dlg.selectedNameFilter());
-    const size_t filter_selected(distance(begin(s_filters), find_if
-      ( begin(s_filters)
-      , end(s_filters)
-      , [&dlg](const file_open_def& i){ return dlg.selectedNameFilter().compare(i.filter) == 0; }
-      )));
-    if (info.suffix().isEmpty()) info = QFileInfo(info.dir(), QString("%1.%2").arg(info.fileName()).arg(s_filters[filter_selected].ext));
-    if (info.exists() && !QFile::remove(info.filePath()))
-    {
-      show_message("file removing error");
-      return;
-    }
     switch (s_filters[filter_selected].pvd)
     {
     case SQLite: m_mdl.connect_sqlite(info.absoluteFilePath(), true); break;
