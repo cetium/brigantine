@@ -18,7 +18,6 @@
 #include "progress.h"
 #include "provider.h"
 #include "sql_view.h"
-#include "task_exec.h"
 #include "utilities.h"
 
 sql_view::sql_view(QWidget* parent) : QWidget(parent), m_mdl(new sql_model()), m_trd(m_mdl)
@@ -120,7 +119,20 @@ void sql_view::on_fetch()
 
 void sql_view::on_run()
 {
-  task_exec* tsk(new task_exec(m_pvd, m_sql->toPlainText().toUtf8().constData()));
+  struct exec_batch : task {
+    provider_ptr pvd;
+    std::string sql;
+
+    void run(progress*) override
+    {
+      auto cmd(pvd->get_command());
+      cmd->exec_batch(sql);
+    }
+  }; // exec_batch
+
+  exec_batch* tsk(new exec_batch());
+  tsk->pvd = m_pvd;
+  tsk->sql = m_sql->toPlainText().toUtf8().constData();
   m_trd.push(std::shared_ptr<task>(tsk));
 }
 
