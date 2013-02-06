@@ -3,14 +3,13 @@
 #ifndef TREE_MODEL_H
 #define TREE_MODEL_H
 
+#include <brig/osm/layer.hpp>
 #include <brig/proj/shared_pj.hpp>
 #include <memory>
 #include <QAbstractItemModel>
 #include <QModelIndex>
-#include <QRectF>
 #include <QString>
 #include <QVariant>
-#include <string>
 #include <vector>
 #include "task.h"
 #include "tree_item.h"
@@ -24,20 +23,11 @@ class tree_model : public QAbstractItemModel {
   void connect_to(provider_ptr pvd);
   void emit_layers();
 
-private slots:
-  void emit_proj(brig::proj::shared_pj pj)  { emit signal_proj(pj); }
-  void emit_rect(QRectF rect, brig::proj::shared_pj pj)  { emit signal_rect(rect, pj); }
-  void emit_scale(double scale, brig::proj::shared_pj pj)  { emit signal_scale(scale, pj); }
-  void emit_sql(provider_ptr pvd, std::vector<std::string> sqls)  { emit signal_sql(pvd, sqls); }
+public slots:
   void on_refresh(provider_ptr pvd);
 
 signals:
   void signal_layers(std::vector<layer_ptr> lrs);
-  void signal_proj(brig::proj::shared_pj pj);
-  void signal_rect(QRectF rect, brig::proj::shared_pj pj);
-  void signal_scale(double scale, brig::proj::shared_pj pj);
-  void signal_task(std::shared_ptr<task> tsk);
-  void signal_sql(provider_ptr pvd, std::vector<std::string> sqls);
   void signal_disconnect(provider_ptr pvd);
 
 public:
@@ -55,18 +45,11 @@ public:
   void connect_odbc(QString dsn);
   void connect_ogr(QString file, QString drv = QString(), QString fitted_id = QString());
   void connect_oracle(QString host, int port, QString db, QString usr, QString pwd);
-  void connect_osm();
+  void connect_osm(std::shared_ptr<brig::osm::layer> lr);
   void connect_postgres(QString host, int port, QString db, QString usr, QString pwd);
   void connect_sqlite(QString file, bool init = false);
   void disconnect(const QModelIndex& idx);
   void refresh(const QModelIndex& idx);
-  void sql_console(const QModelIndex& idx);
-  void paste_layers(std::vector<layer_ptr> lrs_copy, const QModelIndex& idx_paste);
-  void zoom_to_fit(const QModelIndex& idx);
-  void snap_to_pixels(const QModelIndex& idx);
-  void use_projection(const QModelIndex& idx);
-  void paste_rows(layer_ptr lr_copy, const QModelIndex& idx_paste);
-  void drop(const QModelIndex& idx);
 
   bool is_provider(const QModelIndex& idx) const;
   provider_ptr get_provider(const QModelIndex& idx) const;

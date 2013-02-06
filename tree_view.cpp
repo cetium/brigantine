@@ -2,27 +2,45 @@
 
 #include <algorithm>
 #include <brig/database/oracle/client_version.hpp>
+#include <brig/osm/layer_aerial.hpp>
+#include <brig/osm/layer_cloudmade.hpp>
+#include <brig/osm/layer_cycle.hpp>
+#include <brig/osm/layer_mapnik.hpp>
+#include <brig/osm/layer_mapquest.hpp>
 #include <brig/proj/shared_pj.hpp>
 #include <exception>
+#include <QAbstractButton>
+#include <QApplication>
 #include <QCheckBox>
 #include <QDir>
 #include <QFile>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QIcon>
+#include <QInputDialog>
 #include <QList>
 #include <QMenu>
+#include <QMessageBox>
+#include <QPushButton>
 #include <QSettings>
 #include <QString>
 #include <QStringList>
 #include <utility>
 #include "dialog_connect.h"
+#include "dialog_create.h"
+#include "dialog_insert.h"
 #include "dialog_odbc.h"
 #include "global.h"
 #include "layer.h"
 #include "layer_geometry.h"
 #include "provider.h"
 #include "task_attributes.h"
+#include "task_create.h"
+#include "task_drop.h"
+#include "task_insert.h"
+#include "task_mbr.h"
+#include "task_proj.h"
+#include "task_scale.h"
 #include "tree_view.h"
 #include "utilities.h"
 
@@ -146,15 +164,7 @@ tree_view::tree_view(QWidget* parent) : QTreeView(parent)
   qRegisterMetaType<std::shared_ptr<task>>("std::shared_ptr<task>");
   qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
   qRegisterMetaType<std::vector<layer_ptr>>("std::vector<layer_ptr>");
-  connect
-    ( &m_mdl, SIGNAL(signal_sql(provider_ptr, std::vector<std::string>))
-    , this, SLOT(emit_sql(provider_ptr, std::vector<std::string>))
-    );
   connect(&m_mdl, SIGNAL(signal_layers(std::vector<layer_ptr>)), this, SLOT(emit_layers(std::vector<layer_ptr>)));
-  connect(&m_mdl, SIGNAL(signal_proj(brig::proj::shared_pj)), this, SLOT(emit_proj(brig::proj::shared_pj)));
-  connect(&m_mdl, SIGNAL(signal_task(std::shared_ptr<task>)), this, SLOT(emit_task(std::shared_ptr<task>)));
-  connect(&m_mdl, SIGNAL(signal_rect(QRectF, brig::proj::shared_pj)), this, SLOT(emit_rect(QRectF, brig::proj::shared_pj)));
-  connect(&m_mdl, SIGNAL(signal_scale(double, brig::proj::shared_pj)), this, SLOT(emit_scale(double, brig::proj::shared_pj)));
   connect(&m_mdl, SIGNAL(signal_disconnect(provider_ptr)), this, SLOT(emit_disconnect(provider_ptr)));
 }
 
@@ -196,7 +206,32 @@ void tree_view::on_connect_oracle()
 
 void tree_view::on_connect_osm()
 {
-  m_mdl.connect_osm();
+  using namespace std;
+
+  vector<shared_ptr<brig::osm::layer>> lrs;
+  lrs.push_back(make_shared<brig::osm::layer_aerial>());
+  lrs.push_back(make_shared<brig::osm::layer_cloudmade>());
+  lrs.push_back(make_shared<brig::osm::layer_cycle>());
+  lrs.push_back(make_shared<brig::osm::layer_mapnik>());
+  lrs.push_back(make_shared<brig::osm::layer_mapquest>());
+
+  QStringList items;
+  for (auto lr(begin(lrs)); lr != end(lrs); ++lr)
+    items.push_back(QString::fromUtf8((*lr)->get_name().c_str()));
+
+  auto wnd(QApplication::activeWindow());
+  auto flags
+    ( wnd->windowFlags()
+    & ~Qt::WindowMaximizeButtonHint
+    & ~Qt::WindowMinimizeButtonHint
+    & ~Qt::WindowContextHelpButtonHint
+    );
+  bool ok(false);
+  QString item = QInputDialog::getItem(wnd, "OpenStreetMap", "Layers", items, 0, false, &ok, flags);
+  if (ok)
+    for (auto lr(begin(lrs)); lr != end(lrs); ++lr)
+      if ((*lr)->get_name().compare(item.toUtf8().constData()) == 0)
+        m_mdl.connect_osm(*lr);
 }
 
 void tree_view::on_connect_postgres()
@@ -369,6 +404,7 @@ void tree_view::on_show_menu(QPoint point)
 
 void tree_view::on_attributes()
 {
+  if (!m_mdl.is_layer(m_idx_menu)) return;
   qRegisterMetaType<provider_ptr>("provider_ptr");
   qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
   task_attributes* tsk(new task_attributes(m_mdl.get_layer(m_idx_menu)));
@@ -402,4 +438,115 @@ void tree_view::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int e
   on_remove(parent, start, end, m_idx_menu);
   on_update();
   QTreeView::rowsAboutToBeRemoved(parent, start, end);
+}
+
+void tree_view::on_drop()
+{
+  if (!m_mdl.is_layer(m_idx_menu)) return;
+  auto lr(m_mdl.get_layer(m_idx_menu));
+
+  QMessageBox dlg(QApplication::activeWindow());
+  dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
+  dlg.setWindowIcon(QIcon(":/res/wheel.png"));
+  auto drop(dlg.addButton("drop", QMessageBox::AcceptRole));
+  dlg.addButton("cancel", QMessageBox::RejectRole);
+  dlg.setText(QString("do you want to drop %1?").arg(lr->get_string()));
+  dlg.exec();
+  if (dlg.clickedButton() != static_cast<QAbstractButton*>(drop)) return;
+
+  qRegisterMetaType<provider_ptr>("provider_ptr");
+  task_drop* tsk(new task_drop(lr));
+  connect(tsk, SIGNAL(signal_refresh(provider_ptr)), &m_mdl, SLOT(on_refresh(provider_ptr)));
+  emit signal_task(std::shared_ptr<task>(tsk));
+}
+
+void tree_view::on_paste_rows()
+{
+  auto lr_copy(m_lrs_copy.front());
+  if (!m_mdl.is_layer(m_idx_menu)) return;
+  auto lr_paste(m_mdl.get_layer(m_idx_menu));
+  if (lr_copy->get_levels() != lr_paste->get_levels()) return;
+
+  dialog_insert dlg(QApplication::activeWindow(), lr_copy, lr_paste);
+  if (dlg.exec() != QDialog::Accepted) return;
+  task_insert* tsk(new task_insert(lr_copy, lr_paste, dlg.get_items(), dlg.ccw(), dlg.view()));
+  emit signal_task(std::shared_ptr<task>(tsk));
+}
+
+void tree_view::on_paste_layers()
+{
+  if (!m_mdl.is_provider(m_idx_menu)) return;
+  auto pvd(m_mdl.get_provider(m_idx_menu));
+
+  dialog_create dlg
+    ( QApplication::activeWindow()
+    , m_lrs_copy.size() == 1? m_lrs_copy.front()->get_string(): QString("%1 layers").arg(m_lrs_copy.size())
+    , pvd->is_database()
+    );
+  if (dlg.exec() != QDialog::Accepted) return;
+
+  qRegisterMetaType<provider_ptr>("provider_ptr");
+  qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
+  task_create* tsk(new task_create(m_lrs_copy, pvd, dlg.sql(), dlg.view()));
+  connect
+    ( tsk, SIGNAL(signal_sql(provider_ptr, std::vector<std::string>))
+    , this, SLOT(emit_sql(provider_ptr, std::vector<std::string>))
+    );
+  connect
+    ( tsk, SIGNAL(signal_refresh(provider_ptr))
+    , &m_mdl, SLOT(on_refresh(provider_ptr))
+    );
+  emit signal_task(std::shared_ptr<task>(tsk));
+}
+
+void tree_view::on_sql_console()
+{
+  if (!m_mdl.is_provider(m_idx_menu)) return;
+  emit signal_sql(m_mdl.get_provider(m_idx_menu), std::vector<std::string>());
+}
+
+void tree_view::on_use_projection()
+{
+  if (!m_mdl.is_layer(m_idx_menu)) return;
+  auto lr(m_mdl.get_layer(m_idx_menu));
+
+  brig::proj::shared_pj pj;
+  if (lr->try_pj(pj))
+    emit signal_proj(pj);
+  else
+  {
+    qRegisterMetaType<brig::proj::shared_pj>("brig::proj::shared_pj");
+    task_proj* tsk(new task_proj(lr));
+    connect(tsk, SIGNAL(signal_proj(brig::proj::shared_pj)), this, SLOT(emit_proj(brig::proj::shared_pj)));
+    emit signal_task(std::shared_ptr<task>(tsk));
+  }
+}
+
+void tree_view::on_snap_to_pixels()
+{
+  if (!m_mdl.is_layer(m_idx_menu)) return;
+  auto lr(m_mdl.get_layer(m_idx_menu));
+
+  qRegisterMetaType<brig::proj::shared_pj>("brig::proj::shared_pj");
+  task_scale* tsk(new task_scale(lr));
+  connect(tsk, SIGNAL(signal_scale(double, brig::proj::shared_pj)), this, SLOT(emit_scale(double, brig::proj::shared_pj)));
+  emit signal_task(std::shared_ptr<task>(tsk));
+}
+
+void tree_view::on_zoom_to_fit()
+{
+  if (!m_mdl.is_layer(m_idx_menu)) return;
+  auto lr(m_mdl.get_layer(m_idx_menu));
+
+  brig::boost::box box;
+  brig::proj::shared_pj pj;
+  if (lr->try_view(box, pj))
+    emit signal_rect(box_to_rect(box), pj);
+  else
+  {
+    qRegisterMetaType<brig::proj::shared_pj>("brig::proj::shared_pj");
+    task_mbr* tsk(new task_mbr(lr));
+    connect(tsk, SIGNAL(signal_rect(QRectF, brig::proj::shared_pj)), this, SLOT(emit_rect(QRectF, brig::proj::shared_pj)));
+    emit signal_task(std::shared_ptr<task>(tsk));
+  }
 }
