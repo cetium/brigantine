@@ -15,7 +15,7 @@ class task_drop : public task {
 signals:
   void signal_refresh(provider_ptr pvd);
 public:
-  task_drop(layer_ptr lr);
+  explicit task_drop(layer_ptr lr);
   void run(progress* prg) override;
 }; // task_drop
 

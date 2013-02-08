@@ -10,12 +10,10 @@
 #include "provider_ptr.h"
 #include "layer_ptr.h"
 
-class tree_item {
-  QVariant m_var;
-
-public:
+struct tree_item {
   const tree_item* m_parent;
   std::vector<std::unique_ptr<tree_item>> m_children;
+  QVariant m_var;
 
   tree_item(const tree_item* parent, provider_ptr pvd);
   tree_item(const tree_item* parent, layer_ptr lr);

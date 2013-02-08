@@ -14,7 +14,7 @@ class task_mbr : public task {
 signals:
   void signal_rect(QRectF rect, brig::proj::shared_pj pj);
 public:
-  task_mbr(layer_ptr lr) : m_lr(lr)  {}
+  explicit task_mbr(layer_ptr lr) : m_lr(lr)  {}
   void run(progress* prg) override;
 }; // task_mbr
 

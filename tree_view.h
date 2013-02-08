@@ -3,6 +3,7 @@
 #ifndef TREE_VIEW_H
 #define TREE_VIEW_H
 
+#include <memory>
 #include <QAction>
 #include <QModelIndex>
 #include <QPoint>
@@ -11,6 +12,7 @@
 #include <QWidget>
 #include <vector>
 #include "task.h"
+#include "task_connect.h"
 #include "tree_model.h"
 
 class tree_view : public QTreeView {
@@ -45,6 +47,7 @@ class tree_view : public QTreeView {
 
   static void on_remove(const QModelIndex& parent, int start, int end, QModelIndex& index);
   void on_update();
+  void connect_by(const std::vector<std::shared_ptr<task_connect::provider_allocator>>& allocators);
 
 protected:
   void rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end) override;
@@ -59,7 +62,8 @@ private slots:
   void on_new_file();
   void on_copy_checked();
   void on_disconnect()  { m_mdl.disconnect(m_idx_menu); }
-  void on_refresh()  { m_mdl.refresh(m_idx_menu); }
+  void on_refresh();
+  void on_refresh(provider_ptr pvd);
   void on_sql_console();
   void on_paste_layers();
   void on_zoom_to_fit();
@@ -70,7 +74,7 @@ private slots:
   void on_drop();
   void on_show_menu(QPoint point);
   void on_attributes();
-  void emit_layers(std::vector<layer_ptr> lim)  { emit signal_layers(lim); }
+  void emit_layers(std::vector<layer_ptr> lrs)  { emit signal_layers(lrs); }
   void emit_proj(brig::proj::shared_pj pj)  { emit signal_proj(pj); }
   void emit_rect(QRectF rect, brig::proj::shared_pj pj)  { emit signal_rect(rect, pj); }
   void emit_scale(double scale, brig::proj::shared_pj pj)  { emit signal_scale(scale, pj); }

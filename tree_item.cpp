@@ -47,8 +47,9 @@ void tree_item::check(size_t order)
 
 int tree_item::position() const
 {
+  using namespace std;
   if (!m_parent) return -1;
-  auto p(std::find_if(std::begin(m_parent->m_children), std::end(m_parent->m_children), [&](const std::unique_ptr<tree_item>& i){ return i.get() == this; }));
-  if (p == std::end(m_parent->m_children)) return -1;
-  return std::distance(std::begin(m_parent->m_children), p);
+  auto p(find_if(begin(m_parent->m_children), end(m_parent->m_children), [&](const std::unique_ptr<tree_item>& i){ return i.get() == this; }));
+  if (p == end(m_parent->m_children)) return -1;
+  return distance(begin(m_parent->m_children), p);
 }

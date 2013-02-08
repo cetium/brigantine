@@ -6,8 +6,6 @@
 #include <brig/boost/geometry.hpp>
 #include <brig/column_def.hpp>
 #include <brig/proj/shared_pj.hpp>
-#include <QApplication>
-#include <QCursor>
 #include <QRectF>
 #include <QString>
 #include <Qt>
@@ -35,21 +33,5 @@ QRectF world(const brig::proj::shared_pj& pj);
 QString rich_text(const QString& icon, const QString& text, bool icon_suffix);
 void show_message(const char* msg);
 std::string get_table_name(const std::string& tbl, size_t level);
-
-struct wait_cursor {
-  wait_cursor()
-  {
-    #ifndef QT_NO_CURSOR
-    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-    #endif
-  }
-
-  ~wait_cursor()
-  {
-    #ifndef QT_NO_CURSOR
-    QApplication::restoreOverrideCursor();
-    #endif
-  }
-}; // wait_cursor
 
 #endif // UTILITIES_H

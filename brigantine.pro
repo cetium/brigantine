@@ -30,6 +30,7 @@ HEADERS +=\
   sql_view.h\
   task.h\
   task_attributes.h\
+  task_connect.h\
   task_create.h\
   task_drop.h\
   task_insert.h\
@@ -63,6 +64,7 @@ SOURCES +=\
   sql_thread.cpp\
   sql_view.cpp\
   task_attributes.cpp\
+  task_connect.cpp\
   task_create.cpp\
   task_drop.cpp\
   task_insert.cpp\

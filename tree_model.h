@@ -3,15 +3,14 @@
 #ifndef TREE_MODEL_H
 #define TREE_MODEL_H
 
-#include <brig/osm/layer.hpp>
-#include <brig/proj/shared_pj.hpp>
 #include <memory>
 #include <QAbstractItemModel>
 #include <QModelIndex>
 #include <QString>
 #include <QVariant>
 #include <vector>
-#include "task.h"
+#include "layer_ptr.h"
+#include "provider_ptr.h"
 #include "tree_item.h"
 
 class tree_model : public QAbstractItemModel {
@@ -24,7 +23,7 @@ class tree_model : public QAbstractItemModel {
   void emit_layers();
 
 public slots:
-  void on_refresh(provider_ptr pvd);
+  void on_connected(provider_ptr pvd, std::vector<layer_ptr> lrs);
 
 signals:
   void signal_layers(std::vector<layer_ptr> lrs);
@@ -40,17 +39,7 @@ public:
   int rowCount(const QModelIndex& parent = QModelIndex()) const override;
   bool setData(const QModelIndex& idx, const QVariant& value, int role = Qt::EditRole) override;
 
-  void connect_gdal(QString file);
-  void connect_mysql(QString host, int port, QString db, QString usr, QString pwd);
-  void connect_odbc(QString dsn);
-  void connect_ogr(QString file, QString drv = QString(), QString fitted_id = QString());
-  void connect_oracle(QString host, int port, QString db, QString usr, QString pwd);
-  void connect_osm(std::shared_ptr<brig::osm::layer> lr);
-  void connect_postgres(QString host, int port, QString db, QString usr, QString pwd);
-  void connect_sqlite(QString file, bool init = false);
   void disconnect(const QModelIndex& idx);
-  void refresh(const QModelIndex& idx);
-
   bool is_provider(const QModelIndex& idx) const;
   provider_ptr get_provider(const QModelIndex& idx) const;
   bool is_layer(const QModelIndex& idx) const;
