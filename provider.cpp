@@ -18,6 +18,12 @@ brig::table_def provider::get_table_def(const brig::identifier& tbl)
   return m_tables[tbl];
 }
 
+void provider::reset_table_def()
+{
+  QMutexLocker locker(&m_mutex);
+  m_tables.clear();
+}
+
 void provider::reset_table_def(const brig::identifier& tbl)
 {
   QMutexLocker locker(&m_mutex);

@@ -40,7 +40,7 @@ protected:
 
 private slots:
   void emit_idle()  { emit signal_idle(); }
-  void emit_process(QString msg)  { emit signal_process(msg); }
+  void emit_process(QString msg, bool done)  { emit signal_process(msg, done); }
   void emit_start()  { emit signal_start(); }
   void on_process(frame fr, QImage image);
 
@@ -54,7 +54,7 @@ public slots:
 signals:
   void signal_task(std::shared_ptr<task> tsk);
   void signal_start();
-  void signal_process(QString msg);
+  void signal_process(QString msg, bool done);
   void signal_idle();
   void signal_active(brig::proj::shared_pj pj);
   void signal_coords(QString msg);

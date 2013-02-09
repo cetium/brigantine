@@ -21,7 +21,6 @@
 #include <QMessageBox>
 #include <QSplitter>
 #include <QStatusBar>
-#include <QStringList>
 #include <QtGlobal>
 #include "main_window.h"
 #include "map_view.h"
@@ -81,10 +80,6 @@ main_window::main_window()
   m_copy_proj_stat->setIconVisibleInMenu(true);
   connect(m_copy_proj_stat, SIGNAL(triggered()), this, SLOT(on_copy_proj_stat()));
 
-  m_copy_pos_stat = new QAction(QIcon(":/res/copy.png"), "copy to clipboard", this);
-  m_copy_pos_stat->setIconVisibleInMenu(true);
-  connect(m_copy_pos_stat, SIGNAL(triggered()), this, SLOT(on_copy_pos_stat()));
-
   m_copy_map_stat = new QAction(QIcon(":/res/copy.png"), "copy to clipboard", this);
   m_copy_map_stat->setIconVisibleInMenu(true);
   connect(m_copy_map_stat, SIGNAL(triggered()), this, SLOT(on_copy_map_stat()));
@@ -118,13 +113,13 @@ main_window::main_window()
 
   connect(map, SIGNAL(signal_task(std::shared_ptr<task>)), sql, SLOT(on_task(std::shared_ptr<task>)));
   connect(map, SIGNAL(signal_start()), this, SLOT(on_map_start()));
-  connect(map, SIGNAL(signal_process(QString)), this, SLOT(on_map_process(QString)));
+  connect(map, SIGNAL(signal_process(QString, bool)), this, SLOT(on_map_process(QString, bool)));
   connect(map, SIGNAL(signal_idle()), this, SLOT(on_map_idle()));
   connect(map, SIGNAL(signal_active(brig::proj::shared_pj)), this, SLOT(on_map_active(brig::proj::shared_pj)));
   connect(map, SIGNAL(signal_coords(QString)), this, SLOT(on_map_coords(QString)));
 
   connect(sql, SIGNAL(signal_start()), this, SLOT(on_sql_start()));
-  connect(sql, SIGNAL(signal_process(QString)), this, SLOT(on_sql_process(QString)));
+  connect(sql, SIGNAL(signal_process(QString, bool)), this, SLOT(on_sql_process(QString, bool)));
   connect(sql, SIGNAL(signal_idle()), this, SLOT(on_sql_idle()));
   connect(sql, SIGNAL(signal_active()), this, SLOT(on_sql_active()));
 
@@ -174,6 +169,16 @@ void main_window::on_map_start()
   m_map_stat->setEnabled(true);
 }
 
+void main_window::on_map_process(QString msg, bool done)
+{
+  m_map_msg = msg;
+  if (done)
+  {
+    m_map_hist.push_front( status(m_map_msg, &m_map_time) );
+    if (m_map_hist.size() > 5) m_map_hist.pop_back();
+  }
+}
+
 void main_window::on_map_idle()
 {
   m_map_stat->setDisabled(true);
@@ -187,6 +192,16 @@ void main_window::on_sql_start()
   m_sql_time.restart();
   m_sql_stat->setToolTip("");
   m_sql_stat->setEnabled(true);
+}
+
+void main_window::on_sql_process(QString msg, bool done)
+{
+  m_sql_msg = msg;
+  if (done)
+  {
+    m_sql_hist.push_front( status(m_sql_msg, &m_sql_time) );
+    if (m_sql_hist.size() > 5) m_sql_hist.pop_back();
+  }
 }
 
 void main_window::on_sql_idle()
@@ -209,8 +224,6 @@ void main_window::on_show_stat_menu(QPoint point)
   QList<QAction*> actions;
   if (widget == m_proj_stat)
     actions.append(m_copy_proj_stat);
-  else if (widget == m_pos_stat)
-    actions.append(m_copy_pos_stat);
   else if (widget == m_map_stat)
     actions.append(m_copy_map_stat);
   else if (widget == m_sql_stat)
@@ -224,19 +237,14 @@ void main_window::on_copy_proj_stat()
   QApplication::clipboard()->setText(m_proj_msg);
 }
 
-void main_window::on_copy_pos_stat()
-{
-  QApplication::clipboard()->setText(m_pos_msg);
-}
-
 void main_window::on_copy_map_stat()
 {
-  QApplication::clipboard()->setText(m_map_msg);
+  QApplication::clipboard()->setText(m_map_hist.join("\n"));
 }
 
 void main_window::on_copy_sql_stat()
 {
-  QApplication::clipboard()->setText(m_sql_msg);
+  QApplication::clipboard()->setText(m_sql_hist.join("\n"));
 }
 
 void main_window::keyPressEvent(QKeyEvent* event)

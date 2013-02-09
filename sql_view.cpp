@@ -57,7 +57,7 @@ sql_view::sql_view(QWidget* parent) : QWidget(parent), m_mdl(new sql_model()), m
   setLayout(layout);
 
   connect(&m_trd, SIGNAL(signal_start()), this, SLOT(on_start()));
-  connect(&m_trd, SIGNAL(signal_process(QString)), this, SLOT(emit_process(QString)));
+  connect(&m_trd, SIGNAL(signal_process(QString, bool)), this, SLOT(emit_process(QString, bool)));
   connect(&m_trd, SIGNAL(signal_idle()), this, SLOT(on_idle()));
 }
 

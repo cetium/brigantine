@@ -49,6 +49,7 @@ public:
 
   QString get_string() const  { return m_str; }
   QString get_icon() const  { return m_icon; }
+  void reset_table_def();
   void reset_table_def(const brig::identifier& tbl);
   bool try_table_def(const brig::identifier& tbl, brig::table_def& def);
   void set_mbr(const brig::identifier& col, const brig::boost::box& box);

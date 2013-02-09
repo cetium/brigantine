@@ -70,7 +70,7 @@ void sql_thread::run()
       if (m_time.elapsed() > SignalInterval)
       {
         m_thread->m_mdl->update();
-        m_thread->emit signal_process(QString("%1").arg(m_counter));
+        m_thread->emit signal_process(QString("%1").arg(m_counter), false);
         m_time.restart();
       }
       return true;
@@ -84,8 +84,8 @@ void sql_thread::run()
     {
       emit signal_idle();
       m_condition.wait(&m_mutex);
-      m_cancel = false;
     }
+    m_cancel = false;
     std::shared_ptr<task> tsk;
     if (!m_queue.empty())
     {
@@ -105,9 +105,9 @@ void sql_thread::run()
     }
 
     if (m_abort.load()) return;
-    if (prg.m_msg.isEmpty() && m_cancel.load()) prg.m_msg = "canceled";
+    if (prg.m_msg.isEmpty() && m_cancel.load()) prg.m_msg = QString("%1 (%2)").arg(prg.m_counter).arg("canceled");
     if (prg.m_msg.isEmpty()) prg.m_msg = QString("%1").arg(prg.m_counter);
     m_mdl->update();
-    emit signal_process(prg.m_msg);
+    emit signal_process(prg.m_msg, true);
   }
 }

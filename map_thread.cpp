@@ -47,12 +47,22 @@ void map_thread::render(std::vector<layer_ptr> lrs, const frame& fr)
   }
 }
 
-void map_thread::render_layer(layer_ptr lr, const frame& fr, QImage& img, QString& msg, bool& no_idx, size_t& counter, QTime& time)
+void map_thread::emit_process(QString err, QString wrn, size_t counter, bool done)
+{
+  if (!err.isEmpty())
+    emit signal_process(err, done);
+  else if (!wrn.isEmpty())
+    emit signal_process(QString("%1 (%2)").arg(counter).arg(wrn), done);
+  else
+    emit signal_process(QString("%1").arg(counter), done);
+}
+
+void map_thread::render_layer(layer_ptr lr, const frame& fr, QImage& img, QString& err, QString& wrn, size_t& counter, QTime& time)
 {
   if (!lr) return;
   try
   {
-    if (!lr->has_spatial_index(fr)) no_idx = true;
+    if (wrn.isEmpty() && !lr->has_spatial_index(fr)) wrn = "no index";
 
     QPainter painter(&img);
     painter.setCompositionMode(QPainter::CompositionMode_Darken);
@@ -72,15 +82,15 @@ void map_thread::render_layer(layer_ptr lr, const frame& fr, QImage& img, QStrin
         painter.drawImage(0, 0, lr_img);
         lr_painter.eraseRect(img.rect());
         emit signal_process(fr, img);
-        emit signal_process((msg.isEmpty()? QString("%1").arg(counter + 1): msg));
+        emit_process(err, wrn, counter, false);
         time.restart();
       }
     }
 
     painter.drawImage(0, 0, lr_img);
-    emit signal_process((msg.isEmpty()? QString("%1").arg(counter): msg));
+    emit_process(err, wrn, counter, false);
   }
-  catch (const std::exception& e)  { if (msg.isEmpty()) msg = QString::fromUtf8(e.what()); }
+  catch (const std::exception& e)  { if (err.isEmpty()) err = QString::fromUtf8(e.what()); }
 }
 
 void map_thread::run()
@@ -88,16 +98,22 @@ void map_thread::run()
   forever
   {
     m_mutex.lock();
-    std::vector<layer_ptr> lrs = m_lrs;
+    while (!m_restart.load() && !m_abort.load())
+    {
+      emit signal_idle();
+      m_condition.wait(&m_mutex);
+    }
+    m_restart = false;
+    std::vector<layer_ptr> lrs(m_lrs);
     const frame fr(m_fr);
     m_mutex.unlock();
 
-    std::sort(std::begin(lrs), std::end(lrs), [](const layer_ptr& a, const layer_ptr& b){ return a.m_order < b.m_order; });
-    if (projPJ(fr.get_pj()) == 0) return;
     if (m_abort.load()) return;
     emit signal_start();
+    std::sort(std::begin(lrs), std::end(lrs), [](const layer_ptr& a, const layer_ptr& b){ return a.m_order < b.m_order; });
+    if (projPJ(fr.get_pj()) == 0) return;
 
-    QString msg;
+    QString err, wrn;
     size_t counter(0);
     QTime time; time.start();
     QImage img(fr.size(), QImage::Format_ARGB32_Premultiplied);
@@ -106,25 +122,15 @@ void map_thread::run()
       painter.eraseRect(img.rect());
     }
 
-    bool no_idx(false);
     for (int i(0); i < int(lrs.size()); ++i)
     {
       if (m_abort.load()) return;
       if (m_restart.load()) break;
-      render_layer(lrs[i], fr, img, msg, no_idx, counter, time);
+      render_layer(lrs[i], fr, img, err, wrn, counter, time);
     }
     if (m_abort.load()) return;
-    if (!m_restart.load())
-    {
-      if (msg.isEmpty() && no_idx) msg = "no index";
-      emit signal_process(fr, img);
-      emit signal_process(msg.isEmpty()? QString("%1").arg(counter): msg);
-      emit signal_idle();
-    }
-
-    m_mutex.lock();
-    if (!m_restart.load()) m_condition.wait(&m_mutex);
-    m_restart = false;
-    m_mutex.unlock();
+    if (m_restart.load() && wrn.isEmpty()) wrn = "canceled";
+    emit signal_process(fr, img);
+    emit_process(err, wrn, counter, true);
   }
 }

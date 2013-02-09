@@ -25,7 +25,7 @@ class sql_view : public QWidget {
   void reset();
 
 private slots:
-  void emit_process(QString msg)  { emit signal_process(msg); }
+  void emit_process(QString msg, bool done)  { emit signal_process(msg, done); }
   void on_cancel()  { m_trd.cancel(); }
   void on_fetch();
   void on_idle();
@@ -42,7 +42,7 @@ public slots:
 
 signals:
   void signal_start();
-  void signal_process(QString msg);
+  void signal_process(QString msg, bool done);
   void signal_idle();
   void signal_active();
 

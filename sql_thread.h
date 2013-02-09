@@ -14,7 +14,8 @@
 #include "sql_model.h"
 #include "task.h"
 
-class sql_thread : public QThread {
+class sql_thread : public QThread
+{
   Q_OBJECT
 
   std::shared_ptr<sql_model> m_mdl;
@@ -28,7 +29,7 @@ protected:
 
 signals:
   void signal_start();
-  void signal_process(QString msg);
+  void signal_process(QString msg, bool done);
   void signal_idle();
 
 public:

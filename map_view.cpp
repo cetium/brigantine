@@ -33,7 +33,7 @@ map_view::map_view(QWidget* parent) : QWidget(parent)
   qRegisterMetaType<frame>("frame");
   connect(&m_trd, SIGNAL(signal_start()), this, SLOT(emit_start()));
   connect(&m_trd, SIGNAL(signal_process(frame, QImage)), this, SLOT(on_process(frame, QImage)));
-  connect(&m_trd, SIGNAL(signal_process(QString)), this, SLOT(emit_process(QString)));
+  connect(&m_trd, SIGNAL(signal_process(QString, bool)), this, SLOT(emit_process(QString, bool)));
   connect(&m_trd, SIGNAL(signal_idle()), this, SLOT(emit_idle()));
 
   try
