@@ -95,6 +95,7 @@ windows:INCLUDEPATH +=\
   ../include/postgresql/
 
 unix:INCLUDEPATH +=\
+  /usr/include/gdal/\
   /usr/include/mysql/\
   /usr/include/postgresql/
 
