@@ -39,7 +39,7 @@ map_view::map_view(QWidget* parent) : QWidget(parent)
   try
   {
     m_view_fr = frame(QPointF(0, 0), 1, QSize(360, 180), latlon());
-    on_rect(world(m_view_fr.get_pj()), m_view_fr.get_pj());
+    on_home();
   }
   catch (const std::exception&)  {}
 }
@@ -86,29 +86,6 @@ void map_view::on_process(frame fr, QImage image)
   m_pix_fr = m_view_fr;
   m_pix = QPixmap::fromImage(image);
   update();
-}
-
-void map_view::keyPressEvent(QKeyEvent* event)
-{
-  switch (event->key())
-  {
-  case Qt::Key_Plus: zoom(ZoomInFactor); break;
-  case Qt::Key_Minus: zoom(ZoomOutFactor); break;
-  case Qt::Key_Left: scroll(-ScrollStep, 0); break;
-  case Qt::Key_Right: scroll(+ScrollStep, 0); break;
-  case Qt::Key_Down: scroll(0, -ScrollStep); break;
-  case Qt::Key_Up: scroll(0, +ScrollStep); break;
-  case Qt::Key_Home:
-    try
-    {
-      brig::proj::shared_pj pj(latlon());
-      on_proj(pj);
-      on_rect(world(pj), pj);
-    }
-    catch (const std::exception&)  {}
-    break;
-  default: QWidget::keyPressEvent(event);
-  }
 }
 
 void map_view::wheelEvent(QWheelEvent* event)
@@ -184,28 +161,6 @@ void map_view::mouseReleaseEvent(QMouseEvent* event)
   catch (const std::exception&)  {}
 }
 
-void map_view::zoom(double zoom_factor)
-{
-  try
-  {
-    m_view_fr = frame(m_view_fr.center(), m_view_fr.scale() * zoom_factor, m_view_fr.size(), m_view_fr.get_pj());
-    update();
-    render();
-  }
-  catch (const std::exception&)  {}
-}
-
-void map_view::scroll(int delta_x, int delta_y)
-{
-  try
-  {
-    m_view_fr = frame(m_view_fr.center() + QPointF(delta_x * m_view_fr.scale(), delta_y * m_view_fr.scale()), m_view_fr.scale(), m_view_fr.size(), m_view_fr.get_pj());
-    update();
-    render();
-  }
-  catch (const std::exception&)  {}
-}
-
 void map_view::on_layers(std::vector<layer_ptr> lrs)
 {
   m_lrs = lrs;
@@ -246,6 +201,12 @@ void map_view::on_rect(QRectF rect, brig::proj::shared_pj pj)
     emit signal_active(m_view_fr.get_pj());
   }
   catch (const std::exception&)  {}
+}
+
+void map_view::on_home()
+{
+  auto pj(latlon());
+  on_rect(world(pj), pj);
 }
 
 void map_view::on_scale(double scale, brig::proj::shared_pj pj)

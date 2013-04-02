@@ -6,6 +6,7 @@ greaterThan(QT_MAJOR_VERSION, 4):QT +=\
   widgets
 
 HEADERS +=\
+  clickable_label.h\
   counter_clockwise.h\
   dialog_connect.h\
   dialog_create.h\
@@ -33,8 +34,8 @@ HEADERS +=\
   task_connect.h\
   task_create.h\
   task_drop.h\
+  task_extent.h\
   task_insert.h\
-  task_mbr.h\
   task_proj.h\
   task_scale.h\
   tree_item.h\
@@ -43,6 +44,7 @@ HEADERS +=\
   utilities.h
 
 SOURCES +=\
+  clickable_label.cpp\
   counter_clockwise.cpp\
   dialog_connect.cpp\
   dialog_create.cpp\
@@ -67,8 +69,8 @@ SOURCES +=\
   task_connect.cpp\
   task_create.cpp\
   task_drop.cpp\
+  task_extent.cpp\
   task_insert.cpp\
-  task_mbr.cpp\
   task_proj.cpp\
   task_scale.cpp\
   tree_item.cpp\

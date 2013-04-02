@@ -60,9 +60,11 @@ void task_create::run(progress* prg)
           box mbr;
           if (boost::get<brig::blob_t>(col_to.query_value).empty())
           {
-            mbr = pvd_from->get_mbr(tbl_from, col_from.name);
+            tbl_from.query_columns.push_back(col_from.name);
+            mbr = pvd_from->get_extent(tbl_from);
+            tbl_from.query_columns.clear();
             brig::identifier id = tbl_from.id; id.qualifier = col_from.name;
-            pvd_from->set_mbr(id, mbr);
+            pvd_from->set_extent(id, mbr);
             if (!prg->step(counter)) return;
           }
           else

@@ -12,13 +12,15 @@
 #include <QStringList>
 #include <QTabWidget>
 #include <QTime>
+#include "clickable_label.h"
 
 class main_window : public QMainWindow {
   Q_OBJECT
 
   QTabWidget* m_tab;
   int m_map_tab, m_sql_tab;
-  QLabel *m_proj_stat, *m_pos_stat, *m_map_stat, *m_sql_stat;
+  QLabel *m_proj_stat, *m_map_stat, *m_sql_stat;
+  clickable_label *m_pos_stat;
   QString m_proj_msg, m_pos_msg, m_map_msg, m_sql_msg;
   QStringList m_map_hist, m_sql_hist;
   QAction *m_copy_proj_stat, *m_copy_map_stat, *m_copy_sql_stat;

@@ -45,8 +45,8 @@
 #include "task_attributes.h"
 #include "task_create.h"
 #include "task_drop.h"
+#include "task_extent.h"
 #include "task_insert.h"
-#include "task_mbr.h"
 #include "task_proj.h"
 #include "task_scale.h"
 #include "tree_view.h"
@@ -656,7 +656,7 @@ void tree_view::on_zoom_to_fit()
   else
   {
     qRegisterMetaType<brig::proj::shared_pj>("brig::proj::shared_pj");
-    task_mbr* tsk(new task_mbr(lr));
+    task_extent* tsk(new task_extent(lr));
     connect(tsk, SIGNAL(signal_rect(QRectF, brig::proj::shared_pj)), this, SLOT(emit_rect(QRectF, brig::proj::shared_pj)));
     emit signal_task(std::shared_ptr<task>(tsk));
   }

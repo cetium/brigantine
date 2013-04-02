@@ -32,7 +32,7 @@ public:
   std::vector<brig::identifier> get_geometry_layers() override  { return m_pvd->get_geometry_layers(); }
   std::vector<brig::pyramid_def> get_raster_layers() override  { return m_pvd->get_raster_layers(); }
   brig::table_def get_table_def(const brig::identifier& tbl) override;
-  brig::boost::box get_mbr(const brig::table_def& tbl, const std::string& col) override  { return m_pvd->get_mbr(tbl, col); }
+  brig::boost::box get_extent(const brig::table_def& tbl) override  { return m_pvd->get_extent(tbl); }
   std::shared_ptr<brig::rowset> select(const brig::table_def& tbl) override  { return m_pvd->select(tbl); }
   brig::table_def fit_to_create(const brig::table_def& tbl) override  { return m_pvd->fit_to_create(tbl); }
   void create(const brig::table_def& tbl) override  { m_pvd->create(tbl); }
@@ -52,7 +52,7 @@ public:
   void reset_table_def();
   void reset_table_def(const brig::identifier& tbl);
   bool try_table_def(const brig::identifier& tbl, brig::table_def& def);
-  void set_mbr(const brig::identifier& col, const brig::boost::box& box);
+  void set_extent(const brig::identifier& col, const brig::boost::box& box);
 }; // provider
 
 #endif // PROVIDER_H

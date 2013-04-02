@@ -24,14 +24,11 @@ class map_view : public QWidget {
   QPointF m_press_center;
   QPoint m_press_event;
 
-  void zoom(double zoom_factor);
-  void scroll(int delta_x, int delta_y);
   void render()  { m_trd.render(m_lrs, m_view_fr); }
 
 protected:
   void paintEvent(QPaintEvent* event) override;
   void resizeEvent(QResizeEvent* event) override;
-  void keyPressEvent(QKeyEvent* event) override;
   void wheelEvent(QWheelEvent* event) override;
   void mousePressEvent(QMouseEvent* event) override;
   void mouseMoveEvent(QMouseEvent* event) override;
@@ -48,6 +45,7 @@ public slots:
   void on_layers(std::vector<layer_ptr> lrs);
   void on_proj(brig::proj::shared_pj pj);
   void on_rect(QRectF rect, brig::proj::shared_pj pj);
+  void on_home();
   void on_scale(double scale, brig::proj::shared_pj pj);
   void on_task(std::shared_ptr<task> tsk);
 

@@ -40,7 +40,7 @@ bool provider::try_table_def(const brig::identifier& tbl, brig::table_def& def)
   return true;
 }
 
-void provider::set_mbr(const brig::identifier& col, const brig::boost::box& box)
+void provider::set_extent(const brig::identifier& col, const brig::boost::box& box)
 {
   QMutexLocker locker(&m_mutex);
   if (m_tables.find(col) != std::end(m_tables))

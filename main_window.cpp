@@ -55,8 +55,7 @@ main_window::main_window()
   m_proj_stat->setText(rich_text(":/res/map_disabled.png", "", false));
   status_bar->addWidget(m_proj_stat);
 
-  m_pos_stat = new QLabel;
-  m_pos_stat->setDisabled(true);
+  m_pos_stat = new clickable_label;
   m_pos_stat->setTextFormat(Qt::RichText);
   m_pos_stat->setText(rich_text(":/res/globe_disabled.png", "", false));
   status_bar->addWidget(m_pos_stat);
@@ -123,6 +122,8 @@ main_window::main_window()
   connect(sql, SIGNAL(signal_idle()), this, SLOT(on_sql_idle()));
   connect(sql, SIGNAL(signal_active()), this, SLOT(on_sql_active()));
 
+  connect(m_pos_stat, SIGNAL(clicked()), map, SLOT(on_home()));
+
   setWindowIcon(QIcon(":/res/wheel.png"));
   setWindowTitle("brigantine");
   try  { on_map_active(latlon()); }
@@ -157,7 +158,6 @@ void main_window::on_map_active(brig::proj::shared_pj pj)
 void main_window::on_map_coords(QString msg)
 {
   m_pos_msg = msg;
-  m_pos_stat->setDisabled(m_pos_msg.isEmpty());
   m_pos_stat->setText(rich_text(m_pos_msg.isEmpty()? ":/res/globe_disabled.png": ":/res/globe.png", m_pos_msg, false));
 }
 
