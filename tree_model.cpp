@@ -10,7 +10,7 @@
 #include "provider.h"
 #include "tree_model.h"
 
-tree_model::tree_model(QObject* parent) : QAbstractItemModel(parent), m_root(0, provider_ptr()), m_order(0)
+tree_model::tree_model(QObject* parent) : QAbstractItemModel(parent), m_root(0, provider_ptr())
 {}
 
 QModelIndex tree_model::index(int row, int, const QModelIndex& parent) const
@@ -97,7 +97,7 @@ void tree_model::emit_layers()
 bool tree_model::setData(const QModelIndex& idx, const QVariant&, int role)
 {
   if (role != Qt::CheckStateRole || !is_layer(idx)) return false;
-  static_cast<tree_item*>(idx.internalPointer())->check(++m_order);
+  static_cast<tree_item*>(idx.internalPointer())->check();
   dataChanged(idx, idx);
   emit_layers();
   return true;
@@ -172,10 +172,7 @@ void tree_model::on_connected(provider_ptr pvd, std::vector<layer_ptr> lrs)
       auto new_lr(find_if(begin(lrs), end(lrs), [&](const layer_ptr& lr)
         { return lr->get_string() == old_lr->get_string(); }));
       if (new_lr != end(lrs))
-      {
         new_lr->m_checked = old_lr.m_checked;
-        new_lr->m_order = old_lr.m_order;
-      }
       else if (old_lr.m_checked)
         render = true;
     }

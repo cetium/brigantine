@@ -14,7 +14,6 @@ class layer_ptr {
 
 public:
   bool m_checked;
-  size_t m_order;
 
   explicit layer_ptr(layer* lr = 0);
   layer* operator ->() const;

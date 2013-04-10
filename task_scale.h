@@ -4,6 +4,7 @@
 #define TASK_SCALE_H
 
 #include <brig/proj/shared_pj.hpp>
+#include <QString>
 #include "layer_ptr.h"
 #include "task.h"
 
@@ -14,7 +15,9 @@ signals:
   void signal_scale(double scale, brig::proj::shared_pj pj);
 public:
   explicit task_scale(layer_ptr lr) : m_lr(lr)  {}
-  void run(progress* prg) override;
+  QString get_string() override;
+  int get_priority() override  { return 1; }
+  void do_run() override;
 }; // task_scale
 
 #endif // TASK_SCALE_H

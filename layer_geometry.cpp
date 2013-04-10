@@ -68,7 +68,7 @@ std::shared_ptr<brig::rowset> layer_geometry::drawing(const frame& fr)
   item.pj_from = get_pj();
   item.pj_to = fr.get_pj();
   std::vector<reproject_item> items;
-  if (!(item.pj_from == item.pj_to)) items.push_back(item);
+  if (item.pj_from != item.pj_to) items.push_back(item);
   return items.empty()? rs: std::make_shared<brig::threaded_rowset>(std::make_shared<reproject>(rs, items));
 }
 

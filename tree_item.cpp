@@ -36,12 +36,11 @@ QString tree_item::get_string() const
     return QString();
 }
 
-void tree_item::check(size_t order)
+void tree_item::check()
 {
   if (m_var.userType() != qMetaTypeId<layer_ptr>()) return;
   auto lr(qvariant_cast<layer_ptr>(m_var));
   lr.m_checked = !lr.m_checked;
-  lr.m_order = order;
   m_var.setValue(lr);
 }
 

@@ -22,7 +22,7 @@ struct tree_item {
   layer_ptr get_layer() const;
   QString get_string() const;
 
-  void check(size_t order);
+  void check();
   int position() const;
 }; // tree_item
 

@@ -8,10 +8,11 @@
 #include "layer.h"
 #include "utilities.h"
 
-QString layer::get_string()
+QString layer::get_string(bool full)
 {
   auto id(get_identifier());
-  return QString("%1.%2").arg(QString::fromUtf8(id.to_string().c_str())).arg(QString::fromUtf8(id.qualifier.c_str()));
+  auto str = QString("%1.%2").arg(QString::fromUtf8(id.to_string().c_str())).arg(QString::fromUtf8(id.qualifier.c_str()));
+  return full? QString("%1.%2)").arg(get_provider()->get_string()).arg(str): str;
 }
 
 brig::proj::shared_pj layer::get_pj()

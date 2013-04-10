@@ -45,7 +45,7 @@ public:
   virtual double native_scale(const frame& fr) = 0;
 
   provider_ptr get_provider()  { return m_pvd; }
-  QString get_string();
+  QString get_string(bool full = false);
   brig::proj::shared_pj get_pj();
   bool try_pj(brig::proj::shared_pj& pj);
   bool try_view(brig::boost::box& box, brig::proj::shared_pj& pj);

@@ -9,22 +9,22 @@
 #include <Qt>
 #include <stdexcept>
 #include "layer.h"
-#include "progress.h"
 #include "provider.h"
 #include "task_create.h"
 #include "task_insert.h"
 #include "utilities.h"
 
-task_create::task_create(std::vector<layer_ptr> lrs_from, provider_ptr pvd_to, bool sql, bool view)
-  : m_lrs_from(lrs_from), m_pvd_to(pvd_to), m_sql(sql), m_view(view)
+QString task_create::get_string()
 {
+  return QString("creating in '%1'").arg(m_pvd_to->get_string());
 }
 
-void task_create::run(progress* prg)
+void task_create::do_run()
 {
   using namespace std;
-
-  size_t counter(0);
+  QTime time; time.start();
+  QEventLoop loop(this);
+  size_t counter;
   vector<string> sql;
   for (size_t lr(0); lr < m_lrs_from.size(); ++lr)
   {
@@ -36,7 +36,6 @@ void task_create::run(progress* prg)
 
     for (size_t lvl(0); lvl < lr_from->get_levels(); ++lvl)
     {
-      if (!prg->step(counter)) return;
       auto tbl_from(lr_from->get_table_def(lvl));
       auto tbl_to(lr_to->get_table_def(lvl));
 
@@ -65,7 +64,6 @@ void task_create::run(progress* prg)
             tbl_from.query_columns.clear();
             brig::identifier id = tbl_from.id; id.qualifier = col_from.name;
             pvd_from->set_extent(id, mbr);
-            if (!prg->step(counter)) return;
           }
           else
             mbr = envelope(geom_from_wkb(boost::get<brig::blob_t>(col_to.query_value)));
@@ -83,10 +81,8 @@ void task_create::run(progress* prg)
         }
       }
 
-      if (m_sql)
-        m_pvd_to->create(tbl_to, sql);
-      else
-        m_pvd_to->create(tbl_to);
+      if (m_sql) m_pvd_to->create(tbl_to, sql);
+      else m_pvd_to->create(tbl_to);
     }
 
     if (m_sql)
@@ -95,15 +91,17 @@ void task_create::run(progress* prg)
     {
       lr_to->reg();
       task_insert tsk(lr_from, lr_to, items, false, m_view);
-      tsk.m_counter = counter;
       tsk.set_frame(m_fr);
-      tsk.run(prg);
-      counter = tsk.m_counter;
+      connect(&tsk, SIGNAL(signal_progress(QString)), this, SLOT(on_progress(QString)));
+      tsk.do_run(time, counter, loop, m_cancel);
     }
   }
 
-  if (m_sql)
-    emit signal_sql(m_pvd_to, sql);
-  else
-    emit signal_refresh(m_pvd_to);
+  if (m_sql) emit signal_sql(m_pvd_to, sql);
+  else emit signal_refresh(m_pvd_to);
+}
+
+void task_create::on_progress(QString msg)
+{
+  emit signal_progress(msg);
 }

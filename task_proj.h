@@ -4,6 +4,7 @@
 #define TASK_PROJ_H
 
 #include <brig/proj/shared_pj.hpp>
+#include <QString>
 #include "layer_ptr.h"
 #include "task.h"
 
@@ -14,7 +15,9 @@ signals:
   void signal_proj(brig::proj::shared_pj pj);
 public:
   explicit task_proj(layer_ptr lr) : m_lr(lr)  {}
-  void run(progress* prg) override;
+  QString get_string() override;
+  int get_priority() override  { return 1; }
+  void do_run() override;
 }; // task_proj
 
 #endif // TASK_PROJ_H

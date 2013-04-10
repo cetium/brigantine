@@ -2,23 +2,24 @@
 
 #include <brig/boost/as_binary.hpp>
 #include <brig/threaded_rowset.hpp>
-#include <QTime>
 #include <stdexcept>
 #include <vector>
 #include "counter_clockwise.h"
 #include "layer.h"
-#include "progress.h"
 #include "provider.h"
 #include "reproject.h"
 #include "task_insert.h"
 #include "utilities.h"
 
-void task_insert::run(progress* prg)
+QString task_insert::get_string()
+{
+  return QString("inserting into '%1'").arg(m_lr_to->get_string(true));
+}
+
+void task_insert::do_run(QTime& time, size_t& counter, QEventLoop& loop, bool& cancel)
 {
   using namespace std;
-
   if (m_lr_from->get_levels() != m_lr_to->get_levels()) throw runtime_error("level count error");
-
   for (size_t level(0); level < m_lr_from->get_levels(); ++level)
   {
     auto tbl_from(m_lr_from->get_table_def(level));
@@ -26,17 +27,17 @@ void task_insert::run(progress* prg)
     vector<int> ccw_cols;
     vector<reproject_item> reproject_items;
 
-    for (auto iter(begin(m_items)); iter != end(m_items); ++iter)
+    for (auto itr(begin(m_items)); itr != end(m_items); ++itr)
     {
-      if (size_t(iter->level) != level) continue;
+      if (size_t(itr->level) != level) continue;
 
-      auto col_from(tbl_from[iter->column_from]);
-      auto col_to(tbl_to[iter->column_to]);
+      auto col_from(tbl_from[itr->column_from]);
+      auto col_to(tbl_to[itr->column_to]);
 
-      if (iter->epsg > 0)
+      if (itr->epsg > 0)
       {
-        col_to->srid = iter->epsg;
-        col_to->epsg = iter->epsg;
+        col_to->srid = itr->epsg;
+        col_to->epsg = itr->epsg;
       }
 
       if (col_to->srid <= 0)
@@ -75,22 +76,32 @@ void task_insert::run(progress* prg)
     auto pvd_to(m_lr_to->get_provider());
     auto ins(pvd_to->get_inserter(tbl_to));
     vector<brig::variant> row;
-    QTime time; time.start();
 
-    for (; rowset->fetch(row); ++m_counter)
+    for (; rowset->fetch(row); ++counter)
     {
-      if (!prg->step(m_counter)) return;
       ins->insert(row);
-      if (time.elapsed() > BatchInterval)
-      {
-        ins->flush();
-        if (!prg->step(m_counter)) return;
-        time.restart();
-      }
-    }
-    ins->flush();
-    prg->step(m_counter);
-  }
+      if (time.elapsed() < BatchInterval) continue;
 
+      loop.processEvents();
+      if (cancel) throw runtime_error("canceled");
+      ins->flush();
+      time.restart();
+      emit signal_progress(QString("rows: %1").arg(counter));
+    }
+
+    loop.processEvents();
+    if (cancel) throw runtime_error("canceled");
+    ins->flush();
+    time.restart();
+    emit signal_progress(QString("rows: %1").arg(counter));
+  }
   m_lr_to->reset_table_defs();
+}
+
+void task_insert::do_run()
+{
+  QTime time; time.start();
+  QEventLoop loop(this);
+  size_t counter;
+  do_run(time, counter, loop, m_cancel);
 }

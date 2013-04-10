@@ -1,13 +1,19 @@
 // Andrew Naplavkov
 
 #include "layer.h"
-#include "progress.h"
 #include "provider.h"
 #include "task_extent.h"
 #include "utilities.h"
 
-void task_extent::run(progress* prg)
+QString task_extent::get_string()
 {
+  return QString("extent of '%1'").arg(m_lr->get_string(true));
+}
+
+void task_extent::do_run()
+{
+  using namespace std;
+
   brig::boost::box box;
   brig::proj::shared_pj pj;
   if (!m_lr->try_view(box, pj))
@@ -19,7 +25,6 @@ void task_extent::run(progress* prg)
     tbl.query_columns.push_back(id.qualifier);
     box = pvd->get_extent(tbl);
     pvd->set_extent(id, box);
-    if (!prg->step()) return;
   }
   emit signal_rect(box_to_rect(box), pj);
 }

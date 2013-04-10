@@ -20,24 +20,22 @@ HEADERS +=\
   layer_ptr.h\
   layer_raster.h\
   main_window.h\
-  map_thread.h\
   map_view.h\
-  progress.h\
   provider.h\
   provider_ptr.h\
   reproject.h\
   sql_model.h\
-  sql_thread.h\
   sql_view.h\
   task.h\
-  task_attributes.h\
   task_connect.h\
   task_create.h\
   task_drop.h\
   task_extent.h\
   task_insert.h\
   task_proj.h\
+  task_rendering.h\
   task_scale.h\
+  task_scheduler.h\
   tree_item.h\
   tree_model.h\
   tree_view.h\
@@ -57,22 +55,22 @@ SOURCES +=\
   layer_raster.cpp\
   main.cpp\
   main_window.cpp\
-  map_thread.cpp\
   map_view.cpp\
   provider.cpp\
   provider_ptr.cpp\
   reproject.cpp\
   sql_model.cpp\
-  sql_thread.cpp\
   sql_view.cpp\
-  task_attributes.cpp\
+  task.cpp\
   task_connect.cpp\
   task_create.cpp\
   task_drop.cpp\
   task_extent.cpp\
   task_insert.cpp\
   task_proj.cpp\
+  task_rendering.cpp\
   task_scale.cpp\
+  task_scheduler.cpp\
   tree_item.cpp\
   tree_model.cpp\
   tree_view.cpp\

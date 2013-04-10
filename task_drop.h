@@ -15,8 +15,10 @@ class task_drop : public task {
 signals:
   void signal_refresh(provider_ptr pvd);
 public:
-  explicit task_drop(layer_ptr lr);
-  void run(progress* prg) override;
+  explicit task_drop(layer_ptr lr) : m_lr(lr)  {}
+  QString get_string() override;
+  int get_priority() override  { return 2; }
+  void do_run() override;
 }; // task_drop
 
 #endif // TASK_DROP_H

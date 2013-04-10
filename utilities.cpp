@@ -133,12 +133,23 @@ QRectF world(const brig::proj::shared_pj& pj)
   return transform(QRectF(QPointF(-180, -90), QPointF(180, 90)), latlon(), pj);
 }
 
-QString rich_text(const QString& icon, const QString& text, bool icon_suffix)
+QString rich_text(const QString& icon, const QString& txt, bool icon_suffix)
 {
   if (icon_suffix)
-    return text + " <img src=\"" + icon + "\" width=\"16\" height=\"16\"/> ";
+    return txt + " <img src=\"" + icon + "\" width=\"16\" height=\"16\"/> ";
   else
-    return " <img src=\"" + icon + "\" width=\"16\" height=\"16\"/> " + text;
+    return " <img src=\"" + icon + "\" width=\"16\" height=\"16\"/> " + txt;
+}
+
+QString limited_text(QString txt, bool suffix)
+{
+  const int TextLimit = 40;
+  if (txt.size() > TextLimit)
+  {
+    if (suffix) txt = "..." + txt.right(TextLimit);
+    else txt = txt.left(TextLimit) + "...";
+  }
+  return txt;
 }
 
 void show_message(const char* msg)

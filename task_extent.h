@@ -5,6 +5,7 @@
 
 #include <brig/proj/shared_pj.hpp>
 #include <QRectF>
+#include <QString>
 #include "layer_ptr.h"
 #include "task.h"
 
@@ -15,7 +16,9 @@ signals:
   void signal_rect(QRectF rect, brig::proj::shared_pj pj);
 public:
   explicit task_extent(layer_ptr lr) : m_lr(lr)  {}
-  void run(progress* prg) override;
+  QString get_string() override;
+  int get_priority() override  { return 1; }
+  void do_run() override;
 }; // task_extent
 
 #endif // TASK_EXTENT_H

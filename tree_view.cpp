@@ -42,7 +42,6 @@
 #include "global.h"
 #include "layer.h"
 #include "provider.h"
-#include "task_attributes.h"
 #include "task_create.h"
 #include "task_drop.h"
 #include "task_extent.h"
@@ -177,9 +176,12 @@ void tree_view::connect_by(const std::vector<std::shared_ptr<task_connect::provi
 {
   qRegisterMetaType<provider_ptr>("provider_ptr");
   qRegisterMetaType<std::vector<layer_ptr>>("std::vector<layer_ptr>");
-  task_connect* tsk(new task_connect(allocators));
-  connect(tsk, SIGNAL(signal_connected(provider_ptr, std::vector<layer_ptr>)), &m_mdl, SLOT(on_connected(provider_ptr, std::vector<layer_ptr>)));
-  emit signal_task(std::shared_ptr<task>(tsk));
+  for (auto itr(std::begin(allocators)); itr != std::end(allocators); ++itr)
+  {
+    task_connect* tsk(new task_connect(*itr));
+    connect(tsk, SIGNAL(signal_connected(provider_ptr, std::vector<layer_ptr>)), &m_mdl, SLOT(on_connected(provider_ptr, std::vector<layer_ptr>)));
+    emit signal_task(std::shared_ptr<task>(tsk));
+  }
 }
 
 void tree_view::on_connect_mysql()
@@ -515,15 +517,7 @@ void tree_view::on_show_menu(QPoint point)
 
 void tree_view::on_attributes()
 {
-  if (!m_mdl.is_layer(m_idx_menu)) return;
-  qRegisterMetaType<provider_ptr>("provider_ptr");
-  qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
-  task_attributes* tsk(new task_attributes(m_mdl.get_layer(m_idx_menu)));
-  connect
-    ( tsk, SIGNAL(signal_sql(provider_ptr, std::vector<std::string>))
-    , this, SLOT(emit_sql(provider_ptr, std::vector<std::string>))
-    );
-  emit signal_task(std::shared_ptr<task>(tsk));
+  // todo:
 }
 
 void tree_view::on_remove(const QModelIndex& parent, int start, int end, QModelIndex& index)

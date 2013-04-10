@@ -2,15 +2,15 @@
 
 #include <iterator>
 #include "layer.h"
-#include "progress.h"
 #include "provider.h"
 #include "task_drop.h"
 
-task_drop::task_drop(layer_ptr lr)
-  : m_lr(lr)
-{}
+QString task_drop::get_string()
+{
+  return QString("dropping '%1'").arg(m_lr->get_string(true));
+}
 
-void task_drop::run(progress*)
+void task_drop::do_run()
 {
   using namespace std;
   m_lr->unreg();

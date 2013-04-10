@@ -17,7 +17,6 @@ class tree_model : public QAbstractItemModel {
   Q_OBJECT
 
   tree_item m_root;
-  size_t m_order;
 
   void connect_to(provider_ptr pvd);
   void emit_layers();

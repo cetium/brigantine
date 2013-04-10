@@ -13,7 +13,7 @@
 #include "frame.h"
 
 const int BatchInterval = 3000;
-const int SignalInterval = 750;
+const int RenderingInterval = 750;
 const int TimeOut = 3000;
 
 QRectF box_to_rect(const brig::boost::box& box);
@@ -31,6 +31,7 @@ brig::proj::shared_pj latlon();
 QRectF world(const brig::proj::shared_pj& pj);
 
 QString rich_text(const QString& icon, const QString& text, bool icon_suffix);
+QString limited_text(QString txt, bool suffix);
 void show_message(const char* msg);
 std::string get_table_name(const std::string& tbl, size_t level);
 
