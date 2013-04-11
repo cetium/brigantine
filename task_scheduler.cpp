@@ -2,12 +2,15 @@
 
 #include <brig/global.hpp>
 #include <QString>
+#include <QThread>
 #include <QThreadPool>
 #include "task_scheduler.h"
 
 task_scheduler::task_scheduler(QObject* parent) : QObject(parent)
 {
-  QThreadPool::globalInstance()->setMaxThreadCount(brig::PoolSize);
+  int threads(QThread::idealThreadCount());
+  if (threads <= 0 || threads > int(brig::PoolSize)) threads = int(brig::PoolSize);
+  QThreadPool::globalInstance()->setMaxThreadCount(threads);
 }
 
 void task_scheduler::on_task(std::shared_ptr<task> tsk)

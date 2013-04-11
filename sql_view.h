@@ -6,20 +6,22 @@
 #include <memory>
 #include <QAction>
 #include <QLabel>
+#include <QTableView>
 #include <QTextEdit>
 #include <QWidget>
 #include "provider_ptr.h"
-#include "sql_model.h"
+#include "rowset_model.h"
 #include "task.h"
 
 class sql_view : public QWidget {
   Q_OBJECT
 
-  std::shared_ptr<sql_model> m_mdl;
+  std::shared_ptr<rowset_model> m_mdl;
   provider_ptr m_pvd;
   QLabel* m_title;
   QAction *m_open, *m_save, *m_run, *m_info;
   QTextEdit *m_sql;
+  QTableView *m_rowset;
   size_t m_tasks;
 
   void reset();
@@ -35,6 +37,7 @@ private slots:
 public slots:
   void on_sql(provider_ptr pvd, std::vector<std::string> sqls);
   void on_disconnect(provider_ptr pvd);
+  void on_rowset(std::shared_ptr<rowset_model> rs);
 
 signals:
   void signal_sql();

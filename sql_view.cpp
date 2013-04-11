@@ -12,7 +12,6 @@
 #include <QPushButton>
 #include <QSettings>
 #include <QSplitter>
-#include <QTableWidget>
 #include <QTextStream>
 #include <QToolBar>
 #include <QVBoxLayout>
@@ -21,10 +20,12 @@
 #include "global.h"
 #include "provider.h"
 #include "sql_view.h"
+#include "task_fetch.h"
+#include "task_tables.h"
 #include "utilities.h"
 
 sql_view::sql_view(QWidget* parent)
-  : QWidget(parent), m_mdl(new sql_model()), m_tasks(0)
+  : QWidget(parent), m_mdl(new rowset_model()), m_tasks(0)
 {
   m_title = new QLabel;
   m_title->setTextFormat(Qt::RichText);
@@ -43,14 +44,14 @@ sql_view::sql_view(QWidget* parent)
   m_sql->setAcceptRichText(false);
   m_sql->setTabChangesFocus(true);
 
-  QTableView* table(new QTableView);
-  table->setModel(m_mdl.get());
-  table->verticalHeader()->hide();
+  m_rowset = (new QTableView);
+  m_rowset->setModel(m_mdl.get());
+  m_rowset->verticalHeader()->hide();
 
   QSplitter* splitter(new QSplitter);
   splitter->setOrientation(Qt::Vertical);
   splitter->addWidget(m_sql);
-  splitter->addWidget(table);
+  splitter->addWidget(m_rowset);
 
   QVBoxLayout* layout(new QVBoxLayout);
   layout->addWidget(m_title, 0, Qt::AlignCenter);
@@ -67,7 +68,13 @@ void sql_view::on_finished(QString)
 
 void sql_view::on_info()
 {
-  // todo:
+  qRegisterMetaType<std::shared_ptr<rowset_model>>("std::shared_ptr<rowset_model>");
+  task_tables* tsk(new task_tables(m_pvd));
+  connect(tsk, SIGNAL(signal_finished(QString)), this, SLOT(on_finished(QString)));
+  connect(tsk, SIGNAL(signal_rowset(std::shared_ptr<rowset_model>)), this, SLOT(on_rowset(std::shared_ptr<rowset_model>)));
+  emit signal_task(std::shared_ptr<task>(tsk));
+  ++m_tasks;
+  emit signal_progress();
 }
 
 void sql_view::on_run()
@@ -82,17 +89,17 @@ void sql_view::on_run()
   dlg.exec();
   if (dlg.clickedButton() == static_cast<QAbstractButton*>(exec_btn))
   {
-    struct exec_batch : task {
-      provider_ptr pvd;
-      std::string sql;
-      QString get_string() override  { return limited_text(sql.c_str(), false); }
+    class task_exec_batch : public task {
+      provider_ptr m_pvd;
+      std::string m_sql;
+    public:
+      task_exec_batch(provider_ptr pvd, const std::string& sql) : m_pvd(pvd), m_sql(sql)  {}
+      QString get_string() override  { return limited_text(m_sql.c_str(), false); }
       int get_priority() override  { return 1; }
-      void do_run() override  { pvd->get_command()->exec_batch(sql); }
-    }; // exec_batch
+      void do_run(QEventLoop&) override  { m_pvd->get_command()->exec_batch(m_sql); }
+    }; // task_exec_batch
 
-    exec_batch* tsk(new exec_batch());
-    tsk->pvd = m_pvd;
-    tsk->sql = m_sql->toPlainText().toUtf8().constData();
+    task_exec_batch* tsk(new task_exec_batch(m_pvd, m_sql->toPlainText().toUtf8().constData()));
     connect(tsk, SIGNAL(signal_finished(QString)), this, SLOT(on_finished(QString)));
     emit signal_task(std::shared_ptr<task>(tsk));
     ++m_tasks;
@@ -100,7 +107,13 @@ void sql_view::on_run()
   }
   else if (dlg.clickedButton() == static_cast<QAbstractButton*>(fetch_btn))
   {
-    // todo:
+    qRegisterMetaType<std::shared_ptr<rowset_model>>("std::shared_ptr<rowset_model>");
+    task_fetch* tsk(new task_fetch(m_pvd, m_sql->toPlainText().toUtf8().constData()));
+    connect(tsk, SIGNAL(signal_finished(QString)), this, SLOT(on_finished(QString)));
+    connect(tsk, SIGNAL(signal_rowset(std::shared_ptr<rowset_model>)), this, SLOT(on_rowset(std::shared_ptr<rowset_model>)));
+    emit signal_task(std::shared_ptr<task>(tsk));
+    ++m_tasks;
+    emit signal_progress();
   }
 }
 
@@ -121,7 +134,7 @@ void sql_view::on_sql(provider_ptr pvd, std::vector<std::string> sqls)
     m_title->setText(rich_text(m_pvd->get_icon(), limited_text(m_pvd->get_string(), true), false));
     m_title->setToolTip(m_pvd->get_string());
     m_run->setEnabled(true);
-    m_info->setDisabled(true);
+    m_info->setEnabled(true);
     for (auto sql(std::begin(sqls)); sql != std::end(sqls); ++sql)
     {
       m_sql->append("");
@@ -137,6 +150,13 @@ void sql_view::on_disconnect(provider_ptr pvd)
 {
   if (pvd != m_pvd) return;
   reset();
+}
+
+void sql_view::on_rowset(std::shared_ptr<rowset_model> mdl)
+{
+  m_rowset->setModel(mdl.get());
+  m_mdl = mdl;
+  emit signal_sql();
 }
 
 void sql_view::on_open()

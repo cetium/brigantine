@@ -98,10 +98,9 @@ void task_insert::do_run(QTime& time, size_t& counter, QEventLoop& loop, bool& c
   m_lr_to->reset_table_defs();
 }
 
-void task_insert::do_run()
+void task_insert::do_run(QEventLoop& loop)
 {
   QTime time; time.start();
-  QEventLoop loop(this);
   size_t counter;
   do_run(time, counter, loop, m_cancel);
 }

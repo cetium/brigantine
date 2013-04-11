@@ -17,7 +17,7 @@ class task_create : public task {
   bool m_sql, m_view;
 
 private slots:
-  void on_progress(QString msg);
+  void emit_progress(QString msg);
 
 signals:
   void signal_sql(provider_ptr pvd, std::vector<std::string> sqls);
@@ -29,7 +29,7 @@ public:
     {}
   QString get_string() override;
   int get_priority() override  { return 3; }
-  void do_run() override;
+  void do_run(QEventLoop& loop) override;
 }; // task_create
 
 #endif // TASK_CREATE_H

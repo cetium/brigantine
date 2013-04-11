@@ -23,9 +23,8 @@ void task_rendering::emit_progress(QString wrn, size_t counter)
     emit signal_progress(QString("rows: %1 (%2)").arg(counter).arg(wrn));
 }
 
-void task_rendering::do_run()
+void task_rendering::do_run(QEventLoop& loop)
 {
-  QEventLoop loop(this);
   QString wrn;
   size_t counter(0);
   QTime time; time.start();
@@ -42,13 +41,13 @@ void task_rendering::do_run()
     if (time.elapsed() < RenderingInterval) continue;
     loop.processEvents();
     if (m_cancel) throw std::runtime_error("canceled");
-    emit signal_image(m_fr, img);
+    emit signal_image(m_fr, img.copy());
     emit_progress(wrn, counter);
     painter.eraseRect(img.rect());
     time.restart();
   }
   loop.processEvents();
   if (m_cancel) throw std::runtime_error("canceled");
-  if (counter > 0) emit signal_image(m_fr, img);
+  if (counter > 0) emit signal_image(m_fr, img.copy());
   emit_progress(wrn, counter);
 }

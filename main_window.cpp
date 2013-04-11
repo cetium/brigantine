@@ -24,6 +24,7 @@
 #include <QtGlobal>
 #include "main_window.h"
 #include "map_view.h"
+#include "rowset_model.h"
 #include "sql_view.h"
 #include "task.h"
 #include "task_scheduler.h"
@@ -83,6 +84,7 @@ main_window::main_window()
   qRegisterMetaType<std::shared_ptr<task>>("std::shared_ptr<task>");
   qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
   qRegisterMetaType<std::vector<layer_ptr>>("std::vector<layer_ptr>");
+  qRegisterMetaType<std::shared_ptr<rowset_model>>("std::shared_ptr<rowset_model>");
 
   connect(tree, SIGNAL(signal_layers(std::vector<layer_ptr>)), map, SLOT(on_layers(std::vector<layer_ptr>)));
   connect(tree, SIGNAL(signal_proj(brig::proj::shared_pj)), map, SLOT(on_proj(brig::proj::shared_pj)));
@@ -91,6 +93,7 @@ main_window::main_window()
   connect(tree, SIGNAL(signal_task(std::shared_ptr<task>)), map, SLOT(on_task(std::shared_ptr<task>)));
   connect(tree, SIGNAL(signal_sql(provider_ptr, std::vector<std::string>)), sql, SLOT(on_sql(provider_ptr, std::vector<std::string>)));
   connect(tree, SIGNAL(signal_disconnect(provider_ptr)), sql, SLOT(on_disconnect(provider_ptr)));
+  connect(tree, SIGNAL(signal_rowset(std::shared_ptr<rowset_model>)), sql, SLOT(on_rowset(std::shared_ptr<rowset_model>)));
 
   connect(map, SIGNAL(signal_task(std::shared_ptr<task>)), sched, SLOT(on_task(std::shared_ptr<task>)));
   connect(map, SIGNAL(signal_proj(brig::proj::shared_pj)), this, SLOT(on_map_proj(brig::proj::shared_pj)));

@@ -19,11 +19,10 @@ QString task_create::get_string()
   return QString("creating in '%1'").arg(m_pvd_to->get_string());
 }
 
-void task_create::do_run()
+void task_create::do_run(QEventLoop& loop)
 {
   using namespace std;
   QTime time; time.start();
-  QEventLoop loop(this);
   size_t counter;
   vector<string> sql;
   for (size_t lr(0); lr < m_lrs_from.size(); ++lr)
@@ -92,7 +91,7 @@ void task_create::do_run()
       lr_to->reg();
       task_insert tsk(lr_from, lr_to, items, false, m_view);
       tsk.set_frame(m_fr);
-      connect(&tsk, SIGNAL(signal_progress(QString)), this, SLOT(on_progress(QString)));
+      connect(&tsk, SIGNAL(signal_progress(QString)), this, SLOT(emit_progress(QString)));
       tsk.do_run(time, counter, loop, m_cancel);
     }
   }
@@ -101,7 +100,7 @@ void task_create::do_run()
   else emit signal_refresh(m_pvd_to);
 }
 
-void task_create::on_progress(QString msg)
+void task_create::emit_progress(QString msg)
 {
   emit signal_progress(msg);
 }

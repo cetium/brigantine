@@ -42,6 +42,7 @@
 #include "global.h"
 #include "layer.h"
 #include "provider.h"
+#include "task_attributes.h"
 #include "task_create.h"
 #include "task_drop.h"
 #include "task_extent.h"
@@ -517,7 +518,11 @@ void tree_view::on_show_menu(QPoint point)
 
 void tree_view::on_attributes()
 {
-  // todo:
+  if (!m_mdl.is_layer(m_idx_menu)) return;
+  qRegisterMetaType<std::shared_ptr<rowset_model>>("std::shared_ptr<rowset_model>");
+  task_attributes* tsk(new task_attributes(m_mdl.get_layer(m_idx_menu)));
+  connect(tsk, SIGNAL(signal_rowset(std::shared_ptr<rowset_model>)), this, SLOT(emit_rowset(std::shared_ptr<rowset_model>)));
+  emit signal_task(std::shared_ptr<task>(tsk));
 }
 
 void tree_view::on_remove(const QModelIndex& parent, int start, int end, QModelIndex& index)

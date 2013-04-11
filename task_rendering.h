@@ -19,7 +19,7 @@ public:
   explicit task_rendering(layer_ptr lr) : m_lr(lr)  {}
   QString get_string() override;
   int get_priority() override  { return 0; }
-  void do_run() override;
+  void do_run(QEventLoop& loop) override;
 }; // task_rendering
 
 #endif // TASK_RENDERING_H

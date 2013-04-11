@@ -4,6 +4,7 @@
 #define TASK_H
 
 #include <QObject>
+#include <QEventLoop>
 #include <QString>
 #include "frame.h"
 
@@ -23,7 +24,7 @@ public:
   void run();
   virtual QString get_string() = 0;
   virtual int get_priority() = 0;
-  virtual void do_run() = 0;
+  virtual void do_run(QEventLoop& loop) = 0;
 }; // task
 
 #endif // TASK_H

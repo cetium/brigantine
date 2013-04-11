@@ -11,6 +11,7 @@
 #include <QTreeView>
 #include <QWidget>
 #include <vector>
+#include "rowset_model.h"
 #include "task.h"
 #include "task_connect.h"
 #include "tree_model.h"
@@ -80,6 +81,7 @@ private slots:
   void emit_scale(double scale, brig::proj::shared_pj pj)  { emit signal_scale(scale, pj); }
   void emit_sql(provider_ptr pvd, std::vector<std::string> sqls)  { emit signal_sql(pvd, sqls); }
   void emit_disconnect(provider_ptr pvd)  { emit signal_disconnect(pvd); }
+  void emit_rowset(std::shared_ptr<rowset_model> rs)  { emit signal_rowset(rs); }
 
 signals:
   void signal_layers(std::vector<layer_ptr> lrs);
@@ -89,6 +91,7 @@ signals:
   void signal_task(std::shared_ptr<task> tsk);
   void signal_sql(provider_ptr pvd, std::vector<std::string> sqls);
   void signal_disconnect(provider_ptr pvd);
+  void signal_rowset(std::shared_ptr<rowset_model> rs);
 
 public:
   explicit tree_view(QWidget* parent);

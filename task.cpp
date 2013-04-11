@@ -1,7 +1,7 @@
 // Andrew Naplavkov
 
 #include <chrono>
-#include <exception>
+#include <stdexcept>
 #include "task.h"
 
 task::task() : m_cancel(false)  {}
@@ -13,8 +13,11 @@ void task::run()
   using namespace std;
   try
   {
+    QEventLoop loop(this);
+    loop.processEvents();
+    if (m_cancel) throw runtime_error("canceled");
     chrono::high_resolution_clock::time_point start = chrono::high_resolution_clock::now();
-    do_run();
+    do_run(loop);
     chrono::high_resolution_clock::time_point finish = chrono::high_resolution_clock::now();
     QString ms;
     ms.setNum(double(chrono::duration_cast<chrono::milliseconds>(finish - start).count()) / 1000., 'f', 1);

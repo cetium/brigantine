@@ -10,7 +10,7 @@ QString task_drop::get_string()
   return QString("dropping '%1'").arg(m_lr->get_string(true));
 }
 
-void task_drop::do_run()
+void task_drop::do_run(QEventLoop&)
 {
   using namespace std;
   m_lr->unreg();

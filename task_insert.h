@@ -23,7 +23,7 @@ public:
     {}
   QString get_string() override;
   int get_priority() override  { return 3; }
-  void do_run() override;
+  void do_run(QEventLoop& loop) override;
   void do_run(QTime& time, size_t& counter, QEventLoop& loop, bool& cancel);
 }; // task_insert
 

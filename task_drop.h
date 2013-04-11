@@ -18,7 +18,7 @@ public:
   explicit task_drop(layer_ptr lr) : m_lr(lr)  {}
   QString get_string() override;
   int get_priority() override  { return 2; }
-  void do_run() override;
+  void do_run(QEventLoop& loop) override;
 }; // task_drop
 
 #endif // TASK_DROP_H

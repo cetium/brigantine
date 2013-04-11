@@ -145,6 +145,15 @@ void map_view::paintEvent(QPaintEvent*)
   }
 }
 
+void map_view::sync()
+{
+  if (m_sync || m_view_fr != m_back_fr) return;
+  m_front_fr = m_back_fr;
+  m_front = m_back.copy();
+  m_sync = true;
+  update();
+}
+
 void map_view::emit_rendering(const std::vector<layer_ptr>& lrs)
 {
   qRegisterMetaType<frame>("frame");
@@ -172,16 +181,8 @@ void map_view::render()
   painter.eraseRect(img.rect());
   m_back = QPixmap::fromImage(img);
   m_sync = false;
-  if (!m_lrs.empty()) emit_rendering(m_lrs);
-}
-
-void map_view::sync()
-{
-  if (m_sync || m_view_fr != m_back_fr) return;
-  m_front_fr = m_back_fr;
-  m_front = m_back;
-  m_sync = true;
-  update();
+  if (m_lrs.empty()) sync();
+  else emit_rendering(m_lrs);
 }
 
 void map_view::on_image(frame fr, QImage img)

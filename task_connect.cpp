@@ -8,7 +8,7 @@
 #include "provider.h"
 #include "task_connect.h"
 
-void task_connect::do_run()
+void task_connect::do_run(QEventLoop&)
 {
   using namespace std;
   size_t counter(0);

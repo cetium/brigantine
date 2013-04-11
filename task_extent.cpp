@@ -10,10 +10,9 @@ QString task_extent::get_string()
   return QString("extent of '%1'").arg(m_lr->get_string(true));
 }
 
-void task_extent::do_run()
+void task_extent::do_run(QEventLoop&)
 {
   using namespace std;
-
   brig::boost::box box;
   brig::proj::shared_pj pj;
   if (!m_lr->try_view(box, pj))
