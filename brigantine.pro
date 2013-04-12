@@ -7,7 +7,6 @@ greaterThan(QT_MAJOR_VERSION, 4):QT +=\
 
 HEADERS +=\
   clickable_label.h\
-  counter_clockwise.h\
   dialog_connect.h\
   dialog_create.h\
   dialog_insert.h\
@@ -21,10 +20,12 @@ HEADERS +=\
   layer_raster.h\
   main_window.h\
   map_view.h\
+  projection.h\
   provider.h\
   provider_ptr.h\
-  reproject.h\
+  rowset_ccw.h\
   rowset_model.h\
+  rowset_transform.h\
   sql_view.h\
   task.h\
   task_attributes.h\
@@ -39,6 +40,7 @@ HEADERS +=\
   task_scale.h\
   task_scheduler.h\
   task_tables.h\
+  transformer.h\
   tree_item.h\
   tree_model.h\
   tree_view.h\
@@ -46,7 +48,6 @@ HEADERS +=\
 
 SOURCES +=\
   clickable_label.cpp\
-  counter_clockwise.cpp\
   dialog_connect.cpp\
   dialog_create.cpp\
   dialog_insert.cpp\
@@ -61,8 +62,9 @@ SOURCES +=\
   map_view.cpp\
   provider.cpp\
   provider_ptr.cpp\
-  reproject.cpp\
+  rowset_ccw.cpp\
   rowset_model.cpp\
+  rowset_transform.cpp\
   sql_view.cpp\
   task.cpp\
   task_attributes.cpp\
@@ -77,6 +79,7 @@ SOURCES +=\
   task_scale.cpp\
   task_scheduler.cpp\
   task_tables.cpp\
+  transformer.cpp\
   tree_item.cpp\
   tree_model.cpp\
   tree_view.cpp\

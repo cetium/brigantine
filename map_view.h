@@ -46,15 +46,15 @@ private slots:
 
 public slots:
   void on_layers(std::vector<layer_ptr> lrs);
-  void on_proj(brig::proj::shared_pj pj);
-  void on_rect(QRectF rect, brig::proj::shared_pj pj);
+  void on_proj(projection pj);
+  void on_rect(QRectF rect, projection pj);
   void on_home();
-  void on_scale(double scale, brig::proj::shared_pj pj);
+  void on_scale(double scale, projection pj);
   void on_task(std::shared_ptr<task> tsk);
 
 signals:
   void signal_cancel();
-  void signal_proj(brig::proj::shared_pj pj);
+  void signal_proj(projection pj);
   void signal_coords(QString msg);
   void signal_task(std::shared_ptr<task> tsk);
   void signal_progress();

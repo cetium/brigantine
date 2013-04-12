@@ -11,6 +11,7 @@
 #include <QTreeView>
 #include <QWidget>
 #include <vector>
+#include "projection.h"
 #include "rowset_model.h"
 #include "task.h"
 #include "task_connect.h"
@@ -76,18 +77,18 @@ private slots:
   void on_show_menu(QPoint point);
   void on_attributes();
   void emit_layers(std::vector<layer_ptr> lrs)  { emit signal_layers(lrs); }
-  void emit_proj(brig::proj::shared_pj pj)  { emit signal_proj(pj); }
-  void emit_rect(QRectF rect, brig::proj::shared_pj pj)  { emit signal_rect(rect, pj); }
-  void emit_scale(double scale, brig::proj::shared_pj pj)  { emit signal_scale(scale, pj); }
+  void emit_proj(projection pj)  { emit signal_proj(pj); }
+  void emit_rect(QRectF rect, projection pj)  { emit signal_rect(rect, pj); }
+  void emit_scale(double scale, projection pj)  { emit signal_scale(scale, pj); }
   void emit_sql(provider_ptr pvd, std::vector<std::string> sqls)  { emit signal_sql(pvd, sqls); }
   void emit_disconnect(provider_ptr pvd)  { emit signal_disconnect(pvd); }
   void emit_rowset(std::shared_ptr<rowset_model> rs)  { emit signal_rowset(rs); }
 
 signals:
   void signal_layers(std::vector<layer_ptr> lrs);
-  void signal_proj(brig::proj::shared_pj pj);
-  void signal_rect(QRectF rect, brig::proj::shared_pj pj);
-  void signal_scale(double scale, brig::proj::shared_pj pj);
+  void signal_proj(projection pj);
+  void signal_rect(QRectF rect, projection pj);
+  void signal_scale(double scale, projection pj);
   void signal_task(std::shared_ptr<task> tsk);
   void signal_sql(provider_ptr pvd, std::vector<std::string> sqls);
   void signal_disconnect(provider_ptr pvd);

@@ -16,7 +16,6 @@
 #include <brig/osm/layer_mapnik.hpp>
 #include <brig/osm/layer_mapquest.hpp>
 #include <brig/osm/provider.hpp>
-#include <brig/proj/shared_pj.hpp>
 #include <QAbstractButton>
 #include <QApplication>
 #include <QCheckBox>
@@ -620,14 +619,14 @@ void tree_view::on_use_projection()
   if (!m_mdl.is_layer(m_idx_menu)) return;
   auto lr(m_mdl.get_layer(m_idx_menu));
 
-  brig::proj::shared_pj pj;
+  projection pj;
   if (lr->try_pj(pj))
     emit signal_proj(pj);
   else
   {
-    qRegisterMetaType<brig::proj::shared_pj>("brig::proj::shared_pj");
+    qRegisterMetaType<projection>("projection");
     task_proj* tsk(new task_proj(lr));
-    connect(tsk, SIGNAL(signal_proj(brig::proj::shared_pj)), this, SLOT(emit_proj(brig::proj::shared_pj)));
+    connect(tsk, SIGNAL(signal_proj(projection)), this, SLOT(emit_proj(projection)));
     emit signal_task(std::shared_ptr<task>(tsk));
   }
 }
@@ -637,9 +636,9 @@ void tree_view::on_snap_to_pixels()
   if (!m_mdl.is_layer(m_idx_menu)) return;
   auto lr(m_mdl.get_layer(m_idx_menu));
 
-  qRegisterMetaType<brig::proj::shared_pj>("brig::proj::shared_pj");
+  qRegisterMetaType<projection>("projection");
   task_scale* tsk(new task_scale(lr));
-  connect(tsk, SIGNAL(signal_scale(double, brig::proj::shared_pj)), this, SLOT(emit_scale(double, brig::proj::shared_pj)));
+  connect(tsk, SIGNAL(signal_scale(double, projection)), this, SLOT(emit_scale(double, projection)));
   emit signal_task(std::shared_ptr<task>(tsk));
 }
 
@@ -649,14 +648,14 @@ void tree_view::on_zoom_to_fit()
   auto lr(m_mdl.get_layer(m_idx_menu));
 
   brig::boost::box box;
-  brig::proj::shared_pj pj;
+  projection pj;
   if (lr->try_view(box, pj))
     emit signal_rect(box_to_rect(box), pj);
   else
   {
-    qRegisterMetaType<brig::proj::shared_pj>("brig::proj::shared_pj");
+    qRegisterMetaType<projection>("projection");
     task_extent* tsk(new task_extent(lr));
-    connect(tsk, SIGNAL(signal_rect(QRectF, brig::proj::shared_pj)), this, SLOT(emit_rect(QRectF, brig::proj::shared_pj)));
+    connect(tsk, SIGNAL(signal_rect(QRectF, projection)), this, SLOT(emit_rect(QRectF, projection)));
     emit signal_task(std::shared_ptr<task>(tsk));
   }
 }

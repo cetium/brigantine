@@ -5,7 +5,7 @@
 #include <brig/threaded_rowset.hpp>
 #include <vector>
 #include "layer_geometry.h"
-#include "reproject.h"
+#include "rowset_transform.h"
 #include "utilities.h"
 
 layer_geometry::layer_geometry(provider_ptr pvd, const brig::identifier& id)
@@ -63,13 +63,15 @@ std::shared_ptr<brig::rowset> layer_geometry::drawing(const frame& fr)
   tbl.query_columns.push_back(m_id.qualifier);
 
   auto rs(get_provider()->select(tbl));
-  reproject_item item;
-  item.column = 0;
-  item.pj_from = get_pj();
-  item.pj_to = fr.get_pj();
-  std::vector<reproject_item> items;
-  if (item.pj_from != item.pj_to) items.push_back(item);
-  return items.empty()? rs: std::make_shared<brig::threaded_rowset>(std::make_shared<reproject>(rs, items));
+  std::vector<rowset_transform::item> items;
+  if (get_pj() != fr.get_pj())
+  {
+    rowset_transform::item item;
+    item.column = 0;
+    item.tr = transformer(get_pj(), fr.get_pj());
+    items.push_back(item);
+  }
+  return items.empty()? rs: std::make_shared<brig::threaded_rowset>(std::make_shared<rowset_transform>(rs, items));
 }
 
 void layer_geometry::draw(const std::vector<brig::variant>& row, const frame& fr, QPainter& painter)

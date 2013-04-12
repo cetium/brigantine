@@ -14,7 +14,7 @@ void task_extent::do_run(QEventLoop&)
 {
   using namespace std;
   brig::boost::box box;
-  brig::proj::shared_pj pj;
+  projection pj;
   if (!m_lr->try_view(box, pj))
   {
     auto pvd(m_lr->get_provider());

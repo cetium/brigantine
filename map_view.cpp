@@ -17,6 +17,7 @@
 #include <QWidget>
 #include "map_view.h"
 #include "task_rendering.h"
+#include "transformer.h"
 #include "utilities.h"
 
 const double ZoomInFactor = 0.8f;
@@ -54,7 +55,7 @@ void map_view::wheelEvent(QWheelEvent* event)
 {
   try
   {
-    const QPointF pos(m_view_fr.pixel_to_proj(event->pos()));
+    const QPointF pos(static_cast<brig::qt::frame>(m_view_fr).pixel_to_proj(event->pos()));
     const int num_degrees(event->delta() / 8);
     const double num_steps(num_degrees / 15.);
     const double zoom_factor(pow(ZoomInFactor, num_steps));
@@ -82,19 +83,20 @@ void map_view::mouseMoveEvent(QMouseEvent* event)
     try
     {
       frame view_fr(m_press_center, m_view_fr.scale(), m_view_fr.size(), m_view_fr.get_pj());
-      const QPointF press(view_fr.pixel_to_proj(m_press_event));
-      const QPointF pos(view_fr.pixel_to_proj(event->pos()));
+      const QPointF press(static_cast<brig::qt::frame>(view_fr).pixel_to_proj(m_press_event));
+      const QPointF pos(static_cast<brig::qt::frame>(view_fr).pixel_to_proj(event->pos()));
       m_view_fr = frame(m_press_center + press - pos, m_view_fr.scale(), m_view_fr.size(), m_view_fr.get_pj());
       update();
     }
     catch (const std::exception&)  {}
   }
-  else if (projPJ(m_view_fr.get_pj()) != 0)
+  else
   {
     QString x, y, res;
     try
     {
-      const QPointF point(transform(m_view_fr.pixel_to_proj(event->pos()), m_view_fr.get_pj(), latlon()));
+      transformer tr(m_view_fr.get_pj(), latlon());
+      const QPointF point(tr.transform(static_cast<brig::qt::frame>(m_view_fr).pixel_to_proj(event->pos())));
       if (point.x() > -180 && point.x() < 180 && point.y() > -90 && point.y() < 90)
       {
         x.setNum(point.x(), 'f', 4);
@@ -113,8 +115,8 @@ void map_view::mouseReleaseEvent(QMouseEvent* event)
   try
   {
     frame view_fr(m_press_center, m_view_fr.scale(), m_view_fr.size(), m_view_fr.get_pj());
-    const QPointF press(view_fr.pixel_to_proj(m_press_event));
-    const QPointF pos(view_fr.pixel_to_proj(event->pos()));
+    const QPointF press(static_cast<brig::qt::frame>(view_fr).pixel_to_proj(m_press_event));
+    const QPointF pos(static_cast<brig::qt::frame>(view_fr).pixel_to_proj(event->pos()));
     m_view_fr = frame(m_press_center + press - pos, m_view_fr.scale(), m_view_fr.size(), m_view_fr.get_pj());
     if (m_press_event != event->pos()) render();
   }
@@ -131,7 +133,7 @@ void map_view::paintEvent(QPaintEvent*)
   {
     try
     {
-      QPointF offset(m_view_fr.proj_to_pixel(m_front_fr.pixel_to_proj(QPointF()))); // m_view_fr.pj == m_front_fr.pj
+      QPointF offset(static_cast<brig::qt::frame>(m_view_fr).proj_to_pixel(static_cast<brig::qt::frame>(m_front_fr).pixel_to_proj(QPointF())));
       const double scale(m_front_fr.scale() / m_view_fr.scale());
 
       painter.save();
@@ -219,28 +221,29 @@ void map_view::on_layers(std::vector<layer_ptr> lrs)
   else if (!lrs_new_diff.empty()) emit_rendering(lrs_new_diff);
 }
 
-void map_view::on_proj(brig::proj::shared_pj pj)
+void map_view::on_proj(projection pj)
 {
   try
   {
-    if (projPJ(pj) == 0 || pj == m_view_fr.get_pj()) return;
-    m_view_fr = transform(m_view_fr, pj);
+    if (pj == m_view_fr.get_pj()) return;
+    m_view_fr = m_view_fr.transform(pj);
     render();
     emit signal_proj(m_view_fr.get_pj());
   }
   catch (const std::exception&)  {}
 }
 
-void map_view::on_rect(QRectF rect, brig::proj::shared_pj pj)
+void map_view::on_rect(QRectF rect, projection pj)
 {
   try
   {
-    if (!rect.isValid() || projPJ(pj) == 0 || size().width() == 0 || size().height() == 0) return;
-    const QRectF rect_fr_px(proj_to_pixel(transform(rect, pj, m_view_fr.get_pj()), m_view_fr));
+    if (!rect.isValid() || size().width() == 0 || size().height() == 0) return;
+    transformer tr(pj, m_view_fr.get_pj());
+    const QRectF rect_fr_px(m_view_fr.proj_to_pixel(tr.transform(rect)));
     const double zoom_factor(std::max<>(rect_fr_px.width() / qreal(size().width()), rect_fr_px.height() / qreal(size().height())));
     const double scale(m_view_fr.scale() * zoom_factor * (1. + DBL_EPSILON)); // "zoom to fit" workaround
     QPointF center(rect.center());
-    if (pj != m_view_fr.get_pj()) center = transform(center, pj, m_view_fr.get_pj());
+    if (pj != m_view_fr.get_pj()) center = tr.transform(center);
     const frame view_fr(center, scale, m_view_fr.size(), m_view_fr.get_pj());
     if (view_fr == m_view_fr) return;
     m_view_fr = view_fr;
@@ -253,16 +256,16 @@ void map_view::on_rect(QRectF rect, brig::proj::shared_pj pj)
 void map_view::on_home()
 {
   auto pj(latlon());
+  on_proj(pj);
   on_rect(world(pj), pj);
 }
 
-void map_view::on_scale(double scale, brig::proj::shared_pj pj)
+void map_view::on_scale(double scale, projection pj)
 {
   try
   {
-    if (projPJ(pj) == 0) return;
     QPointF center(m_view_fr.center());
-    if (pj != m_view_fr.get_pj()) center = transform(center, m_view_fr.get_pj(), pj);
+    if (pj != m_view_fr.get_pj()) center = transformer(m_view_fr.get_pj(), pj).transform(center);
     const frame view_fr(center, scale, m_view_fr.size(), pj);
     if (view_fr == m_view_fr) return;
     m_view_fr = view_fr;

@@ -4,11 +4,12 @@
 #include <brig/threaded_rowset.hpp>
 #include <stdexcept>
 #include <vector>
-#include "counter_clockwise.h"
+#include "rowset_ccw.h"
 #include "layer.h"
 #include "provider.h"
-#include "reproject.h"
+#include "rowset_transform.h"
 #include "task_insert.h"
+#include "transformer.h"
 #include "utilities.h"
 
 QString task_insert::get_string()
@@ -25,7 +26,7 @@ void task_insert::do_run(QTime& time, size_t& counter, QEventLoop& loop, bool& c
     auto tbl_from(m_lr_from->get_table_def(level));
     auto tbl_to(m_lr_to->get_table_def(level));
     vector<int> ccw_cols;
-    vector<reproject_item> reproject_items;
+    vector<rowset_transform::item> transform_items;
 
     for (auto itr(begin(m_items)); itr != end(m_items); ++itr)
     {
@@ -51,11 +52,10 @@ void task_insert::do_run(QTime& time, size_t& counter, QEventLoop& loop, bool& c
 
       if (col_from->epsg != col_to->epsg)
       {
-        reproject_item item;
+        rowset_transform::item item;
         item.column = int(tbl_from.query_columns.size());
-        item.pj_from = get_pj(*col_from);
-        item.pj_to = get_pj(*col_to);
-        reproject_items.push_back(item);
+        item.tr = transformer(get_pj(*col_from), get_pj(*col_to));
+        transform_items.push_back(item);
       }
 
       tbl_from.query_columns.push_back(col_from->name);
@@ -65,13 +65,13 @@ void task_insert::do_run(QTime& time, size_t& counter, QEventLoop& loop, bool& c
     if (m_view)
     {
       auto col_from(tbl_from[m_lr_from->get_geometry(level).qualifier]);
-      QRectF rect(transform(m_fr.prepare_rect(), m_fr.get_pj(), get_pj(*col_from)));
+      QRectF rect(transformer(m_fr.get_pj(), get_pj(*col_from)).transform(m_fr.prepare_rect()));
       col_from->query_value = brig::boost::as_binary(rect_to_box(rect));
     }
 
     auto rowset(m_lr_from->get_provider()->select(tbl_from));
-    if (!ccw_cols.empty()) rowset = make_shared<brig::threaded_rowset>(make_shared<counter_clockwise>(rowset, ccw_cols));
-    if (!reproject_items.empty()) rowset = make_shared<brig::threaded_rowset>(make_shared<reproject>(rowset, reproject_items));
+    if (!ccw_cols.empty()) rowset = make_shared<brig::threaded_rowset>(make_shared<rowset_ccw>(rowset, ccw_cols));
+    if (!transform_items.empty()) rowset = make_shared<brig::threaded_rowset>(make_shared<rowset_transform>(rowset, transform_items));
 
     auto pvd_to(m_lr_to->get_provider());
     auto ins(pvd_to->get_inserter(tbl_to));

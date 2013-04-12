@@ -8,6 +8,7 @@
 #include <QImage>
 #include <vector>
 #include "layer_raster.h"
+#include "transformer.h"
 #include "utilities.h"
 
 layer_raster::layer_raster(provider_ptr pvd, const brig::pyramid_def& raster)
@@ -77,10 +78,9 @@ void layer_raster::unreg()
 
 size_t layer_raster::get_level(const frame& fr)
 {
-  const brig::proj::shared_pj pj_rast(get_pj());
-  const brig::proj::shared_pj pj_fr(fr.get_pj());
-  if (projPJ(pj_rast) == 0 || projPJ(pj_fr) == 0) return m_raster.levels.size() - 1;
-  const double scale(pj_rast == pj_fr? fr.scale(): transform(fr, pj_rast).scale());
+  const projection pj_rast(get_pj());
+  const projection pj_fr(fr.get_pj());
+  const double scale(pj_rast == pj_fr? fr.scale(): fr.transform(pj_rast).scale());
   return m_raster.snap_to_level(scale * scale);
 }
 
@@ -128,21 +128,22 @@ void layer_raster::draw(const std::vector<brig::variant>& row, const frame& fr, 
   if (row[1].type() != typeid(brig::blob_t)) return;
   const brig::blob_t& r(boost::get<brig::blob_t>(row[1]));
   if (!img_rast.loadFromData(r.data(), uint(r.size()))) return;
-  const brig::proj::shared_pj pj_rast(get_pj());
-  const brig::proj::shared_pj pj_fr(fr.get_pj());
+  projection pj_rast(get_pj());
+  projection pj_fr(fr.get_pj());
   if (pj_rast == pj_fr)
-    painter.drawImage(proj_to_pixel(rect_rast, fr).toAlignedRect(), img_rast);
+    painter.drawImage(fr.proj_to_pixel(rect_rast).toAlignedRect(), img_rast);
   else
   {
-    const QRectF rect_fr(transform(rect_rast, pj_rast, pj_fr));
-    const QRect rect_fr_px(proj_to_pixel(fr.prepare_rect().intersected(rect_fr), fr).toAlignedRect());
+    const QRectF rect_fr(transformer(pj_rast, pj_fr).transform(rect_rast));
+    const QRect rect_fr_px(fr.proj_to_pixel(fr.prepare_rect().intersected(rect_fr)).toAlignedRect());
     if (!rect_fr_px.isValid()) return;
     QImage img_fr(rect_fr_px.size(), QImage::Format_ARGB32_Premultiplied);
+    transformer tr(pj_fr, pj_rast);
     for (int j(0); j < img_fr.height(); ++j)
       for (int i(0); i < img_fr.width(); ++i)
       {
-        const QPointF point_fr(fr.pixel_to_proj(rect_fr_px.topLeft() + QPoint(i, j)));
-        const QPointF point_rast(transform(point_fr, pj_fr, pj_rast));
+        const QPointF point_fr(static_cast<brig::qt::frame>(fr).pixel_to_proj(rect_fr_px.topLeft() + QPoint(i, j)));
+        const QPointF point_rast(tr.transform(point_fr));
         if (rect_rast.contains(point_rast))
         {
           const double dx((point_rast.x() - rect_rast.left()) / rect_rast.width());

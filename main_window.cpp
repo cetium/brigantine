@@ -80,23 +80,23 @@ main_window::main_window()
   splitter->setSizes(sizes);
 
   qRegisterMetaType<provider_ptr>("provider_ptr");
-  qRegisterMetaType<brig::proj::shared_pj>("brig::proj::shared_pj");
+  qRegisterMetaType<projection>("projection");
   qRegisterMetaType<std::shared_ptr<task>>("std::shared_ptr<task>");
   qRegisterMetaType<std::vector<std::string>>("std::vector<std::string>");
   qRegisterMetaType<std::vector<layer_ptr>>("std::vector<layer_ptr>");
   qRegisterMetaType<std::shared_ptr<rowset_model>>("std::shared_ptr<rowset_model>");
 
   connect(tree, SIGNAL(signal_layers(std::vector<layer_ptr>)), map, SLOT(on_layers(std::vector<layer_ptr>)));
-  connect(tree, SIGNAL(signal_proj(brig::proj::shared_pj)), map, SLOT(on_proj(brig::proj::shared_pj)));
-  connect(tree, SIGNAL(signal_rect(QRectF, brig::proj::shared_pj)), map, SLOT(on_rect(QRectF, brig::proj::shared_pj)));
-  connect(tree, SIGNAL(signal_scale(double, brig::proj::shared_pj)), map, SLOT(on_scale(double, brig::proj::shared_pj)));
+  connect(tree, SIGNAL(signal_proj(projection)), map, SLOT(on_proj(projection)));
+  connect(tree, SIGNAL(signal_rect(QRectF, projection)), map, SLOT(on_rect(QRectF, projection)));
+  connect(tree, SIGNAL(signal_scale(double, projection)), map, SLOT(on_scale(double, projection)));
   connect(tree, SIGNAL(signal_task(std::shared_ptr<task>)), map, SLOT(on_task(std::shared_ptr<task>)));
   connect(tree, SIGNAL(signal_sql(provider_ptr, std::vector<std::string>)), sql, SLOT(on_sql(provider_ptr, std::vector<std::string>)));
   connect(tree, SIGNAL(signal_disconnect(provider_ptr)), sql, SLOT(on_disconnect(provider_ptr)));
   connect(tree, SIGNAL(signal_rowset(std::shared_ptr<rowset_model>)), sql, SLOT(on_rowset(std::shared_ptr<rowset_model>)));
 
   connect(map, SIGNAL(signal_task(std::shared_ptr<task>)), sched, SLOT(on_task(std::shared_ptr<task>)));
-  connect(map, SIGNAL(signal_proj(brig::proj::shared_pj)), this, SLOT(on_map_proj(brig::proj::shared_pj)));
+  connect(map, SIGNAL(signal_proj(projection)), this, SLOT(on_map_proj(projection)));
   connect(map, SIGNAL(signal_coords(QString)), this, SLOT(on_map_coords(QString)));
   connect(map, SIGNAL(signal_progress()), this, SLOT(on_map_progress()));
   connect(map, SIGNAL(signal_idle()), this, SLOT(on_map_idle()));
@@ -114,11 +114,10 @@ main_window::main_window()
   catch (const std::exception&)  {}
 }
 
-void main_window::on_map_proj(brig::proj::shared_pj pj)
+void main_window::on_map_proj(projection pj)
 {
-  const int epsg(get_epsg(pj));
-  if (epsg < 0) m_proj_msg = QString( pj.get_def().c_str() );
-  else m_proj_msg = QString("EPSG:%1").arg(epsg);
+  if (pj.get_epsg() < 0) m_proj_msg = QString( pj.get_def().c_str() );
+  else m_proj_msg = QString("EPSG:%1").arg(pj.get_epsg());
 
   if (!m_proj_msg.isEmpty()) m_tab->setCurrentIndex(m_map_tab);
   m_proj_stat->setDisabled(m_proj_msg.isEmpty());

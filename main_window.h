@@ -3,7 +3,6 @@
 #ifndef MAIN_WINDOW_H
 #define MAIN_WINDOW_H
 
-#include <brig/proj/shared_pj.hpp>
 #include <QAction>
 #include <QKeyEvent>
 #include <QLabel>
@@ -12,6 +11,7 @@
 #include <QStringList>
 #include <QTabWidget>
 #include "clickable_label.h"
+#include "projection.h"
 
 class main_window : public QMainWindow {
   Q_OBJECT
@@ -25,7 +25,7 @@ class main_window : public QMainWindow {
 
 private slots:
   void on_map_coords(QString msg);
-  void on_map_proj(brig::proj::shared_pj pj);
+  void on_map_proj(projection pj);
   void on_map_progress();
   void on_map_idle();
   void on_sql();

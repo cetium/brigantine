@@ -12,6 +12,7 @@
 #include "provider.h"
 #include "task_create.h"
 #include "task_insert.h"
+#include "transformer.h"
 #include "utilities.h"
 
 QString task_create::get_string()
@@ -69,7 +70,7 @@ void task_create::do_run(QEventLoop& loop)
 
           if (m_view)
           {
-            QRectF rect = ::transform(m_fr.prepare_rect(), m_fr.get_pj(), ::get_pj(col_to));
+            QRectF rect = transformer(m_fr.get_pj(), ::get_pj(col_to)).transform(m_fr.prepare_rect());
             box intersetion;
             if (!boost::geometry::intersection(rect_to_box(rect), mbr, intersetion))
                throw runtime_error("current extent error");

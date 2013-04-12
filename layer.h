@@ -3,7 +3,6 @@
 #ifndef LAYER_H
 #define LAYER_H
 
-#include <brig/proj/shared_pj.hpp>
 #include <memory>
 #include <QPainter>
 #include <QString>
@@ -11,6 +10,7 @@
 #include <string>
 #include <vector>
 #include "frame.h"
+#include "projection.h"
 #include "provider.h"
 #include "provider_ptr.h"
 
@@ -46,9 +46,9 @@ public:
 
   provider_ptr get_provider()  { return m_pvd; }
   QString get_string(bool full = false);
-  brig::proj::shared_pj get_pj();
-  bool try_pj(brig::proj::shared_pj& pj);
-  bool try_view(brig::boost::box& box, brig::proj::shared_pj& pj);
+  projection get_pj();
+  bool try_pj(projection& pj);
+  bool try_view(brig::boost::box& box, projection& pj);
 }; // layer
 
 #endif // LAYER_H
