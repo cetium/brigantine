@@ -14,7 +14,7 @@ public:
   explicit projection(const std::string& def) : m_epsg(-1), m_def(def)  {}
   int get_epsg() const  { return m_epsg; }
   std::string get_def() const  { return m_def; }
-  bool operator ==(const projection& r) const  { return m_epsg < 0? m_def == r.m_def: m_epsg == r.m_epsg; }
+  bool operator ==(const projection& r) const  { return m_epsg < 0? m_def.compare(r.m_def) == 0: m_epsg == r.m_epsg; }
   bool operator !=(const projection& r) const  { return !operator ==(r); }
 }; // projection
 

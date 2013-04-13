@@ -108,6 +108,7 @@ unix:INCLUDEPATH +=\
   /usr/include/mysql/\
   /usr/include/postgresql/
 
+# chrpath -r '${ORIGIN}' ./brigantine
 unix:QMAKE_RPATHDIR +=\
   '${ORIGIN}'
 
