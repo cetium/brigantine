@@ -1,30 +1,132 @@
 // Andrew Naplavkov
 
-#include <chrono>
+#include <QAtomicInt>
+#include <QEventLoop>
 #include <stdexcept>
 #include "task.h"
 
-task::task() : m_cancel(false)  {}
-void task::set_frame(const frame& fr)  { m_fr = fr; }
-void task::on_cancel()  { m_cancel = true; }
+static QAtomicInt s_id = 1;
+
+task::task()
+  : m_id(s_id.fetchAndAddOrdered(1)), m_start(std::chrono::system_clock::now()), m_st(Waiting)
+{}
+
+int task::get_id() const
+{
+  return m_id;
+}
+
+QString task::get_status()
+{
+  QMutexLocker locker(&m_mtx);
+  switch (m_st)
+  {
+  default: return QString();
+  case Waiting: return QString("waiting");
+  case Running: return QString("running");
+  case Canceled: return QString("canceled");
+  case Failed: return QString("failed");
+  case Complete: return QString("complete");
+  }
+}
+
+bool task::is_finished_impl() const
+{
+  switch (m_st)
+  {
+  default: return false;
+  case Canceled:
+  case Failed:
+  case Complete: return true;
+  }
+}
+
+bool task::is_finished()
+{
+  QMutexLocker locker(&m_mtx);
+  return is_finished_impl();
+}
+
+std::chrono::system_clock::time_point task::get_finish()
+{
+  QMutexLocker locker(&m_mtx);
+  if (is_finished_impl()) return m_finish;
+  else return std::chrono::system_clock::now();
+}
+
+int task::get_milliseconds()
+{
+  return std::chrono::duration_cast<std::chrono::milliseconds>(get_finish() - m_start).count();
+}
+
+QString task::get_message()
+{
+  QMutexLocker locker(&m_mtx);
+  return m_msg;
+}
+
+frame task::get_frame()
+{
+  QMutexLocker locker(&m_mtx);
+  return m_fr;
+}
+
+void task::set_frame(const frame& fr)
+{
+  QMutexLocker locker(&m_mtx);
+  m_fr = fr;
+}
+
+void task::on_cancel()
+{
+  QMutexLocker locker(&m_mtx);
+  if (!is_finished_impl())
+  {
+    m_st = Canceled;
+    m_finish = std::chrono::system_clock::now();
+  }
+}
+
+void task::on_cancel(int id)
+{
+  if (id == m_id) on_cancel();
+}
+
+void task::progress(QString msg)
+{
+  QEventLoop loop(this);
+  loop.processEvents();
+  QMutexLocker locker(&m_mtx);
+  if (!msg.isEmpty()) m_msg = msg;
+  if (is_finished_impl()) throw std::runtime_error("");
+}
 
 void task::run()
 {
-  using namespace std;
   try
   {
-    QEventLoop loop(this);
-    loop.processEvents();
-    if (m_cancel) throw runtime_error("canceled");
-    chrono::high_resolution_clock::time_point start = chrono::high_resolution_clock::now();
-    do_run(loop);
-    chrono::high_resolution_clock::time_point finish = chrono::high_resolution_clock::now();
-    QString ms;
-    ms.setNum(double(chrono::duration_cast<chrono::milliseconds>(finish - start).count()) / 1000., 'f', 1);
-    emit signal_finished(QString("seconds: %1").arg(ms));
+    progress(QString());
+    {
+      QMutexLocker locker(&m_mtx);
+      m_st = Running;
+    }
+    run_impl();
+    {
+      QMutexLocker locker(&m_mtx);
+      m_st = Complete;
+      m_finish = std::chrono::system_clock::now();
+    }
   }
-  catch (const exception& e)
+  catch (const std::exception& e)
   {
-    emit signal_finished(e.what());
+    QMutexLocker locker(&m_mtx);
+    if (!is_finished_impl())
+    {
+      m_st = Failed;
+      m_finish = std::chrono::system_clock::now();
+    }
+    QString msg = QString::fromUtf8(e.what());
+    if (!msg.isEmpty()) m_msg = msg;
   }
+  emit signal_finished();
 }

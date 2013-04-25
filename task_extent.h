@@ -18,7 +18,7 @@ public:
   explicit task_extent(layer_ptr lr) : m_lr(lr)  {}
   QString get_string() override;
   int get_priority() override  { return 1; }
-  void do_run(QEventLoop& loop) override;
+  void run_impl() override;
 }; // task_extent
 
 #endif // TASK_EXTENT_H

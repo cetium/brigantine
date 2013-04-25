@@ -1,5 +1,6 @@
 // Andrew Naplavkov
 
+#include <QString>
 #include "rowset_model.h"
 
 rowset_model::rowset_model(QObject* parent) : QAbstractItemModel(parent)
@@ -12,7 +13,7 @@ int rowset_model::columnCount(const QModelIndex&) const
 
 QVariant rowset_model::headerData(int section, Qt::Orientation orientation, int role) const
 {
-  if (section >= int(m_columns.size()) || orientation != Qt::Horizontal ||role != Qt::DisplayRole) return QVariant();
+  if (section >= int(m_columns.size()) || orientation != Qt::Horizontal || role != Qt::DisplayRole) return QVariant();
   return QString::fromUtf8(m_columns[section].c_str());
 }
 

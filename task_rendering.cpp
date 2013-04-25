@@ -1,7 +1,6 @@
 // Andrew Naplavkov
 
 #include <QColor>
-#include <QEventLoop>
 #include <QPainter>
 #include <QTime>
 #include <stdexcept>
@@ -12,42 +11,39 @@
 
 QString task_rendering::get_string()
 {
-  return QString("rendering '%1'").arg(m_lr->get_string(true));
+  return QString("rendering of '%1'").arg(m_lr->get_string(true));
 }
 
-void task_rendering::emit_progress(QString wrn, size_t counter)
+void task_rendering::progress(QString wrn, size_t counter)
 {
   if (wrn.isEmpty())
-    emit signal_progress(QString("rows: %1").arg(counter));
+    task::progress(QString("rows: %1").arg(counter));
   else
-    emit signal_progress(QString("rows: %1 (%2)").arg(counter).arg(wrn));
+    task::progress(QString("rows: %1 (%2)").arg(counter).arg(wrn));
 }
 
-void task_rendering::do_run(QEventLoop& loop)
+void task_rendering::run_impl()
 {
   QString wrn;
   size_t counter(0);
   QTime time; time.start();
-  if (!m_lr->has_spatial_index(m_fr)) wrn = "no index";
-  QImage img(m_fr.size(), QImage::Format_ARGB32_Premultiplied);
+  frame fr = get_frame();
+  if (!m_lr->has_spatial_index(fr)) wrn = "no index";
+  QImage img(fr.size(), QImage::Format_ARGB32_Premultiplied);
   QPainter painter(&img);
   painter.eraseRect(img.rect());
   painter.setPen(Qt::black);
   painter.setBrush(Qt::lightGray);
   std::vector<brig::variant> row;
-  for (auto rs(m_lr->drawing(m_fr)); rs->fetch(row); ++counter)
+  for (auto rs(m_lr->drawing(fr)); rs->fetch(row); ++counter)
   {
-    m_lr->draw(row, m_fr, painter);
+    m_lr->draw(row, fr, painter);
     if (time.elapsed() < RenderingInterval) continue;
-    loop.processEvents();
-    if (m_cancel) throw std::runtime_error("canceled");
-    emit signal_image(m_fr, img.copy());
-    emit_progress(wrn, counter);
+    progress(wrn, counter);
+    emit signal_image(fr, img.copy());
     painter.eraseRect(img.rect());
     time.restart();
   }
-  loop.processEvents();
-  if (m_cancel) throw std::runtime_error("canceled");
-  if (counter > 0) emit signal_image(m_fr, img.copy());
-  emit_progress(wrn, counter);
+  progress(wrn, counter);
+  if (counter > 0) emit signal_image(fr, img.copy());
 }

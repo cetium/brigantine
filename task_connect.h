@@ -16,21 +16,21 @@ class task_connect : public task {
 public:
   struct provider_allocator {
     virtual ~provider_allocator()  {}
+    virtual QString get_string() = 0;
     virtual provider_ptr allocate() = 0;
   }; // provider_allocator
 
 private:
-  QString m_str;
   std::shared_ptr<provider_allocator> m_allocator;
 
 signals:
   void signal_connected(provider_ptr pvd, std::vector<layer_ptr> lrs);
 
 public:
-  explicit task_connect(std::shared_ptr<provider_allocator> allocator) : m_allocator(allocator), m_str("connect")  {}
-  QString get_string() override  { return m_str; }
+  explicit task_connect(std::shared_ptr<provider_allocator> allocator) : m_allocator(allocator)  {}
+  QString get_string() override;
   int get_priority() override  { return 2; }
-  void do_run(QEventLoop& loop) override;
+  void run_impl() override;
 }; // task_connect
 
 #endif // TASK_CONNECT_H

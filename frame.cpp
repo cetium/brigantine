@@ -37,5 +37,5 @@ frame frame::transform(const projection& pj) const
   const QRectF rect_from(prepare_rect());
   const QRectF rect_to(tr.transform(rect_from));
   const double zoom_factor(std::min<>(rect_to.width() / rect_from.width(), rect_to.height() / rect_from.height()));
-  return frame(tr.transform(center()), scale() * zoom_factor, size(), pj);
+  return frame(tr.transform(rect_from.center()), scale() * zoom_factor, size(), pj);
 }

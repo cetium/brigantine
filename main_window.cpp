@@ -21,13 +21,14 @@
 #include <QMessageBox>
 #include <QSplitter>
 #include <QStatusBar>
+#include <QTableView>
 #include <QtGlobal>
 #include "main_window.h"
 #include "map_view.h"
 #include "rowset_model.h"
 #include "sql_view.h"
 #include "task.h"
-#include "task_scheduler.h"
+#include "task_view.h"
 #include "tree_view.h"
 #include "utilities.h"
 
@@ -36,12 +37,13 @@ main_window::main_window()
   tree_view* tree(new tree_view(0));
   map_view* map(new map_view(0));
   sql_view* sql(new sql_view(0));
-  task_scheduler* sched(new task_scheduler(this));
+  task_view* tsk(new task_view(0));
 
   m_tab = new QTabWidget;
   m_tab->setTabPosition(QTabWidget::East);
   m_map_tab = m_tab->addTab(map, QIcon(QPixmap(":/res/map_disabled.png").transformed(QTransform().rotate(-90))), "");
   m_sql_tab = m_tab->addTab(sql, QIcon(QPixmap(":/res/sql_disabled.png").transformed(QTransform().rotate(-90))), "");
+  m_tasks_tab = m_tab->addTab(tsk, QIcon(QPixmap(":/res/tasks_disabled.png").transformed(QTransform().rotate(-90))), "");
 
   QSplitter* splitter(new QSplitter);
   splitter->setOrientation(Qt::Horizontal);
@@ -95,16 +97,19 @@ main_window::main_window()
   connect(tree, SIGNAL(signal_disconnect(provider_ptr)), sql, SLOT(on_disconnect(provider_ptr)));
   connect(tree, SIGNAL(signal_rowset(std::shared_ptr<rowset_model>)), sql, SLOT(on_rowset(std::shared_ptr<rowset_model>)));
 
-  connect(map, SIGNAL(signal_task(std::shared_ptr<task>)), sched, SLOT(on_task(std::shared_ptr<task>)));
+  connect(map, SIGNAL(signal_task(std::shared_ptr<task>)), tsk, SLOT(on_task(std::shared_ptr<task>)));
   connect(map, SIGNAL(signal_proj(projection)), this, SLOT(on_map_proj(projection)));
   connect(map, SIGNAL(signal_coords(QString)), this, SLOT(on_map_coords(QString)));
   connect(map, SIGNAL(signal_progress()), this, SLOT(on_map_progress()));
   connect(map, SIGNAL(signal_idle()), this, SLOT(on_map_idle()));
 
-  connect(sql, SIGNAL(signal_task(std::shared_ptr<task>)), sched, SLOT(on_task(std::shared_ptr<task>)));
+  connect(sql, SIGNAL(signal_task(std::shared_ptr<task>)), tsk, SLOT(on_task(std::shared_ptr<task>)));
   connect(sql, SIGNAL(signal_sql()), this, SLOT(on_sql()));
   connect(sql, SIGNAL(signal_progress()), this, SLOT(on_sql_progress()));
   connect(sql, SIGNAL(signal_idle()), this, SLOT(on_sql_idle()));
+
+  connect(tsk, SIGNAL(signal_progress()), this, SLOT(on_tasks_progress()));
+  connect(tsk, SIGNAL(signal_idle()), this, SLOT(on_tasks_idle()));
 
   connect(m_pos_stat, SIGNAL(clicked()), map, SLOT(on_home()));
 
@@ -154,6 +159,16 @@ void main_window::on_sql_progress()
 void main_window::on_sql_idle()
 {
   m_tab->setTabIcon(m_sql_tab, QIcon(QPixmap(":/res/sql_disabled.png").transformed(QTransform().rotate(-90))));
+}
+
+void main_window::on_tasks_progress()
+{
+  m_tab->setTabIcon(m_tasks_tab, QIcon(QPixmap(":/res/tasks.png").transformed(QTransform().rotate(-90))));
+}
+
+void main_window::on_tasks_idle()
+{
+  m_tab->setTabIcon(m_tasks_tab, QIcon(QPixmap(":/res/tasks_disabled.png").transformed(QTransform().rotate(-90))));
 }
 
 void main_window::on_show_stat_menu(QPoint point)

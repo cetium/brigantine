@@ -18,7 +18,7 @@ public:
   task_tables(provider_ptr pvd) : m_pvd(pvd)  {}
   QString get_string() override;
   int get_priority() override  { return 1; }
-  void do_run(QEventLoop& loop) override;
+  void run_impl() override;
 }; // task_tables
 
 #endif // TASK_TABLES_H

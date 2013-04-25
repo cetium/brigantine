@@ -35,11 +35,12 @@ HEADERS +=\
   task_extent.h\
   task_fetch.h\
   task_insert.h\
+  task_model.h\
   task_proj.h\
   task_rendering.h\
   task_scale.h\
-  task_scheduler.h\
   task_tables.h\
+  task_view.h\
   transformer.h\
   tree_item.h\
   tree_model.h\
@@ -74,11 +75,12 @@ SOURCES +=\
   task_extent.cpp\
   task_fetch.cpp\
   task_insert.cpp\
+  task_model.cpp\
   task_proj.cpp\
   task_rendering.cpp\
   task_scale.cpp\
-  task_scheduler.cpp\
   task_tables.cpp\
+  task_view.cpp\
   transformer.cpp\
   tree_item.cpp\
   tree_model.cpp\

@@ -20,11 +20,24 @@ QString task_create::get_string()
   return QString("creating in '%1'").arg(m_pvd_to->get_string());
 }
 
-void task_create::do_run(QEventLoop& loop)
+void task_create::run_impl()
 {
+  class inserter : public task_insert {
+    task* m_owner;
+  public:
+    inserter
+      ( layer_ptr lr_from, layer_ptr lr_to, const std::vector<insert_item>& items, bool ccw, bool view, size_t counter
+      , task* owner
+      )
+      : task_insert(lr_from, lr_to, items, ccw, view, counter), m_owner(owner)
+      {}
+    void progress(QString msg) override  { m_owner->progress(msg); }
+  };
+
   using namespace std;
-  QTime time; time.start();
-  size_t counter;
+
+  frame fr = get_frame();
+  size_t counter(0);
   vector<string> sql;
   for (size_t lr(0); lr < m_lrs_from.size(); ++lr)
   {
@@ -70,7 +83,7 @@ void task_create::do_run(QEventLoop& loop)
 
           if (m_view)
           {
-            QRectF rect = transformer(m_fr.get_pj(), ::get_pj(col_to)).transform(m_fr.prepare_rect());
+            QRectF rect = transformer(fr.get_pj(), ::get_pj(col_to)).transform(fr.prepare_rect());
             box intersetion;
             if (!boost::geometry::intersection(rect_to_box(rect), mbr, intersetion))
                throw runtime_error("current extent error");
@@ -90,18 +103,13 @@ void task_create::do_run(QEventLoop& loop)
     else
     {
       lr_to->reg();
-      task_insert tsk(lr_from, lr_to, items, false, m_view);
-      tsk.set_frame(m_fr);
-      connect(&tsk, SIGNAL(signal_progress(QString)), this, SLOT(emit_progress(QString)));
-      tsk.do_run(time, counter, loop, m_cancel);
+      inserter tsk(lr_from, lr_to, items, false, m_view, counter, this);
+      tsk.set_frame(fr);
+      tsk.run_impl();
+      counter = tsk.get_counter();
     }
   }
 
   if (m_sql) emit signal_sql(m_pvd_to, sql);
   else emit signal_refresh(m_pvd_to);
-}
-
-void task_create::emit_progress(QString msg)
-{
-  emit signal_progress(msg);
 }

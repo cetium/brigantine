@@ -17,7 +17,7 @@ class main_window : public QMainWindow {
   Q_OBJECT
 
   QTabWidget* m_tab;
-  int m_map_tab, m_sql_tab;
+  int m_map_tab, m_sql_tab, m_tasks_tab;
   QLabel *m_proj_stat;
   clickable_label *m_pos_stat;
   QString m_proj_msg, m_pos_msg;
@@ -31,6 +31,8 @@ private slots:
   void on_sql();
   void on_sql_progress();
   void on_sql_idle();
+  void on_tasks_progress();
+  void on_tasks_idle();
   void on_show_stat_menu(QPoint);
   void on_copy_proj_stat();
 

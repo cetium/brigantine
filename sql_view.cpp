@@ -25,7 +25,7 @@
 #include "utilities.h"
 
 sql_view::sql_view(QWidget* parent)
-  : QWidget(parent), m_mdl(new rowset_model()), m_tasks(0)
+  : QWidget(parent), m_mdl(new rowset_model(0)), m_tasks(0)
 {
   m_title = new QLabel;
   m_title->setTextFormat(Qt::RichText);
@@ -44,7 +44,7 @@ sql_view::sql_view(QWidget* parent)
   m_sql->setAcceptRichText(false);
   m_sql->setTabChangesFocus(true);
 
-  m_rowset = (new QTableView);
+  m_rowset = new QTableView;
   m_rowset->setModel(m_mdl.get());
   m_rowset->verticalHeader()->hide();
 
@@ -60,7 +60,7 @@ sql_view::sql_view(QWidget* parent)
   setLayout(layout);
 }
 
-void sql_view::on_finished(QString)
+void sql_view::on_finished()
 {
   --m_tasks;
   if (m_tasks == 0) emit signal_idle();
@@ -70,7 +70,7 @@ void sql_view::on_info()
 {
   qRegisterMetaType<std::shared_ptr<rowset_model>>("std::shared_ptr<rowset_model>");
   task_tables* tsk(new task_tables(m_pvd));
-  connect(tsk, SIGNAL(signal_finished(QString)), this, SLOT(on_finished(QString)));
+  connect(tsk, SIGNAL(signal_finished()), this, SLOT(on_finished()));
   connect(tsk, SIGNAL(signal_rowset(std::shared_ptr<rowset_model>)), this, SLOT(on_rowset(std::shared_ptr<rowset_model>)));
   emit signal_task(std::shared_ptr<task>(tsk));
   ++m_tasks;
@@ -96,11 +96,11 @@ void sql_view::on_run()
       task_exec_batch(provider_ptr pvd, const std::string& sql) : m_pvd(pvd), m_sql(sql)  {}
       QString get_string() override  { return limited_text(m_sql.c_str(), false); }
       int get_priority() override  { return 1; }
-      void do_run(QEventLoop&) override  { m_pvd->get_command()->exec_batch(m_sql); }
+      void run_impl() override  { m_pvd->get_command()->exec_batch(m_sql); }
     }; // task_exec_batch
 
     task_exec_batch* tsk(new task_exec_batch(m_pvd, m_sql->toPlainText().toUtf8().constData()));
-    connect(tsk, SIGNAL(signal_finished(QString)), this, SLOT(on_finished(QString)));
+    connect(tsk, SIGNAL(signal_finished()), this, SLOT(on_finished()));
     emit signal_task(std::shared_ptr<task>(tsk));
     ++m_tasks;
     emit signal_progress();
@@ -109,7 +109,7 @@ void sql_view::on_run()
   {
     qRegisterMetaType<std::shared_ptr<rowset_model>>("std::shared_ptr<rowset_model>");
     task_fetch* tsk(new task_fetch(m_pvd, m_sql->toPlainText().toUtf8().constData()));
-    connect(tsk, SIGNAL(signal_finished(QString)), this, SLOT(on_finished(QString)));
+    connect(tsk, SIGNAL(signal_finished()), this, SLOT(on_finished()));
     connect(tsk, SIGNAL(signal_rowset(std::shared_ptr<rowset_model>)), this, SLOT(on_rowset(std::shared_ptr<rowset_model>)));
     emit signal_task(std::shared_ptr<task>(tsk));
     ++m_tasks;

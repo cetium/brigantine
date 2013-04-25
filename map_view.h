@@ -42,7 +42,7 @@ protected:
 
 private slots:
   void on_image(frame fr, QImage img);
-  void on_finished(QString);
+  void on_finished();
 
 public slots:
   void on_layers(std::vector<layer_ptr> lrs);
@@ -53,7 +53,7 @@ public slots:
   void on_task(std::shared_ptr<task> tsk);
 
 signals:
-  void signal_cancel();
+  void signal_cancel_all();
   void signal_proj(projection pj);
   void signal_coords(QString msg);
   void signal_task(std::shared_ptr<task> tsk);
@@ -62,7 +62,6 @@ signals:
 
 public:
   explicit map_view(QWidget* parent);
-  ~map_view() override  { emit signal_cancel(); }
 }; // map_view
 
 #endif // MAP_VIEW_H

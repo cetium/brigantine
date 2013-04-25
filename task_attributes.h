@@ -18,7 +18,7 @@ public:
   explicit task_attributes(layer_ptr lr) : m_lr(lr)  {}
   QString get_string() override;
   int get_priority() override  { return 1; }
-  void do_run(QEventLoop& loop) override;
+  void run_impl() override;
 }; // task_attributes
 
 #endif // TASK_ATTRIBUTES_H

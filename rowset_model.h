@@ -5,7 +5,6 @@
 
 #include <QAbstractItemModel>
 #include <QModelIndex>
-#include <QString>
 #include <QVariant>
 #include <string>
 #include <vector>
@@ -15,7 +14,7 @@ public:
   std::vector<std::string> m_columns;
   std::vector<std::vector<std::string>> m_rows;
 
-  explicit rowset_model(QObject* parent = 0);
+  explicit rowset_model(QObject* parent);
   int columnCount(const QModelIndex& parent = QModelIndex()) const override;
   QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole ) const override;
   QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;

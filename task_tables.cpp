@@ -8,10 +8,10 @@ QString task_tables::get_string()
   return QString("tables of '%1'").arg(m_pvd->get_string());
 }
 
-void task_tables::do_run(QEventLoop&)
+void task_tables::run_impl()
 {
   using namespace std;
-  shared_ptr<rowset_model> mdl(new rowset_model());
+  shared_ptr<rowset_model> mdl(new rowset_model(0));
   mdl->m_columns.push_back("SCHEMA");
   mdl->m_columns.push_back("TABLE");
   auto ids(m_pvd->get_tables());

@@ -20,7 +20,7 @@ public:
   task_fetch(provider_ptr pvd, const std::string& sql) : m_pvd(pvd), m_sql(sql)  {}
   QString get_string() override;
   int get_priority() override  { return 1; }
-  void do_run(QEventLoop& loop) override;
+  void run_impl() override;
 }; // task_fetch
 
 #endif // TASK_FETCH_H

@@ -27,7 +27,7 @@ class sql_view : public QWidget {
   void reset();
 
 private slots:
-  void on_finished(QString);
+  void on_finished();
   void on_info();
   void on_open();
   void on_run();

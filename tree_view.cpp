@@ -13,8 +13,8 @@
 #include <brig/osm/layer_aerial.hpp>
 #include <brig/osm/layer_cloudmade.hpp>
 #include <brig/osm/layer_cycle.hpp>
-#include <brig/osm/layer_mapnik.hpp>
 #include <brig/osm/layer_mapquest.hpp>
+#include <brig/osm/layer_standard.hpp>
 #include <brig/osm/provider.hpp>
 #include <QAbstractButton>
 #include <QApplication>
@@ -78,7 +78,7 @@ static const file_open_def s_filters[] = {
 { GDAL, false, "USGS ASCII DEM / CDED (*.dem)", "", "" },
 };
 
-tree_view::tree_view(QWidget* parent) : QTreeView(parent)
+tree_view::tree_view(QWidget* parent) : QTreeView(parent), m_mdl(0)
 {
   setModel(&m_mdl);
   setContextMenuPolicy(Qt::CustomContextMenu);
@@ -161,9 +161,9 @@ tree_view::tree_view(QWidget* parent) : QTreeView(parent)
   m_drop_act->setIconVisibleInMenu(true);
   connect(m_drop_act, SIGNAL(triggered()), this, SLOT(on_drop()));
 
-  m_separator1_act = new QAction(QIcon(""), "", this);
+  m_separator1_act = new QAction("", this);
   m_separator1_act->setSeparator(true);
-  m_separator2_act = new QAction(QIcon(""), "", this);
+  m_separator2_act = new QAction("", this);
   m_separator2_act->setSeparator(true);
 
   qRegisterMetaType<provider_ptr>("provider_ptr");
@@ -190,15 +190,24 @@ void tree_view::on_connect_mysql()
     QString host;
     int port;
     QString db, usr, pwd;
-    provider_allocator(QString host_, int port_, QString db_, QString usr_, QString pwd_) : host(host_), port(port_), db(db_), usr(usr_), pwd(pwd_)  {}
+    provider_allocator(QString host_, int port_, QString db_, QString usr_, QString pwd_)
+      : host(host_), port(port_), db(db_), usr(usr_), pwd(pwd_)
+      {}
+    QString get_string() override
+      { return QString("%1:%2/%3").arg(host).arg(port).arg(db); }
     provider_ptr allocate() override
-    {
-      return provider_ptr
-        ( new brig::database::provider<true>(std::make_shared<brig::database::mysql::command_allocator>(host.toUtf8().constData(), port, db.toUtf8().constData(), usr.toUtf8().constData(), pwd.toUtf8().constData()))
-        , QString("%1:%2/%3").arg(host).arg(port).arg(db)
-        , QString(":/res/mysql.png")
-        );
-    }
+      {
+        return provider_ptr
+          ( new brig::database::provider<true>(std::make_shared<brig::database::mysql::command_allocator>
+            ( host.toUtf8().constData()
+            , port, db.toUtf8().constData()
+            , usr.toUtf8().constData()
+            , pwd.toUtf8().constData()
+            ))
+          , get_string()
+          , QString(":/res/mysql.png")
+          );
+      }
   }; // provider_allocator
 
   dialog_connect dlg(this, QIcon(":/res/mysql.png"), SettingsMySQL, "192.168.1.152", 3306, "test", "root");
@@ -213,28 +222,34 @@ void tree_view::on_connect_odbc()
 {
   struct provider_allocator : task_connect::provider_allocator {
     QString dsn;
-    explicit provider_allocator(QString dsn_) : dsn(dsn_)  {}
-    provider_ptr allocate() override
-    {
-      auto allocator(std::make_shared<brig::database::odbc::command_allocator>(dsn.toUtf8().constData()));
-      QString str(dsn);
-      str.replace(QRegExp("PWD=\\w*;"), "");
-      QString icon;
-      switch (std::unique_ptr<brig::database::command>(allocator->allocate())->system())
+    explicit provider_allocator(QString dsn_)
+      : dsn(dsn_)
+      {}
+    QString get_string() override
       {
-      default: icon = ":/res/anonymous.png"; break;
-      case brig::database::CUBRID: icon = ":/res/cubrid.png"; break;
-      case brig::database::DB2: icon = ":/res/db2.png"; break;
-      case brig::database::Informix: icon = ":/res/informix.png"; break;
-      case brig::database::Ingres: icon = ":/res/ingres.png"; break;
-      case brig::database::MS_SQL: icon = ":/res/ms_sql.png"; break;
-      case brig::database::MySQL: icon = ":/res/mysql.png"; break;
-      case brig::database::Oracle: icon = ":/res/oracle.png"; break;
-      case brig::database::Postgres: icon = ":/res/postgres.png"; break;
-      case brig::database::SQLite: icon = ":/res/sqlite.png"; break;
+        QString str(dsn);
+        str.replace(QRegExp("PWD=\\w*;"), "");
+        return str;
       }
-      return provider_ptr(new brig::database::provider<true>(allocator), str, icon);
-    }
+    provider_ptr allocate() override
+      {
+        auto allocator(std::make_shared<brig::database::odbc::command_allocator>(dsn.toUtf8().constData()));
+        QString icon;
+        switch (std::unique_ptr<brig::database::command>(allocator->allocate())->system())
+        {
+        default: icon = ":/res/anonymous.png"; break;
+        case brig::database::CUBRID: icon = ":/res/cubrid.png"; break;
+        case brig::database::DB2: icon = ":/res/db2.png"; break;
+        case brig::database::Informix: icon = ":/res/informix.png"; break;
+        case brig::database::Ingres: icon = ":/res/ingres.png"; break;
+        case brig::database::MS_SQL: icon = ":/res/ms_sql.png"; break;
+        case brig::database::MySQL: icon = ":/res/mysql.png"; break;
+        case brig::database::Oracle: icon = ":/res/oracle.png"; break;
+        case brig::database::Postgres: icon = ":/res/postgres.png"; break;
+        case brig::database::SQLite: icon = ":/res/sqlite.png"; break;
+        }
+        return provider_ptr(new brig::database::provider<true>(allocator), get_string(), icon);
+      }
   }; // provider_allocator
 
   dialog_odbc dlg(this);
@@ -251,12 +266,22 @@ void tree_view::on_connect_oracle()
     QString host;
     int port;
     QString db, usr, pwd;
-    provider_allocator(QString host_, int port_, QString db_, QString usr_, QString pwd_) : host(host_), port(port_), db(db_), usr(usr_), pwd(pwd_)  {}
+    provider_allocator(QString host_, int port_, QString db_, QString usr_, QString pwd_)
+      : host(host_), port(port_), db(db_), usr(usr_), pwd(pwd_)
+      {}
+    QString get_string() override
+      { return QString("%1:%2/%3").arg(host).arg(port).arg(db); }
     provider_ptr allocate() override
     {
       return provider_ptr
-        ( new brig::database::provider<true>(std::make_shared<brig::database::oracle::command_allocator>(host.toUtf8().constData(), port, db.toUtf8().constData(), usr.toUtf8().constData(), pwd.toUtf8().constData()))
-        , QString("%1:%2/%3").arg(host).arg(port).arg(db)
+        ( new brig::database::provider<true>(std::make_shared<brig::database::oracle::command_allocator>
+          ( host.toUtf8().constData()
+          , port
+          , db.toUtf8().constData()
+          , usr.toUtf8().constData()
+          , pwd.toUtf8().constData()
+          ))
+        , get_string()
         , QString(":/res/oracle.png")
         );
     }
@@ -274,19 +299,21 @@ void tree_view::on_connect_osm()
 {
   struct provider_allocator : task_connect::provider_allocator {
     std::shared_ptr<brig::osm::layer> lr;
-    explicit provider_allocator(std::shared_ptr<brig::osm::layer> lr_) : lr(lr_)  {}
+    explicit provider_allocator(std::shared_ptr<brig::osm::layer> lr_)
+      : lr(lr_)
+      {}
+    QString get_string() override
+      { return QString("OSM/%1").arg(lr->get_name().c_str()); }
     provider_ptr allocate() override
-    {
-      return provider_ptr(new brig::osm::provider(lr), QString("OSM/%1").arg(lr->get_name().c_str()), QString(":/res/osm.png"));
-    }
+      { return provider_ptr(new brig::osm::provider(lr), get_string(), QString(":/res/osm.png")); }
   }; // provider_allocator
 
   std::vector<std::shared_ptr<brig::osm::layer>> lrs;
   lrs.push_back(std::make_shared<brig::osm::layer_aerial>());
   lrs.push_back(std::make_shared<brig::osm::layer_cloudmade>());
   lrs.push_back(std::make_shared<brig::osm::layer_cycle>());
-  lrs.push_back(std::make_shared<brig::osm::layer_mapnik>());
   lrs.push_back(std::make_shared<brig::osm::layer_mapquest>());
+  lrs.push_back(std::make_shared<brig::osm::layer_standard>());
 
   QStringList items;
   for (auto lr(begin(lrs)); lr != end(lrs); ++lr)
@@ -300,7 +327,7 @@ void tree_view::on_connect_osm()
     & ~Qt::WindowContextHelpButtonHint
     );
   bool ok(false);
-  QString item(QInputDialog::getItem(wnd, "OpenStreetMap", "Layers", items, 0, false, &ok, flags));
+  QString item(QInputDialog::getItem(wnd, "OpenStreetMap", "Layers", items, items.size() - 1, false, &ok, flags));
   if (ok)
     for (auto lr(begin(lrs)); lr != end(lrs); ++lr)
       if ((*lr)->get_name().compare(item.toUtf8().constData()) == 0)
@@ -317,15 +344,25 @@ void tree_view::on_connect_postgres()
     QString host;
     int port;
     QString db, usr, pwd;
-    provider_allocator(QString host_, int port_, QString db_, QString usr_, QString pwd_) : host(host_), port(port_), db(db_), usr(usr_), pwd(pwd_)  {}
+    provider_allocator(QString host_, int port_, QString db_, QString usr_, QString pwd_)
+      : host(host_), port(port_), db(db_), usr(usr_), pwd(pwd_)
+      {}
+    QString get_string() override
+      { return  QString("%1:%2/%3").arg(host).arg(port).arg(db); }
     provider_ptr allocate() override
-    {
-      return provider_ptr
-        ( new brig::database::provider<true>(std::make_shared<brig::database::postgres::command_allocator>(host.toUtf8().constData(), port, db.toUtf8().constData(), usr.toUtf8().constData(), pwd.toUtf8().constData()))
-        , QString("%1:%2/%3").arg(host).arg(port).arg(db)
-        , QString(":/res/postgres.png")
-        );
-    }
+      {
+        return provider_ptr
+          ( new brig::database::provider<true>(std::make_shared<brig::database::postgres::command_allocator>
+            ( host.toUtf8().constData()
+            , port
+            , db.toUtf8().constData()
+            , usr.toUtf8().constData()
+            , pwd.toUtf8().constData()
+            ))
+          , get_string()
+          , QString(":/res/postgres.png")
+          );
+      }
   }; // provider_allocator
 
   dialog_connect dlg(this, QIcon(":/res/postgres.png"), SettingsPostgres, "gis-lab.info", 5432, "osm_shp", "guest");
@@ -341,24 +378,28 @@ void tree_view::on_open_file()
   struct provider_allocator : task_connect::provider_allocator {
     Provider pvd;
     QString file;
-    provider_allocator(Provider pvd_, QString file_) : pvd(pvd_), file(file_)  {}
+    provider_allocator(Provider pvd_, QString file_)
+      : pvd(pvd_), file(file_)
+      {}
+    QString get_string() override
+      { return file; }
     provider_ptr allocate() override
-    {
-      switch (pvd)
       {
-      default: break;
-      case SQLite:
+        switch (pvd)
         {
-        auto allocator(std::make_shared<brig::database::sqlite::command_allocator>(file.toUtf8().constData()));
-        return provider_ptr(new brig::database::provider<true>(allocator), file, QString(":/res/sqlite.png"));
+        default: break;
+        case SQLite:
+          {
+          auto allocator(std::make_shared<brig::database::sqlite::command_allocator>(file.toUtf8().constData()));
+          return provider_ptr(new brig::database::provider<true>(allocator), file, QString(":/res/sqlite.png"));
+          }
+        case OGR:
+          return provider_ptr(new brig::gdal::ogr::provider(file.toUtf8().constData()), file, QString(":/res/gdal.png"));
+        case GDAL:
+          return provider_ptr(new brig::gdal::provider(file.toUtf8().constData()), file, QString(":/res/gdal.png"));
         }
-      case OGR:
-        return provider_ptr(new brig::gdal::ogr::provider(file.toUtf8().constData()), file, QString(":/res/gdal.png"));
-      case GDAL:
-        return provider_ptr(new brig::gdal::provider(file.toUtf8().constData()), file, QString(":/res/gdal.png"));
+        return provider_ptr();
       }
-      return provider_ptr();
-    }
   }; // provider_allocator
 
   QSettings settings(SettingsIni, QSettings::IniFormat);
@@ -401,24 +442,28 @@ void tree_view::on_new_file()
   struct provider_allocator : task_connect::provider_allocator {
     Provider pvd;
     QString file, drv, fitted_id;
-    provider_allocator(Provider pvd_, QString file_, QString drv_, QString fitted_id_) : pvd(pvd_), file(file_), drv(drv_), fitted_id(fitted_id_)  {}
+    provider_allocator(Provider pvd_, QString file_, QString drv_, QString fitted_id_)
+      : pvd(pvd_), file(file_), drv(drv_), fitted_id(fitted_id_)
+      {}
+    QString get_string() override
+      { return file; }
     provider_ptr allocate() override
-    {
-      switch (pvd)
       {
-      default: break;
-      case SQLite:
+        switch (pvd)
         {
-        auto allocator(std::make_shared<brig::database::sqlite::command_allocator>(file.toUtf8().constData()));
-        std::unique_ptr<brig::database::command> cmd(allocator->allocate());
-        cmd->exec("SELECT InitSpatialMetaData();");
-        return provider_ptr(new brig::database::provider<true>(allocator), file, QString(":/res/sqlite.png"));
+        default: break;
+        case SQLite:
+          {
+          auto allocator(std::make_shared<brig::database::sqlite::command_allocator>(file.toUtf8().constData()));
+          std::unique_ptr<brig::database::command> cmd(allocator->allocate());
+          cmd->exec("SELECT InitSpatialMetaData();");
+          return provider_ptr(new brig::database::provider<true>(allocator), file, QString(":/res/sqlite.png"));
+          }
+        case OGR:
+          return provider_ptr(new brig::gdal::ogr::provider(file.toUtf8().constData(), drv.toUtf8().constData(), fitted_id.toUtf8().constData()), file, QString(":/res/gdal.png"));
         }
-      case OGR:
-        return provider_ptr(new brig::gdal::ogr::provider(file.toUtf8().constData(), drv.toUtf8().constData(), fitted_id.toUtf8().constData()), file, QString(":/res/gdal.png"));
+        return provider_ptr();
       }
-      return provider_ptr();
-    }
   }; // provider_allocator
 
   QSettings settings(SettingsIni, QSettings::IniFormat);
@@ -664,8 +709,13 @@ void tree_view::on_refresh(provider_ptr pvd)
 {
   struct provider_allocator : task_connect::provider_allocator {
     provider_ptr pvd;
-    explicit provider_allocator(provider_ptr pvd_) : pvd(pvd_)  {}
-    provider_ptr allocate() override  { return pvd; }
+    explicit provider_allocator(provider_ptr pvd_)
+      : pvd(pvd_)
+      {}
+    QString get_string() override
+      { return pvd->get_string(); }
+    provider_ptr allocate() override
+      { return pvd; }
   }; // provider_allocator
 
   std::vector<std::shared_ptr<task_connect::provider_allocator>> allocators;

@@ -10,7 +10,7 @@ QString task_extent::get_string()
   return QString("extent of '%1'").arg(m_lr->get_string(true));
 }
 
-void task_extent::do_run(QEventLoop&)
+void task_extent::run_impl()
 {
   using namespace std;
   brig::boost::box box;

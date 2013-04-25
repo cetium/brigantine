@@ -29,7 +29,7 @@ signals:
   void signal_disconnect(provider_ptr pvd);
 
 public:
-  explicit tree_model(QObject* parent = 0);
+  explicit tree_model(QObject* parent);
   int columnCount(const QModelIndex&) const override  { return 1; }
   QVariant data(const QModelIndex& idx, int role = Qt::DisplayRole) const override;
   Qt::ItemFlags flags(const QModelIndex& idx) const override;

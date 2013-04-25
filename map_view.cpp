@@ -164,9 +164,9 @@ void map_view::emit_rendering(const std::vector<layer_ptr>& lrs)
   {
     task_rendering* tsk = new task_rendering(*itr);
     tsk->set_frame(m_view_fr);
-    connect(this, SIGNAL(signal_cancel()), tsk, SLOT(on_cancel()));
+    connect(this, SIGNAL(signal_cancel_all()), tsk, SLOT(on_cancel()));
     connect(tsk, SIGNAL(signal_image(frame, QImage)), this, SLOT(on_image(frame, QImage)));
-    connect(tsk, SIGNAL(signal_finished(QString)), this, SLOT(on_finished(QString)));
+    connect(tsk, SIGNAL(signal_finished()), this, SLOT(on_finished()));
     emit signal_task(std::shared_ptr<task>(tsk));
     ++m_tasks;
   }
@@ -176,7 +176,7 @@ void map_view::emit_rendering(const std::vector<layer_ptr>& lrs)
 
 void map_view::render()
 {
-  emit signal_cancel();
+  emit signal_cancel_all();
   m_back_fr = m_view_fr;
   QImage img(m_back_fr.size(), QImage::Format_ARGB32_Premultiplied);
   QPainter painter(&img);
@@ -199,7 +199,7 @@ void map_view::on_image(frame fr, QImage img)
   m_time.restart();
 }
 
-void map_view::on_finished(QString)
+void map_view::on_finished()
 {
   --m_tasks;
   if (m_tasks > 0) return;

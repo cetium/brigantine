@@ -34,5 +34,7 @@
         <file>res/gdal.png</file>
         <file>res/osm.png</file>
         <file>res/pixels.png</file>
+        <file>res/tasks.png</file>
+        <file>res/tasks_disabled.png</file>
     </qresource>
 </RCC>
