@@ -120,3 +120,6 @@ unix:QMAKE_RPATHDIR +=\
 
 windows:DEFINES +=\
   NOMINMAX
+
+unix:LIBS +=\
+  -ldl
