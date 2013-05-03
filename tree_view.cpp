@@ -73,6 +73,7 @@ static const file_open_def s_filters[] = {
 { OGR, true, "ESRI Shapefiles (*.shp)", "ESRI Shapefile", "shp" },
 { GDAL, false, "GeoTIFF (*.tif *.tiff)", "", "" },
 { OGR, false, "Mapinfo (*.mif *.tab)", "", "" }, // todo:
+{ OGR, false, "OpenStreetMap PBF (*.pbf)", "", "" },
 { OGR, false, "S-57 Base file (*.000)", "", "" },
 { SQLite, true, "SQLite (*.sqlite)", "", "sqlite" },
 { GDAL, false, "USGS ASCII DEM / CDED (*.dem)", "", "" },

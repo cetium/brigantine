@@ -24,6 +24,7 @@ QString task::get_status()
   default: return QString();
   case Waiting: return QString("waiting");
   case Running: return QString("running");
+  case Canceling: return QString("canceling");
   case Canceled: return QString("canceled");
   case Failed: return QString("failed");
   case Complete: return QString("complete");
@@ -80,11 +81,7 @@ void task::set_frame(const frame& fr)
 void task::on_cancel()
 {
   QMutexLocker locker(&m_mtx);
-  if (!is_finished_impl())
-  {
-    m_st = Canceled;
-    m_finish = std::chrono::system_clock::now();
-  }
+  if (!is_finished_impl()) m_st = Canceling;
 }
 
 void task::on_cancel(int id)
@@ -98,35 +95,33 @@ void task::progress(QString msg)
   loop.processEvents();
   QMutexLocker locker(&m_mtx);
   if (!msg.isEmpty()) m_msg = msg;
-  if (is_finished_impl()) throw std::runtime_error("");
+  if (m_st == Canceling) throw std::runtime_error("");
 }
 
 void task::run()
 {
   try
   {
-    progress(QString());
     {
       QMutexLocker locker(&m_mtx);
-      m_st = Running;
+      if (m_st != Canceling) m_st = Running;
     }
+    progress(QString());
     run_impl();
     {
       QMutexLocker locker(&m_mtx);
-      m_st = Complete;
-      m_finish = std::chrono::system_clock::now();
+      if (m_st == Canceling) m_st = Canceled;
+      else m_st = Complete;
     }
   }
   catch (const std::exception& e)
   {
     QMutexLocker locker(&m_mtx);
-    if (!is_finished_impl())
-    {
-      m_st = Failed;
-      m_finish = std::chrono::system_clock::now();
-    }
+    if (m_st == Canceling) m_st = Canceled;
+    else m_st = Failed;
     QString msg = QString::fromUtf8(e.what());
     if (!msg.isEmpty()) m_msg = msg;
   }
+  m_finish = std::chrono::system_clock::now();
   emit signal_finished();
 }

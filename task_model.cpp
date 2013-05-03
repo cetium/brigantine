@@ -109,7 +109,7 @@ void task_model::run(std::shared_ptr<task> tsk)
 
 void task_model::vacuum()
 {
-  std::vector<std::pair<std::chrono::system_clock::time_point, int>> time_to_order;
+  std::vector<std::pair<std::chrono::system_clock::time_point, size_t>> time_to_order;
   for (size_t i(0); i < m_tsks.size(); ++i)
     time_to_order.push_back(std::make_pair(m_tsks[i]->get_finish(), i));
   std::sort(std::begin(time_to_order), std::end(time_to_order));

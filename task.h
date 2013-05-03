@@ -16,6 +16,7 @@ class task : public QObject {
   enum Status {
     Waiting,
     Running,
+    Canceling,
     Canceled,
     Failed,
     Complete

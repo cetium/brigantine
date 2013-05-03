@@ -118,6 +118,7 @@ unix:QMAKE_RPATHDIR +=\
   -fno-tree-vectorize\
   -std=c++0x
 
+# CPL_DISABLE_STDCALL
 windows:DEFINES +=\
   NOMINMAX
 
