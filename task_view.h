@@ -17,16 +17,17 @@ class task_view : public QTableView {
   task_model m_mdl;
   QModelIndex m_idx_menu;
   QAction
-    *m_cancel_all_act,
     *m_cancel_act,
-    *m_separator_act;
+    *m_cancel_all_act,
+    *m_clear_act;
 private slots:
   void emit_progress();
   void emit_idle();
   void on_need_vacuum();
   void on_show_menu(QPoint point);
-  void on_cancel_all();
   void on_cancel();
+  void on_cancel_all();
+  void on_clear();
   void on_finished();
 public slots:
   void on_task(std::shared_ptr<task> tsk);

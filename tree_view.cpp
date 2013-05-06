@@ -2,12 +2,18 @@
 
 #include <algorithm>
 #include <brig/database/mysql/command_allocator.hpp>
+#include <brig/database/mysql/multithread_init.hpp>
 #include <brig/database/odbc/command_allocator.hpp>
+#include <brig/database/odbc/multithread_init.hpp>
 #include <brig/database/oracle/client_version.hpp>
 #include <brig/database/oracle/command_allocator.hpp>
+#include <brig/database/oracle/multithread_init.hpp>
 #include <brig/database/postgres/command_allocator.hpp>
+#include <brig/database/postgres/multithread_init.hpp>
 #include <brig/database/provider.hpp>
 #include <brig/database/sqlite/command_allocator.hpp>
+#include <brig/database/sqlite/multithread_init.hpp>
+#include <brig/gdal/multithread_init.hpp>
 #include <brig/gdal/ogr/provider.hpp>
 #include <brig/gdal/provider.hpp>
 #include <brig/osm/layer_aerial.hpp>
@@ -15,6 +21,7 @@
 #include <brig/osm/layer_cycle.hpp>
 #include <brig/osm/layer_mapquest.hpp>
 #include <brig/osm/layer_standard.hpp>
+#include <brig/osm/multithread_init.hpp>
 #include <brig/osm/provider.hpp>
 #include <QAbstractButton>
 #include <QApplication>
@@ -214,6 +221,7 @@ void tree_view::on_connect_mysql()
   dialog_connect dlg(this, QIcon(":/res/mysql.png"), SettingsMySQL, "192.168.1.152", 3306, "test", "root");
   if (dlg.exec() != QDialog::Accepted) return;
 
+  brig::database::mysql::multithread_init();
   std::vector<std::shared_ptr<task_connect::provider_allocator>> allocators;
   allocators.push_back(std::make_shared<provider_allocator>(dlg.host(), dlg.port(), dlg.db(), dlg.usr(), dlg.pwd()));
   connect_by(allocators);
@@ -239,15 +247,15 @@ void tree_view::on_connect_odbc()
         switch (std::unique_ptr<brig::database::command>(allocator->allocate())->system())
         {
         default: icon = ":/res/anonymous.png"; break;
-        case brig::database::CUBRID: icon = ":/res/cubrid.png"; break;
-        case brig::database::DB2: icon = ":/res/db2.png"; break;
-        case brig::database::Informix: icon = ":/res/informix.png"; break;
-        case brig::database::Ingres: icon = ":/res/ingres.png"; break;
-        case brig::database::MS_SQL: icon = ":/res/ms_sql.png"; break;
-        case brig::database::MySQL: icon = ":/res/mysql.png"; break;
-        case brig::database::Oracle: icon = ":/res/oracle.png"; break;
-        case brig::database::Postgres: icon = ":/res/postgres.png"; break;
-        case brig::database::SQLite: icon = ":/res/sqlite.png"; break;
+        case brig::database::DBMS::CUBRID: icon = ":/res/cubrid.png"; break;
+        case brig::database::DBMS::DB2: icon = ":/res/db2.png"; break;
+        case brig::database::DBMS::Informix: icon = ":/res/informix.png"; break;
+        case brig::database::DBMS::Ingres: icon = ":/res/ingres.png"; break;
+        case brig::database::DBMS::MS_SQL: icon = ":/res/ms_sql.png"; break;
+        case brig::database::DBMS::MySQL: icon = ":/res/mysql.png"; break;
+        case brig::database::DBMS::Oracle: icon = ":/res/oracle.png"; break;
+        case brig::database::DBMS::Postgres: icon = ":/res/postgres.png"; break;
+        case brig::database::DBMS::SQLite: icon = ":/res/sqlite.png"; break;
         }
         return provider_ptr(new brig::database::provider<true>(allocator), get_string(), icon);
       }
@@ -256,6 +264,7 @@ void tree_view::on_connect_odbc()
   dialog_odbc dlg(this);
   if (dlg.exec() != QDialog::Accepted) return;
 
+  brig::database::odbc::multithread_init();
   std::vector<std::shared_ptr<task_connect::provider_allocator>> allocators;
   allocators.push_back(std::make_shared<provider_allocator>(dlg.str()));
   connect_by(allocators);
@@ -291,6 +300,7 @@ void tree_view::on_connect_oracle()
   dialog_connect dlg(this, QIcon(":/res/oracle.png"), SettingsOracle, "192.168.1.152", 1521, "XE", "SYSTEM");
   if (dlg.exec() != QDialog::Accepted) return;
 
+  brig::database::oracle::multithread_init();
   std::vector<std::shared_ptr<task_connect::provider_allocator>> allocators;
   allocators.push_back(std::make_shared<provider_allocator>(dlg.host(), dlg.port(), dlg.db(), dlg.usr(), dlg.pwd()));
   connect_by(allocators);
@@ -333,6 +343,7 @@ void tree_view::on_connect_osm()
     for (auto lr(begin(lrs)); lr != end(lrs); ++lr)
       if ((*lr)->get_name().compare(item.toUtf8().constData()) == 0)
       {
+        brig::osm::multithread_init();
         std::vector<std::shared_ptr<task_connect::provider_allocator>> allocators;
         allocators.push_back(std::make_shared<provider_allocator>(*lr));
         connect_by(allocators);
@@ -369,6 +380,7 @@ void tree_view::on_connect_postgres()
   dialog_connect dlg(this, QIcon(":/res/postgres.png"), SettingsPostgres, "gis-lab.info", 5432, "osm_shp", "guest");
   if (dlg.exec() != QDialog::Accepted) return;
 
+  brig::database::postgres::multithread_init();
   std::vector<std::shared_ptr<task_connect::provider_allocator>> allocators;
   allocators.push_back(std::make_shared<provider_allocator>(dlg.host(), dlg.port(), dlg.db(), dlg.usr(), dlg.pwd()));
   connect_by(allocators);
@@ -425,6 +437,8 @@ void tree_view::on_open_file()
     , [&dlg](const file_open_def& i){ return dlg.selectedNameFilter().compare(i.filter) == 0; }
     )));
   QStringList files(dlg.selectedFiles());
+  brig::database::sqlite::multithread_init();
+  brig::gdal::multithread_init();
   std::vector<std::shared_ptr<task_connect::provider_allocator>> allocators;
   for (int i(0); i < files.size(); ++i)
   {
@@ -603,6 +617,7 @@ void tree_view::on_drop()
   QMessageBox dlg(QApplication::activeWindow());
   dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
   dlg.setWindowIcon(QIcon(":/res/wheel.png"));
+  dlg.setIcon(QMessageBox::Question);
   auto drop(dlg.addButton("drop", QMessageBox::AcceptRole));
   dlg.addButton("cancel", QMessageBox::RejectRole);
   dlg.setText(QString("do you want to drop %1?").arg(lr->get_string()));

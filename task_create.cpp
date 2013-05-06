@@ -63,7 +63,7 @@ void task_create::run_impl()
         item.column_from = col_from.name;
         items.push_back(item);
 
-        if ( brig::Geometry == col_to.type
+        if ( brig::column_type::Geometry == col_to.type
           && typeid(brig::blob_t) == col_to.query_value.type()
            )
         {

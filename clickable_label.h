@@ -5,11 +5,12 @@
 
 #include <QLabel>
 #include <QMouseEvent>
+#include <QObject>
 
 class clickable_label : public QLabel {
   Q_OBJECT
 protected:
-  void mousePressEvent(QMouseEvent* evt) override;
+  void mousePressEvent(QMouseEvent*) override;
 signals:
   void clicked();
 }; // clickable_label

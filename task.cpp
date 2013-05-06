@@ -110,8 +110,7 @@ void task::run()
     run_impl();
     {
       QMutexLocker locker(&m_mtx);
-      if (m_st == Canceling) m_st = Canceled;
-      else m_st = Complete;
+      m_st = Complete;
     }
   }
   catch (const std::exception& e)

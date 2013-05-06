@@ -14,7 +14,7 @@
 task_model::task_model(QObject* parent) : QAbstractItemModel(parent), m_activity(0)
 {
   int threads(QThread::idealThreadCount());
-  if (threads <= 0 || threads > int(brig::PoolSize)) threads = int(brig::PoolSize);
+  if (threads < int(brig::PoolSize)) threads = int(brig::PoolSize);
   QThreadPool::globalInstance()->setMaxThreadCount(threads);
   startTimer(RenderingInterval);
 }
@@ -107,14 +107,24 @@ void task_model::run(std::shared_ptr<task> tsk)
   if (m_activity == 1) emit signal_progress();
 }
 
-void task_model::vacuum()
+void task_model::vacuum(bool force)
 {
-  std::vector<std::pair<std::chrono::system_clock::time_point, size_t>> time_to_order;
-  for (size_t i(0); i < m_tsks.size(); ++i)
-    time_to_order.push_back(std::make_pair(m_tsks[i]->get_finish(), i));
-  std::sort(std::begin(time_to_order), std::end(time_to_order));
-  for (size_t i(0); i < brig::PageSize; ++i)
-    m_tsks[time_to_order[i].second].reset();
+  if (force)
+  {
+    for (size_t i(0); i < m_tsks.size(); ++i)
+      if (m_tsks[i]->is_finished())
+        m_tsks[i].reset();
+  }
+  else
+  {
+    std::vector<std::pair<std::chrono::system_clock::time_point, size_t>> time_to_order;
+    for (size_t i(0); i < m_tsks.size(); ++i)
+      if (m_tsks[i]->is_finished())
+        time_to_order.push_back(std::make_pair(m_tsks[i]->get_finish(), i));
+    std::sort(std::begin(time_to_order), std::end(time_to_order));
+    for (size_t i(0), count(std::min<size_t>(time_to_order.size(), brig::PageSize)); i < count; ++i)
+      m_tsks[time_to_order[i].second].reset();
+  }
 
   beginResetModel();
   auto end = std::remove_if(std::begin(m_tsks), std::end(m_tsks), [](const std::shared_ptr<task>& tsk){ return !bool(tsk); });

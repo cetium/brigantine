@@ -31,7 +31,7 @@ dialog_insert::dialog_insert(QWidget* parent, layer_ptr lr_from, layer_ptr lr_to
 
     QStringList cols_from;
     for (auto col_from(std::begin(tbl_from.columns)); col_from != std::end(tbl_from.columns); ++col_from)
-      if (brig::VoidColumn != col_from->type)
+      if (brig::column_type::Void != col_from->type)
         cols_from.append(QString::fromUtf8(col_from->name.c_str()));
     cols_from.append(QString());
 
@@ -39,7 +39,7 @@ dialog_insert::dialog_insert(QWidget* parent, layer_ptr lr_from, layer_ptr lr_to
     int row(0);
     for (auto col_to(std::begin(tbl_to.columns)); col_to != std::end(tbl_to.columns); ++col_to)
     {
-      if (brig::VoidColumn == col_to->type) continue;
+      if (brig::column_type::Void == col_to->type) continue;
 
       QLabel* lbl(new QLabel);
       lbl->setText(QString::fromUtf8(col_to->name.c_str()));
@@ -54,7 +54,7 @@ dialog_insert::dialog_insert(QWidget* parent, layer_ptr lr_from, layer_ptr lr_to
       else combo->setCurrentIndex(pos);
       grid->addWidget(combo, row, 1);
 
-      if (brig::Geometry == col_to->type && col_to->epsg <= 0)
+      if (brig::column_type::Geometry == col_to->type && col_to->epsg <= 0)
       {
         QLineEdit* edit(new QLineEdit);
         edit->setValidator(new QIntValidator(0, INT_MAX, this));

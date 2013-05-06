@@ -82,6 +82,7 @@ void sql_view::on_run()
   QMessageBox dlg(QApplication::activeWindow());
   dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
   dlg.setWindowIcon(QIcon(":/res/wheel.png"));
+  dlg.setIcon(QMessageBox::Question);
   auto exec_btn(dlg.addButton("exec", QMessageBox::AcceptRole));
   auto fetch_btn(dlg.addButton("fetch", QMessageBox::AcceptRole));
   dlg.addButton("cancel", QMessageBox::RejectRole);

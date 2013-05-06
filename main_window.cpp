@@ -3,18 +3,11 @@
 #include <algorithm>
 #include <boost/version.hpp>
 #include <brig/database/mysql/client_version.hpp>
-#include <brig/database/mysql/multithread_init.hpp>
 #include <brig/database/odbc/drivers.hpp>
-#include <brig/database/odbc/multithread_init.hpp>
 #include <brig/database/oracle/client_version.hpp>
-#include <brig/database/oracle/multithread_init.hpp>
 #include <brig/database/postgres/client_version.hpp>
-#include <brig/database/postgres/multithread_init.hpp>
 #include <brig/database/sqlite/version.hpp>
-#include <brig/database/sqlite/multithread_init.hpp>
-#include <brig/gdal/multithread_init.hpp>
 #include <brig/gdal/version.hpp>
-#include <brig/osm/multithread_init.hpp>
 #include <brig/osm/version.hpp>
 #include <brig/proj/multithread_init.hpp>
 #include <brig/proj/version.hpp>
@@ -42,13 +35,6 @@
 
 main_window::main_window()
 {
-  brig::database::mysql::multithread_init();
-  brig::database::odbc::multithread_init();
-  brig::database::oracle::multithread_init();
-  brig::database::postgres::multithread_init();
-  brig::database::sqlite::multithread_init();
-  brig::gdal::multithread_init();
-  brig::osm::multithread_init();
   brig::proj::multithread_init();
 
   tree_view* tree(new tree_view(0));

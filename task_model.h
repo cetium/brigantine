@@ -42,9 +42,9 @@ public:
 
   std::shared_ptr<task> get_task(const QModelIndex& index) const;
   void run(std::shared_ptr<task> tsk);
-  void vacuum();
-  void emit_cancel_all()  { emit signal_cancel_all(); }
+  void vacuum(bool force);
   void emit_cancel(int id)  { emit signal_cancel(id); }
+  void emit_cancel_all()  { emit signal_cancel_all(); }
 }; // task_model
 
 #endif // TASK_MODEL_H

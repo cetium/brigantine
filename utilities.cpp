@@ -57,6 +57,7 @@ void show_message(const char* msg)
   QMessageBox dlg;
   dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
   dlg.setWindowIcon(QIcon(":/res/wheel.png"));
+  dlg.setIcon(QMessageBox::Information);
   dlg.setText(QString::fromUtf8(msg));
   dlg.exec();
 }

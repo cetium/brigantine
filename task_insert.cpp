@@ -50,7 +50,7 @@ void task_insert::run_impl()
         col_to->epsg = col_from->epsg;
       }
 
-      if (col_to->type == brig::Geometry && m_ccw)
+      if (col_to->type == brig::column_type::Geometry && m_ccw)
         ccw_cols.push_back( int(tbl_from.query_columns.size()) );
 
       if (col_from->epsg != col_to->epsg)
