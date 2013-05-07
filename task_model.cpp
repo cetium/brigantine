@@ -12,7 +12,9 @@
 #include "utilities.h"
 
 task_model::task_model(QObject* parent) : QAbstractItemModel(parent), m_activity(0)
-{}
+{
+  startTimer(RenderingInterval);
+}
 
 task_model::~task_model()
 {
