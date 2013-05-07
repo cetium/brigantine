@@ -34,6 +34,7 @@ public:
   brig::table_def get_table_def(const brig::identifier& tbl) override;
   brig::boost::box get_extent(const brig::table_def& tbl) override  { return m_pvd->get_extent(tbl); }
   std::shared_ptr<brig::rowset> select(const brig::table_def& tbl) override  { return m_pvd->select(tbl); }
+  bool is_readonly() override  { return m_pvd->is_readonly(); }
   brig::table_def fit_to_create(const brig::table_def& tbl) override  { return m_pvd->fit_to_create(tbl); }
   void create(const brig::table_def& tbl) override  { m_pvd->create(tbl); }
   void drop(const brig::table_def& tbl) override  { m_pvd->drop(tbl); }

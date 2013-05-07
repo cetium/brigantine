@@ -12,12 +12,7 @@
 #include "utilities.h"
 
 task_model::task_model(QObject* parent) : QAbstractItemModel(parent), m_activity(0)
-{
-  int threads(QThread::idealThreadCount());
-  if (threads < int(brig::PoolSize)) threads = int(brig::PoolSize);
-  QThreadPool::globalInstance()->setMaxThreadCount(threads);
-  startTimer(RenderingInterval);
-}
+{}
 
 task_model::~task_model()
 {

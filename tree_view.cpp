@@ -532,10 +532,19 @@ void tree_view::on_copy()
 
 void tree_view::on_update()
 {
-  m_drop_act->setEnabled(m_mdl.is_layer(m_idx_menu));
-  m_paste_rows_act->setEnabled(m_drop_act->isEnabled() && (m_lrs_copy.size() == 1) && m_mdl.is_layer(m_idx_menu) && m_mdl.get_layer(m_idx_menu)->get_levels() == m_lrs_copy.front()->get_levels());
-  m_paste_layers_act->setEnabled(m_mdl.is_provider(m_idx_menu) && !m_lrs_copy.empty());
-  m_copy_checked_act->setEnabled(m_mdl.has_checked());
+  auto lr(m_mdl.get_layer(m_idx_menu));
+  m_paste_layers_act->setEnabled
+    (  m_mdl.is_provider(m_idx_menu)
+    && !m_lrs_copy.empty()
+    );
+  m_drop_act->setEnabled
+    (  bool(lr)
+    );
+  m_paste_rows_act->setEnabled
+    (  bool(lr)
+    && m_lrs_copy.size() == 1
+    && lr->get_levels() == m_lrs_copy.front()->get_levels()
+    );
 }
 
 void tree_view::on_show_menu(QPoint point)
@@ -548,7 +557,7 @@ void tree_view::on_show_menu(QPoint point)
   {
     actions.append(m_refresh_act);
     if (m_mdl.get_provider(m_idx_menu)->is_database()) actions.append(m_sql_console_act);
-    actions.append(m_paste_layers_act);
+    if (!m_mdl.get_provider(m_idx_menu)->is_readonly()) actions.append(m_paste_layers_act);
     actions.append(m_disconnect_act);
     actions.append(m_separator1_act);
   }
@@ -559,8 +568,11 @@ void tree_view::on_show_menu(QPoint point)
     if (m_mdl.get_layer(m_idx_menu)->is_raster()) actions.append(m_snap_to_pixels_act);
     actions.append(m_attributes_act);
     actions.append(m_copy_act);
-    actions.append(m_paste_rows_act);
-    actions.append(m_drop_act);
+    if (!m_mdl.get_layer(m_idx_menu)->get_provider()->is_readonly())
+    {
+      actions.append(m_paste_rows_act);
+      actions.append(m_drop_act);
+    }
     actions.append(m_separator1_act);
   }
   actions.append(m_connect_mysql_act);
