@@ -8,6 +8,7 @@
 #include <brig/database/postgres/client_version.hpp>
 #include <brig/database/sqlite/version.hpp>
 #include <brig/gdal/version.hpp>
+#include <brig/global.hpp>
 #include <brig/osm/version.hpp>
 #include <brig/proj/multithread_init.hpp>
 #include <brig/proj/version.hpp>
@@ -198,16 +199,24 @@ void main_window::keyPressEvent(QKeyEvent* event)
     QStringList props;
     props.append(QString("brigantine: %1, %2-bit").arg(__DATE__).arg(sizeof(void*) * 8));
     props.append(QString());
-    props.append(QString("Qt: ") + qVersion());
+    props.append(QString("Qt: %1").arg(qVersion()));
     props.append(QString("Boost: %1.%2.%3").arg(BOOST_VERSION / 100000).arg((BOOST_VERSION / 100) % 1000).arg(BOOST_VERSION % 100));
-    if (!brig::proj::version().empty()) props.append(QString::fromStdString("Proj: " + brig::proj::version()));
-    if (!brig::gdal::version().empty()) props.append(QString::fromStdString("GDAL: " + brig::gdal::version()));
-    if (!brig::osm::curl_version().empty()) props.append(QString::fromStdString("cURL: " + brig::osm::curl_version()));
-    if (!brig::database::sqlite::sqlite3_libversion().empty()) props.append(QString::fromStdString("SQLite: " + brig::database::sqlite::sqlite3_libversion()));
-    if (!brig::database::sqlite::spatialite_version().empty()) props.append(QString::fromStdString("SpatiaLite: " + brig::database::sqlite::spatialite_version()));
-    if (!brig::database::mysql::client_version().empty()) props.append(QString::fromStdString("MySQL client: " + brig::database::mysql::client_version()));
-    if (!brig::database::oracle::client_version().empty()) props.append(QString::fromStdString("Oracle client: " + brig::database::oracle::client_version()));
-    if (!brig::database::postgres::client_version().empty()) props.append(QString::fromStdString("Postgres client: " + brig::database::postgres::client_version()));
+    if (!brig::proj::version().empty())
+      props.append(QString::fromStdString("Proj: " + brig::proj::version()));
+    if (!brig::gdal::version().empty())
+      props.append(QString::fromStdString("GDAL: " + brig::gdal::version()));
+    if (!brig::osm::curl_version().empty())
+      props.append(QString::fromStdString("cURL: " + brig::osm::curl_version()));
+    if (!brig::database::sqlite::sqlite3_libversion().empty())
+      props.append(QString::fromStdString("SQLite: " + brig::database::sqlite::sqlite3_libversion()));
+    if (!brig::database::sqlite::spatialite_version().empty())
+      props.append(QString::fromStdString("SpatiaLite: " + brig::database::sqlite::spatialite_version()));
+    if (!brig::database::mysql::client_version().empty())
+      props.append(QString::fromStdString("MySQL client: " + brig::database::mysql::client_version()));
+    if (!brig::database::oracle::client_version().empty())
+      props.append(QString::fromStdString("Oracle client: " + brig::database::oracle::client_version()));
+    if (!brig::database::postgres::client_version().empty())
+      props.append(QString::fromStdString("Postgres client: " + brig::database::postgres::client_version()));
     vector<string> drvs;
     brig::database::odbc::drivers(drvs);
     if (!drvs.empty())
@@ -217,6 +226,7 @@ void main_window::keyPressEvent(QKeyEvent* event)
       for (auto i(begin(drvs)); i != end(drvs); ++i)
         props.append(QString::fromStdString("- " + *i));
     }
+    props.append(QString("brig: %1").arg(brig::LibVersion));
     props.append(QString());
     props.append("andrew.naplavkov@gmail.com");
     props.append("lordnn@yahoo.com");
