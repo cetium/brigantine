@@ -58,14 +58,14 @@
 #include "tree_view.h"
 #include "utilities.h"
 
-enum Provider {
-  SQLite = 0,
+enum class provider_type {
+  SQLite,
   OGR,
   GDAL
 };
 
 struct file_open_def {
-  Provider pvd;
+  provider_type pvd;
   bool writable;
   const char* filter;
   const char* code;
@@ -73,17 +73,18 @@ struct file_open_def {
 };
 
 static const file_open_def s_filters[] = {
-{ OGR, false, "Arc/Info ASCII Coverage (*.e00)", "", "" },
-{ GDAL, false, "Arc/Info Binary Grid (hdr.adf)", "", "" },
-{ GDAL, false, "DTED - Military Elevation Data (*.dt0 *.dt1 *.dt2)", "", "" },
-{ GDAL, false, "ESRI hdr Labelled (*.bil)", "", "" },
-{ OGR, true, "ESRI Shapefiles (*.shp)", "ESRI Shapefile", "shp" },
-{ GDAL, false, "GeoTIFF (*.tif *.tiff)", "", "" },
-{ OGR, false, "Mapinfo (*.mif *.tab)", "", "" }, // todo:
-{ OGR, false, "OpenStreetMap PBF (*.pbf)", "", "" },
-{ OGR, false, "S-57 Base file (*.000)", "", "" },
-{ SQLite, true, "SQLite (*.sqlite)", "", "sqlite" },
-{ GDAL, false, "USGS ASCII DEM / CDED (*.dem)", "", "" },
+{ provider_type::OGR, false, "Arc/Info ASCII Coverage (*.e00)", "AVCE00", "" },
+{ provider_type::GDAL, false, "Arc/Info Binary Grid (hdr.adf)", "AIG", "" },
+{ provider_type::GDAL, false, "DTED - Military Elevation Data (*.dt0 *.dt1 *.dt2)", "DTED", "" },
+{ provider_type::GDAL, false, "ESRI hdr Labelled (*.bil)", "EHdr", "" },
+{ provider_type::OGR, true, "ESRI Shapefiles (*.shp)", "ESRI Shapefile", "shp" },
+{ provider_type::GDAL, false, "GeoTIFF (*.tif *.tiff)", "GTiff", "" },
+{ provider_type::OGR, false, "GPX (*.gpx)", "GPX", "" }, // layers: waypoints, routes, tracks, ...
+{ provider_type::OGR, false, "Mapinfo (*.mif *.tab)", "MapInfo File", "" }, // update of existing files is not currently supported (1.10)
+{ provider_type::OGR, false, "OpenStreetMap PBF (*.pbf)", "OSM", "" },
+{ provider_type::OGR, false, "S-57 Base file (*.000)", "S57", "" },
+{ provider_type::SQLite, true, "SQLite (*.sqlite)", "", "sqlite" },
+{ provider_type::GDAL, false, "USGS ASCII DEM / CDED (*.dem)", "USGSDEM", "" },
 };
 
 tree_view::tree_view(QWidget* parent) : QTreeView(parent), m_mdl(0)
@@ -389,9 +390,9 @@ void tree_view::on_connect_postgres()
 void tree_view::on_open_file()
 {
   struct provider_allocator : task_connect::provider_allocator {
-    Provider pvd;
+    provider_type pvd;
     QString file;
-    provider_allocator(Provider pvd_, QString file_)
+    provider_allocator(provider_type pvd_, QString file_)
       : pvd(pvd_), file(file_)
       {}
     QString get_string() override
@@ -401,14 +402,14 @@ void tree_view::on_open_file()
         switch (pvd)
         {
         default: break;
-        case SQLite:
+        case provider_type::SQLite:
           {
           auto allocator(std::make_shared<brig::database::sqlite::command_allocator>(file.toUtf8().constData()));
           return provider_ptr(new brig::database::provider<true>(allocator), file, QString(":/res/sqlite.png"));
           }
-        case OGR:
+        case provider_type::OGR:
           return provider_ptr(new brig::gdal::ogr::provider(file.toUtf8().constData()), file, QString(":/res/gdal.png"));
-        case GDAL:
+        case provider_type::GDAL:
           return provider_ptr(new brig::gdal::provider(file.toUtf8().constData()), file, QString(":/res/gdal.png"));
         }
         return provider_ptr();
@@ -421,7 +422,7 @@ void tree_view::on_open_file()
     filters << iter->filter;
   QFileDialog dlg
     ( this
-    , "new file"
+    , "open files"
     , settings.value(QString("%1/%2").arg(SettingsFileOpen).arg(SettingsPath), QDir::currentPath()).toString()
     );
   dlg.setAcceptMode(QFileDialog::AcceptOpen);
@@ -455,9 +456,9 @@ void tree_view::on_open_file()
 void tree_view::on_new_file()
 {
   struct provider_allocator : task_connect::provider_allocator {
-    Provider pvd;
+    provider_type pvd;
     QString file, drv, fitted_id;
-    provider_allocator(Provider pvd_, QString file_, QString drv_, QString fitted_id_)
+    provider_allocator(provider_type pvd_, QString file_, QString drv_, QString fitted_id_)
       : pvd(pvd_), file(file_), drv(drv_), fitted_id(fitted_id_)
       {}
     QString get_string() override
@@ -467,14 +468,14 @@ void tree_view::on_new_file()
         switch (pvd)
         {
         default: break;
-        case SQLite:
+        case provider_type::SQLite:
           {
           auto allocator(std::make_shared<brig::database::sqlite::command_allocator>(file.toUtf8().constData()));
           std::unique_ptr<brig::database::command> cmd(allocator->allocate());
           cmd->exec("SELECT InitSpatialMetaData();");
           return provider_ptr(new brig::database::provider<true>(allocator), file, QString(":/res/sqlite.png"));
           }
-        case OGR:
+        case provider_type::OGR:
           return provider_ptr(new brig::gdal::ogr::provider(file.toUtf8().constData(), drv.toUtf8().constData(), fitted_id.toUtf8().constData()), file, QString(":/res/gdal.png"));
         }
         return provider_ptr();
