@@ -73,18 +73,22 @@ struct file_open_def {
 };
 
 static const file_open_def s_filters[] = {
+{ provider_type::OGR, false, "Aeronav FAA Digital Obstacle File (DOF.dat)", "AeronavFAA", "" },
 { provider_type::OGR, false, "Arc/Info ASCII Coverage (*.e00)", "AVCE00", "" },
 { provider_type::GDAL, false, "Arc/Info Binary Grid (hdr.adf)", "AIG", "" },
 { provider_type::GDAL, false, "DTED - Military Elevation Data (*.dt0 *.dt1 *.dt2)", "DTED", "" },
 { provider_type::GDAL, false, "ESRI hdr Labelled (*.bil)", "EHdr", "" },
-{ provider_type::OGR, true, "ESRI Shapefiles (*.shp)", "ESRI Shapefile", "shp" },
+{ provider_type::OGR, true, "ESRI Shapefile (*.shp)", "ESRI Shapefile", "shp" },
+{ provider_type::OGR, false, "GeoRSS (*.xml)", "GeoRSS", "" }, // update of existing files is not supported (1.10)
 { provider_type::GDAL, false, "GeoTIFF (*.tif *.tiff)", "GTiff", "" },
-{ provider_type::OGR, false, "GPX (*.gpx)", "GPX", "" }, // layers: waypoints, routes, tracks, ...
+{ provider_type::OGR, false, "GPS eXchange Format (*.gpx)", "GPX", "" }, // update of existing files is not currently supported (1.10)
+{ provider_type::OGR, false, "Idrisi Vector (*.vct)", "Idrisi", "" },
 { provider_type::OGR, false, "Mapinfo (*.mif *.tab)", "MapInfo File", "" }, // update of existing files is not currently supported (1.10)
 { provider_type::OGR, false, "OpenStreetMap PBF (*.pbf)", "OSM", "" },
 { provider_type::OGR, false, "S-57 Base file (*.000)", "S57", "" },
 { provider_type::SQLite, true, "SQLite (*.sqlite)", "", "sqlite" },
 { provider_type::GDAL, false, "USGS ASCII DEM / CDED (*.dem)", "USGSDEM", "" },
+{ provider_type::OGR, false, "X-Plane/Flightgear (apt.dat *nav.dat *fix.dat *awy.dat)", "XPLANE", ""},
 };
 
 tree_view::tree_view(QWidget* parent) : QTreeView(parent), m_mdl(0)
@@ -430,6 +434,7 @@ void tree_view::on_open_file()
   dlg.setNameFilters(filters);
   dlg.selectNameFilter(settings.value(QString("%1/%2").arg(SettingsFileOpen).arg(SettingsFilter), QString(s_filters[0].filter)).toString());
   dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
+  dlg.setOption(QFileDialog::HideNameFilterDetails, true);
   if (dlg.exec() != QDialog::Accepted) return;
 
   const size_t filter_selected(std::distance(std::begin(s_filters), std::find_if
