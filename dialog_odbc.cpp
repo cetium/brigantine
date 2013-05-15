@@ -37,9 +37,9 @@ void dialog_odbc::on_file_button_clicked()
     , settings.value(QString("%1/%2").arg(SettingsODBC).arg(SettingsPath), QDir::currentPath()).toString()
     , "DSN files (*.dsn)"
     );
+  dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
   dlg.setAcceptMode(QFileDialog::AcceptOpen);
   dlg.setFileMode(QFileDialog::ExistingFile);
-  dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
   if (dlg.exec() != QDialog::Accepted) return;
 
   settings.setValue(QString("%1/%2").arg(SettingsODBC).arg(SettingsPath), QFileInfo(dlg.selectedFiles()[0]).absolutePath());

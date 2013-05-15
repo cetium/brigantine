@@ -169,9 +169,9 @@ void sql_view::on_open()
     , settings.value(QString("%1/%2").arg(SettingsSQL).arg(SettingsPath), QDir::currentPath()).toString()
     , "SQL files (*.sql);;All files (*.*)"
     );
+  dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
   dlg.setAcceptMode(QFileDialog::AcceptOpen);
   dlg.setFileMode(QFileDialog::ExistingFile);
-  dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
   if (dlg.exec() != QDialog::Accepted) return;
 
   settings.setValue(QString("%1/%2").arg(SettingsSQL).arg(SettingsPath), QFileInfo(dlg.selectedFiles()[0]).absolutePath());
@@ -190,9 +190,9 @@ void sql_view::on_save()
     , settings.value(QString("%1/%2").arg(SettingsSQL).arg(SettingsPath), QDir::currentPath()).toString()
     , "SQL files (*.sql)"
     );
+  dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
   dlg.setAcceptMode(QFileDialog::AcceptSave);
   dlg.setFileMode(QFileDialog::AnyFile);
-  dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
   if (!dlg.exec()) return;
 
   settings.setValue(QString("%1/%2").arg(SettingsSQL).arg(SettingsPath), QFileInfo(dlg.selectedFiles()[0]).absolutePath());
