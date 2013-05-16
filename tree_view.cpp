@@ -88,10 +88,15 @@ static const file_open_def s_filters[] = {
 { provider_type::OGR, false, "[OGR] X-Plane/Flightgear (apt.dat *nav.dat *fix.dat *awy.dat)", "XPLANE", ""},
 { provider_type::OGR, false, "[OGR] Any file (*)", "", ""},
 { provider_type::GDAL, false, "[GDAL] Arc/Info Binary Grid (hdr.adf)", "AIG", "" },
+{ provider_type::GDAL, false, "[GDAL] Arc/Info Export E00 GRID (*.e00)", "E00GRID", "" },
 { provider_type::GDAL, false, "[GDAL] DTED - Military Elevation Data (*.dt0 *.dt1 *.dt2)", "DTED", "" },
+{ provider_type::GDAL, false, "[GDAL] Erdas Imagine (*.img)", "HFA", "" },
 { provider_type::GDAL, false, "[GDAL] ESRI hdr Labelled (*.bil)", "EHdr", "" },
 { provider_type::GDAL, false, "[GDAL] GeoTIFF (*.tif *.tiff)", "GTiff", "" },
+{ provider_type::GDAL, false, "[GDAL] National Imagery Transmission Format (*.ntf)", "NITF", "" },
+{ provider_type::GDAL, false, "[GDAL] SRTM HGT Format (*.hgt)", "SRTMHGT", "" },
 { provider_type::GDAL, false, "[GDAL] USGS ASCII DEM / CDED (*.dem)", "USGSDEM", "" },
+{ provider_type::GDAL, false, "[GDAL] VTP .bt Binary Terrain Format (*.bt)", "BT", "" },
 { provider_type::GDAL, false, "[GDAL] Any file (*)", "", ""},
 };
 
