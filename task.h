@@ -45,6 +45,7 @@ public:
   std::chrono::system_clock::time_point get_finish();
   int get_milliseconds();
   QString get_status();
+  bool is_canceling();
   bool is_finished();
   QString get_message();
   frame get_frame();

@@ -26,19 +26,21 @@ class map_view : public QWidget {
   QPoint m_press_event;
   size_t m_tasks;
   QTime m_time;
+  std::vector<std::shared_ptr<task>> m_deferred_rendering;
 
   void emit_rendering(const std::vector<layer_ptr>& lrs);
   void render();
   void sync();
 
 protected:
-  void paintEvent(QPaintEvent* event) override;
-  void resizeEvent(QResizeEvent* event) override;
   void wheelEvent(QWheelEvent* event) override;
   void mousePressEvent(QMouseEvent* event) override;
   void mouseMoveEvent(QMouseEvent* event) override;
   void mouseReleaseEvent(QMouseEvent* event) override;
   void leaveEvent(QEvent*) override  { emit signal_coords(""); }
+  void paintEvent(QPaintEvent* event) override;
+  void resizeEvent(QResizeEvent* event) override;
+  void showEvent(QShowEvent* event) override;
 
 private slots:
   void on_image(frame fr, QImage img);

@@ -40,17 +40,6 @@ map_view::map_view(QWidget* parent) : QWidget(parent), m_sync(false), m_tasks(0)
   catch (const std::exception&)  {}
 }
 
-void map_view::resizeEvent(QResizeEvent* event)
-{
-  if (m_view_fr.size() == event->size()) return;
-  try
-  {
-    m_view_fr = frame(m_view_fr.center(), m_view_fr.scale(), event->size(), m_view_fr.get_pj());
-    render();
-  }
-  catch (const std::exception&)  {}
-}
-
 void map_view::wheelEvent(QWheelEvent* event)
 {
   try
@@ -147,6 +136,35 @@ void map_view::paintEvent(QPaintEvent*)
   }
 }
 
+void map_view::resizeEvent(QResizeEvent* event)
+{
+  if (m_view_fr.size() == event->size()) return;
+  try
+  {
+    m_view_fr = frame(m_view_fr.center(), m_view_fr.scale(), event->size(), m_view_fr.get_pj());
+    render();
+  }
+  catch (const std::exception&)  {}
+}
+
+void map_view::showEvent(QShowEvent* event)
+{
+  QWidget::showEvent(event);
+  auto tasks = m_tasks;
+  for (auto& tsk: m_deferred_rendering)
+  {
+    if (tsk->is_canceling()) continue;
+    emit signal_task(tsk);
+    ++m_tasks;
+  }
+  m_deferred_rendering.clear();
+  if (m_tasks > tasks)
+  {
+    emit signal_progress();
+    m_time.restart();
+  }
+}
+
 void map_view::sync()
 {
   if (m_sync || m_view_fr != m_back_fr) return;
@@ -158,20 +176,34 @@ void map_view::sync()
 
 void map_view::emit_rendering(const std::vector<layer_ptr>& lrs)
 {
+  using namespace std;
+
+  auto itr = remove_if(begin(m_deferred_rendering), end(m_deferred_rendering), [](const shared_ptr<task>& tsk){ return tsk->is_canceling(); });
+  m_deferred_rendering.resize(distance(begin(m_deferred_rendering), itr));
+
+  auto tasks = m_tasks;
   qRegisterMetaType<frame>("frame");
   qRegisterMetaType<QImage>("QImage");
-  for (auto itr(std::begin(lrs)); itr != std::end(lrs); ++itr)
+  for (auto& lr: lrs)
   {
-    task_rendering* tsk = new task_rendering(*itr);
+    task_rendering* tsk = new task_rendering(lr);
     tsk->set_frame(m_view_fr);
     connect(this, SIGNAL(signal_cancel_all()), tsk, SLOT(on_cancel()));
     connect(tsk, SIGNAL(signal_image(frame, QImage)), this, SLOT(on_image(frame, QImage)));
     connect(tsk, SIGNAL(signal_finished()), this, SLOT(on_finished()));
-    emit signal_task(std::shared_ptr<task>(tsk));
-    ++m_tasks;
+    if (isVisible())
+    {
+      emit signal_task(std::shared_ptr<task>(tsk));
+      ++m_tasks;
+    }
+    else
+      m_deferred_rendering.push_back(std::shared_ptr<task>(tsk));
   }
-  emit signal_progress();
-  m_time.restart();
+  if (m_tasks > tasks)
+  {
+    emit signal_progress();
+    m_time.restart();
+  }
 }
 
 void map_view::render()

@@ -31,6 +31,12 @@ QString task::get_status()
   }
 }
 
+bool task::is_canceling()
+{
+  QMutexLocker locker(&m_mtx);
+  return m_st == Canceling;
+}
+
 bool task::is_finished_impl() const
 {
   switch (m_st)
