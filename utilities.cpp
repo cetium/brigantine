@@ -4,6 +4,7 @@
 #include <QIcon>
 #include <QMessageBox>
 #include <QPointF>
+#include <stdexcept>
 #include "transformer.h"
 #include "utilities.h"
 
@@ -19,7 +20,9 @@ brig::boost::box rect_to_box(const QRectF& rect)
 
 projection get_pj(const brig::column_def& col)
 {
-  return col.epsg < 0? projection(col.proj): projection(col.epsg);
+  if (col.epsg > 0) return projection(col.epsg);
+  else if (!col.proj.empty()) return projection(col.proj);
+  else throw std::exception("unknown projection");
 }
 
 projection latlon()
@@ -36,9 +39,9 @@ QRectF world(const projection& pj)
 QString rich_text(const QString& icon, const QString& txt, bool icon_suffix)
 {
   if (icon_suffix)
-    return txt + " <img src=\"" + icon + "\" width=\"16\" height=\"16\"/> ";
+    return QString("%1 <img src=\"%2\" width=\"16\" height=\"16\"/> ").arg(txt).arg(icon);
   else
-    return " <img src=\"" + icon + "\" width=\"16\" height=\"16\"/> " + txt;
+    return QString(" <img src=\"%1\" width=\"16\" height=\"16\"/> %2").arg(icon).arg(txt);
 }
 
 QString limited_text(QString txt, bool suffix)
