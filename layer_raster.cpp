@@ -21,8 +21,6 @@ layer_raster::layer_raster(provider_ptr pvd, const brig::pyramid_def& raster, co
 
 brig::table_def layer_raster::get_table_def(size_t lvl)
 {
-  using namespace std;
-
   auto tbl
     ( m_tbls.empty()
     ? get_provider()->get_table_def(m_raster.levels[lvl].geometry)
@@ -31,11 +29,11 @@ brig::table_def layer_raster::get_table_def(size_t lvl)
   if (!m_raster.levels[lvl].raster.query_expression.empty())
     tbl.columns.push_back(m_raster.levels[lvl].raster);
 
-  for (auto cnd(begin(m_raster.levels[lvl].query_conditions)); cnd != end(m_raster.levels[lvl].query_conditions); ++cnd)
+  for (const auto& cnd: m_raster.levels[lvl].query_conditions)
   {
-    auto col(tbl[cnd->name]);
-    if (!cnd->query_expression.empty()) col->query_expression = cnd->query_expression;
-    col->query_value = cnd->query_value;
+    auto col(tbl[cnd.name]);
+    if (!cnd.query_expression.empty()) col->query_expression = cnd.query_expression;
+    col->query_value = cnd.query_value;
   }
   return tbl;
 }

@@ -2,7 +2,6 @@
 
 #include <brig/string_cast.hpp>
 #include <exception>
-#include <iterator>
 #include <QAbstractButton>
 #include <QApplication>
 #include <QFile>
@@ -136,10 +135,10 @@ void sql_view::on_sql(provider_ptr pvd, std::vector<std::string> sqls)
     m_title->setToolTip(m_pvd->get_string());
     m_run->setEnabled(true);
     m_info->setEnabled(true);
-    for (auto sql(std::begin(sqls)); sql != std::end(sqls); ++sql)
+    for (const auto& sql: sqls)
     {
       m_sql->append("");
-      m_sql->append(QString("-- %1").arg(QString::fromUtf8(sql->c_str())));
+      m_sql->append(QString("-- %1").arg(QString::fromUtf8(sql.c_str())));
     }
     emit signal_sql();
   }

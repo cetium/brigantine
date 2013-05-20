@@ -14,13 +14,11 @@ void task_tables::run_impl()
   shared_ptr<rowset_model> mdl(new rowset_model(0));
   mdl->m_columns.push_back("SCHEMA");
   mdl->m_columns.push_back("TABLE");
-  auto ids(m_pvd->get_tables());
-  size_t counter(1);
-  for (auto id(begin(ids)); id != end(ids); ++id, ++counter)
+  for (const auto& id: m_pvd->get_tables())
   {
     vector<string> strs;
-    strs.push_back(id->schema);
-    strs.push_back(id->name);
+    strs.push_back(id.schema);
+    strs.push_back(id.name);
     mdl->m_rows.push_back(move(strs));
   }
   emit signal_rowset(mdl);

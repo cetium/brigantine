@@ -198,9 +198,9 @@ void tree_view::connect_by(const std::vector<std::shared_ptr<task_connect::provi
 {
   qRegisterMetaType<provider_ptr>("provider_ptr");
   qRegisterMetaType<std::vector<layer_ptr>>("std::vector<layer_ptr>");
-  for (auto itr(std::begin(allocators)); itr != std::end(allocators); ++itr)
+  for (auto allocator: allocators)
   {
-    task_connect* tsk(new task_connect(*itr));
+    task_connect* tsk(new task_connect(allocator));
     connect(tsk, SIGNAL(signal_connected(provider_ptr, std::vector<layer_ptr>)), &m_mdl, SLOT(on_connected(provider_ptr, std::vector<layer_ptr>)));
     emit signal_task(std::shared_ptr<task>(tsk));
   }
@@ -341,8 +341,8 @@ void tree_view::on_connect_osm()
   lrs.push_back(std::make_shared<brig::osm::layer_standard>());
 
   QStringList items;
-  for (auto lr(begin(lrs)); lr != end(lrs); ++lr)
-    items.push_back(QString::fromUtf8((*lr)->get_name().c_str()));
+  for (const auto& lr: lrs)
+    items.push_back(QString::fromUtf8(lr->get_name().c_str()));
 
   auto wnd(QApplication::activeWindow());
   auto flags
@@ -354,12 +354,12 @@ void tree_view::on_connect_osm()
   bool ok(false);
   QString item(QInputDialog::getItem(wnd, "OpenStreetMap", "Layers", items, items.size() - 1, false, &ok, flags));
   if (ok)
-    for (auto lr(begin(lrs)); lr != end(lrs); ++lr)
-      if ((*lr)->get_name().compare(item.toUtf8().constData()) == 0)
+    for (const auto& lr: lrs)
+      if (lr->get_name().compare(item.toUtf8().constData()) == 0)
       {
         brig::osm::multithread_init();
         std::vector<std::shared_ptr<task_connect::provider_allocator>> allocators;
-        allocators.push_back(std::make_shared<provider_allocator>(*lr));
+        allocators.push_back(std::make_shared<provider_allocator>(lr));
         connect_by(allocators);
       }
 }
@@ -431,8 +431,8 @@ void tree_view::on_open_file()
 
   QSettings settings(SettingsIni, QSettings::IniFormat);
   QStringList filters;
-  for (auto iter(std::begin(s_filters)); iter != std::end(s_filters); ++iter)
-    filters << iter->filter;
+  for (const auto& filter: s_filters)
+    filters << filter.filter;
   QFileDialog dlg
     ( this
     , "open files"
@@ -498,9 +498,9 @@ void tree_view::on_new_file()
 
   QSettings settings(SettingsIni, QSettings::IniFormat);
   QStringList filters;
-  for (auto iter(std::begin(s_filters)); iter != std::end(s_filters); ++iter)
-    if (iter->writable)
-      filters << iter->filter;
+  for (const auto& filter: s_filters)
+    if (filter.writable)
+      filters << filter.filter;
   QFileDialog dlg
     ( this
     , "new file"

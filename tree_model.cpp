@@ -69,15 +69,12 @@ QVariant tree_model::data(const QModelIndex& idx, int role) const
 
 void tree_model::push_back_checked(std::vector<layer_ptr>& lrs) const
 {
-  using namespace std;
-  for (auto i(begin(m_root.m_children)); i != end(m_root.m_children); ++i)
-  {
-    for (auto j(begin((*i)->m_children)); j != end((*i)->m_children); ++j)
+  for (const auto& i: m_root.m_children)
+    for (const auto& j: i->m_children)
     {
-      layer_ptr lr((*j)->get_layer());
+      layer_ptr lr(j->get_layer());
       if (lr.m_checked) lrs.push_back(lr);
     }
-  }
 }
 
 bool tree_model::has_checked() const
@@ -138,9 +135,9 @@ void tree_model::disconnect(const QModelIndex& idx)
   emit signal_disconnect(pvd_itm->get_provider());
 
   beginRemoveRows(QModelIndex(), idx.row(), idx.row());
-  auto iter(begin(m_root.m_children));
-  advance(iter, idx.row());
-  m_root.m_children.erase(iter);
+  auto itr(begin(m_root.m_children));
+  advance(itr, idx.row());
+  m_root.m_children.erase(itr);
   endRemoveRows();
 
   if (render) emit_layers();
@@ -156,8 +153,8 @@ void tree_model::on_connected(provider_ptr pvd, std::vector<layer_ptr> lrs)
   if (old_itm == end(m_root.m_children))
   {
     unique_ptr<tree_item> new_itm(new tree_item(&m_root, pvd));
-    for (auto lr(begin(lrs)); lr != end(lrs); ++lr)
-      new_itm->m_children.emplace_back(new tree_item(new_itm.get(), *lr));
+    for (const auto& lr: lrs)
+      new_itm->m_children.emplace_back(new tree_item(new_itm.get(), lr));
 
     beginInsertRows(QModelIndex(), int(m_root.m_children.size()), int(m_root.m_children.size()));
     m_root.m_children.push_back(move(new_itm));
@@ -166,9 +163,9 @@ void tree_model::on_connected(provider_ptr pvd, std::vector<layer_ptr> lrs)
   else
   {
     bool render(false);
-    for (auto old_iter(begin((*old_itm)->m_children)); old_iter != end((*old_itm)->m_children); ++old_iter)
+    for (const auto& old_child: (*old_itm)->m_children)
     {
-      auto old_lr((*old_iter)->get_layer());
+      auto old_lr(old_child->get_layer());
       auto new_lr(find_if(begin(lrs), end(lrs), [&](const layer_ptr& lr)
         { return lr->get_string() == old_lr->get_string(); }));
       if (new_lr != end(lrs))
@@ -185,8 +182,8 @@ void tree_model::on_connected(provider_ptr pvd, std::vector<layer_ptr> lrs)
 
     beginInsertRows(idx, 0, int((*old_itm)->m_children.size() - 1));
     (*old_itm)->m_var.setValue(pvd);
-    for (auto lr(begin(lrs)); lr != end(lrs); ++lr)
-      (*old_itm)->m_children.emplace_back(new tree_item((*old_itm).get(), *lr));
+    for (const auto& lr: lrs)
+      (*old_itm)->m_children.emplace_back(new tree_item((*old_itm).get(), lr));
     endInsertRows();
 
     if (render) emit_layers();

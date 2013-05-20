@@ -223,8 +223,7 @@ void main_window::keyPressEvent(QKeyEvent* event)
     {
       props.append("ODBC: ");
       sort(begin(drvs), end(drvs));
-      for (auto i(begin(drvs)); i != end(drvs); ++i)
-        props.append(QString::fromStdString("- " + *i));
+      for (const auto& drv: drvs) props.append(QString::fromStdString("- " + drv));
     }
     props.append(QString("brig: %1").arg(brig::LibVersion));
     props.append(QString());

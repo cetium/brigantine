@@ -31,17 +31,17 @@ void task_insert::run_impl()
     vector<int> ccw_cols;
     vector<rowset_transform::item> transform_items;
 
-    for (auto itr(begin(m_items)); itr != end(m_items); ++itr)
+    for (const auto& item: m_items)
     {
-      if (size_t(itr->level) != level) continue;
+      if (size_t(item.level) != level) continue;
 
-      auto col_from(tbl_from[itr->column_from]);
-      auto col_to(tbl_to[itr->column_to]);
+      auto col_from(tbl_from[item.column_from]);
+      auto col_to(tbl_to[item.column_to]);
 
-      if (itr->epsg > 0)
+      if (item.epsg > 0)
       {
-        col_to->srid = itr->epsg;
-        col_to->epsg = itr->epsg;
+        col_to->srid = item.epsg;
+        col_to->epsg = item.epsg;
       }
 
       if (col_to->srid <= 0)

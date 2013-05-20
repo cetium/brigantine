@@ -26,8 +26,7 @@ void task_fetch::run_impl()
   for (; cmd->fetch(row) && counter < brig::PageSize; ++counter)
   {
     vector<string> strs;
-    for (auto itr(begin(row)); itr != end(row); ++itr)
-      strs.push_back(brig::string_cast<char>(*itr));
+    for (const auto& v: row) strs.push_back(brig::string_cast<char>(v));
     mdl->m_rows.push_back(move(strs));
 
     if (time.elapsed() < BatchInterval) continue;

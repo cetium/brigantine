@@ -30,31 +30,31 @@ dialog_insert::dialog_insert(QWidget* parent, layer_ptr lr_from, layer_ptr lr_to
     auto tbl_to(lr_to->get_table_def(lvl));
 
     QStringList cols_from;
-    for (auto col_from(std::begin(tbl_from.columns)); col_from != std::end(tbl_from.columns); ++col_from)
-      if (brig::column_type::Void != col_from->type)
-        cols_from.append(QString::fromUtf8(col_from->name.c_str()));
+    for (const auto& col_from: tbl_from.columns)
+      if (brig::column_type::Void != col_from.type)
+        cols_from.append(QString::fromUtf8(col_from.name.c_str()));
     cols_from.append(QString());
 
     QGridLayout* grid = new QGridLayout;
     int row(0);
-    for (auto col_to(std::begin(tbl_to.columns)); col_to != std::end(tbl_to.columns); ++col_to)
+    for (const auto& col_to: tbl_to.columns)
     {
-      if (brig::column_type::Void == col_to->type) continue;
+      if (brig::column_type::Void == col_to.type) continue;
 
       QLabel* lbl(new QLabel);
-      lbl->setText(QString::fromUtf8(col_to->name.c_str()));
+      lbl->setText(QString::fromUtf8(col_to.name.c_str()));
       grid->addWidget(lbl, row, 0, Qt::AlignRight);
 
       QComboBox* combo(new QComboBox);
       combo->addItems(cols_from);
-      QString name(QString::fromUtf8(col_to->name.c_str()));
+      QString name(QString::fromUtf8(col_to.name.c_str()));
       int pos = combo->findText(name, Qt::MatchFixedString | Qt::MatchCaseSensitive);
       if (pos < 0) pos = combo->findText(name, Qt::MatchFixedString);
       if (pos < 0) combo->setCurrentIndex(combo->count() - 1);
       else combo->setCurrentIndex(pos);
       grid->addWidget(combo, row, 1);
 
-      if (brig::column_type::Geometry == col_to->type && col_to->epsg <= 0)
+      if (brig::column_type::Geometry == col_to.type && col_to.epsg <= 0)
       {
         QLineEdit* edit(new QLineEdit);
         edit->setValidator(new QIntValidator(0, INT_MAX, this));
