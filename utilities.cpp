@@ -22,7 +22,7 @@ projection get_pj(const brig::column_def& col)
 {
   if (col.epsg > 0) return projection(col.epsg);
   else if (!col.proj.empty()) return projection(col.proj);
-  else throw std::exception("unknown projection");
+  else throw std::runtime_error("unknown projection");
 }
 
 projection latlon()
