@@ -27,17 +27,16 @@ QRectF transformer::transform(const QRectF& rect) const
 
   if (m_from == m_to) return rect;
 
-  static const int Partition = 32;
-  const double step_x(rect.width() / double(Partition));
-  const double step_y(rect.height() / double(Partition));
+  const int Partition = 16;
+  const double step_x(rect.width() / double(Partition - 1));
+  const double step_y(rect.height() / double(Partition - 1));
   vector<double> points_xy;
-  for (int i(0); i <= Partition; ++i)
-    for (int j(0); j <= Partition; ++j)
+  for (int i(0); i < Partition; ++i)
+    for (int j(0); j < Partition; ++j)
     {
       points_xy.push_back(rect.left() + i * step_x);
       points_xy.push_back(rect.top() + j * step_y);
     }
-
   brig::proj::transform(points_xy.data(), long(points_xy.size() / 2), m_from, m_to);
 
   vector<double> xs, ys;
@@ -46,13 +45,11 @@ QRectF transformer::transform(const QRectF& rect) const
     if (not_huge(points_xy[i])) xs.push_back(points_xy[i]);
     if (not_huge(points_xy[i + 1])) ys.push_back(points_xy[i + 1]);
   }
+  if (xs.empty() || ys.empty()) throw runtime_error("transform error");
 
-  if (xs.empty() || ys.empty()) throw runtime_error("proj error");
-
-  return QRectF
-    ( QPointF(*min_element(begin(xs), end(xs)), *min_element(begin(ys), end(ys)))
-    , QPointF(*max_element(begin(xs), end(xs)), *max_element(begin(ys), end(ys)))
-    );
+  auto rx = minmax_element(begin(xs), end(xs));
+  auto ry = minmax_element(begin(ys), end(ys));
+  return QRectF( QPointF(*rx.first, *ry.first), QPointF(*rx.second, *ry.second) );
 }
 
 QPointF transformer::transform(const QPointF& point) const
