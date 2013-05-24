@@ -50,15 +50,19 @@ bool task::is_finished_impl() const
 
 bool task::is_finished()
 {
-  QMutexLocker locker(&m_mtx);
-  return is_finished_impl();
+  if (!m_mtx.tryLock()) return false;
+  bool res = is_finished_impl();
+  m_mtx.unlock();
+  return res;
 }
 
 std::chrono::system_clock::time_point task::get_finish()
 {
-  QMutexLocker locker(&m_mtx);
-  if (is_finished_impl()) return m_finish;
-  else return std::chrono::system_clock::now();
+  std::chrono::system_clock::time_point res = std::chrono::system_clock::now();
+  if (!m_mtx.tryLock()) return res;
+  if (is_finished_impl()) res = m_finish;
+  m_mtx.unlock();
+  return res;
 }
 
 int task::get_milliseconds()
