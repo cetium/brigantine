@@ -441,15 +441,18 @@ void tree_view::on_open_file()
   dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);
   dlg.setAcceptMode(QFileDialog::AcceptOpen);
   dlg.setFileMode(QFileDialog::ExistingFiles);
+#ifdef _WIN32
   dlg.setOption(QFileDialog::HideNameFilterDetails, true);
+#endif
   dlg.setNameFilters(filters);
   dlg.selectNameFilter(settings.value(QString("%1/%2").arg(SettingsFileOpen).arg(SettingsFilter), QString(s_filters[0].filter)).toString());
   if (dlg.exec() != QDialog::Accepted) return;
 
+  const std::string filter_selected_str = dlg.selectedNameFilter().toUtf8().constData();
   const size_t filter_selected(std::distance(std::begin(s_filters), std::find_if
     ( std::begin(s_filters)
     , std::end(s_filters)
-    , [&dlg](const file_open_def& i){ return dlg.selectedNameFilter().compare(i.filter) == 0; }
+    , [&](const file_open_def& i){ return filter_selected_str.compare(i.filter) == 0; }
     )));
   QStringList files(dlg.selectedFiles());
   brig::database::sqlite::multithread_init();
@@ -516,10 +519,11 @@ void tree_view::on_new_file()
   QFileInfo info(dlg.selectedFiles()[0]);
   settings.setValue(QString("%1/%2").arg(SettingsFileNew).arg(SettingsPath), info.absolutePath());
   settings.setValue(QString("%1/%2").arg(SettingsFileNew).arg(SettingsFilter), dlg.selectedNameFilter());
+  const std::string filter_selected_str = dlg.selectedNameFilter().toUtf8().constData();
   const size_t filter_selected(std::distance(std::begin(s_filters), std::find_if
     ( std::begin(s_filters)
     , std::end(s_filters)
-    , [&dlg](const file_open_def& i){ return dlg.selectedNameFilter().compare(i.filter) == 0; }
+    , [&](const file_open_def& i){ return filter_selected_str.compare(i.filter) == 0; }
     )));
   if (info.suffix().isEmpty()) info = QFileInfo(info.dir(), QString("%1.%2").arg(info.fileName()).arg(s_filters[filter_selected].ext));
   if (info.exists() && !QFile::remove(info.filePath()))
