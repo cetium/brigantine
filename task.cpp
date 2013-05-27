@@ -18,7 +18,7 @@ int task::get_id() const
 
 QString task::get_status()
 {
-  QMutexLocker locker(&m_mtx);
+  QMutexLocker lck(&m_mtx);
   switch (m_st)
   {
   default: return QString();
@@ -33,7 +33,7 @@ QString task::get_status()
 
 bool task::is_canceling()
 {
-  QMutexLocker locker(&m_mtx);
+  QMutexLocker lck(&m_mtx);
   return m_st == Canceling;
 }
 
@@ -50,19 +50,15 @@ bool task::is_finished_impl() const
 
 bool task::is_finished()
 {
-  if (!m_mtx.tryLock()) return false;
-  bool res = is_finished_impl();
-  m_mtx.unlock();
-  return res;
+  QMutexLocker lck(&m_mtx);
+  return is_finished_impl();
 }
 
 std::chrono::system_clock::time_point task::get_finish()
 {
-  std::chrono::system_clock::time_point res = std::chrono::system_clock::now();
-  if (!m_mtx.tryLock()) return res;
-  if (is_finished_impl()) res = m_finish;
-  m_mtx.unlock();
-  return res;
+  QMutexLocker lck(&m_mtx);
+  if (is_finished_impl()) return m_finish;
+  else return std::chrono::system_clock::now();
 }
 
 int task::get_milliseconds()
@@ -72,25 +68,25 @@ int task::get_milliseconds()
 
 QString task::get_message()
 {
-  QMutexLocker locker(&m_mtx);
+  QMutexLocker lck(&m_mtx);
   return m_msg;
 }
 
 frame task::get_frame()
 {
-  QMutexLocker locker(&m_mtx);
+  QMutexLocker lck(&m_mtx);
   return m_fr;
 }
 
 void task::set_frame(const frame& fr)
 {
-  QMutexLocker locker(&m_mtx);
+  QMutexLocker lck(&m_mtx);
   m_fr = fr;
 }
 
 void task::on_cancel()
 {
-  QMutexLocker locker(&m_mtx);
+  QMutexLocker lck(&m_mtx);
   if (!is_finished_impl()) m_st = Canceling;
 }
 
@@ -103,7 +99,7 @@ void task::progress(QString msg)
 {
   QEventLoop loop(this);
   loop.processEvents();
-  QMutexLocker locker(&m_mtx);
+  QMutexLocker lck(&m_mtx);
   if (!msg.isEmpty()) m_msg = msg;
   if (m_st == Canceling) throw std::runtime_error("");
 }
@@ -113,24 +109,26 @@ void task::run()
   try
   {
     {
-      QMutexLocker locker(&m_mtx);
+      QMutexLocker lck(&m_mtx);
       if (m_st != Canceling) m_st = Running;
     }
     progress(QString());
     run_impl();
     {
-      QMutexLocker locker(&m_mtx);
+      QMutexLocker lck(&m_mtx);
+      m_finish = std::chrono::system_clock::now();
       m_st = Complete;
     }
   }
   catch (const std::exception& e)
   {
-    QMutexLocker locker(&m_mtx);
+    QMutexLocker lck(&m_mtx);
+    m_finish = std::chrono::system_clock::now();
     if (m_st == Canceling) m_st = Canceled;
     else m_st = Failed;
     QString msg = QString::fromUtf8(e.what());
     if (!msg.isEmpty()) m_msg = msg;
   }
-  m_finish = std::chrono::system_clock::now();
+
   emit signal_finished();
 }

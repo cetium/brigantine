@@ -20,7 +20,7 @@ class provider : public brig::provider
   std::unique_ptr<brig::provider> m_pvd;
   const QString m_str;
   const QString m_icon;
-  QMutex m_mutex;
+  QMutex m_mtx;
   std::map<brig::identifier, brig::table_def, compare> m_tables;
 
   brig::database::provider<true>* get_database()  { return dynamic_cast<brig::database::provider<true>*>(m_pvd.get()); }
