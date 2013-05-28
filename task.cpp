@@ -1,14 +1,16 @@
 // Andrew Naplavkov
 
 #include <QAtomicInt>
+#include <QDateTime>
 #include <QEventLoop>
+#include <QMutexLocker>
 #include <stdexcept>
 #include "task.h"
 
 static QAtomicInt s_id = 1;
 
 task::task()
-  : m_id(s_id.fetchAndAddOrdered(1)), m_start(std::chrono::system_clock::now()), m_st(Waiting)
+  : m_id(s_id.fetchAndAddOrdered(1)), m_start(QDateTime::currentMSecsSinceEpoch()), m_finish(0), m_st(Waiting)
 {}
 
 int task::get_id() const
@@ -54,16 +56,16 @@ bool task::is_finished()
   return is_finished_impl();
 }
 
-std::chrono::system_clock::time_point task::get_finish()
+qint64 task::get_finish()
 {
   QMutexLocker lck(&m_mtx);
   if (is_finished_impl()) return m_finish;
-  else return std::chrono::system_clock::now();
+  else return QDateTime::currentMSecsSinceEpoch();
 }
 
-int task::get_milliseconds()
+qint64 task::get_milliseconds()
 {
-  return std::chrono::duration_cast<std::chrono::milliseconds>(get_finish() - m_start).count();
+  return get_finish() - m_start;
 }
 
 QString task::get_message()
@@ -116,14 +118,14 @@ void task::run()
     run_impl();
     {
       QMutexLocker lck(&m_mtx);
-      m_finish = std::chrono::system_clock::now();
+      m_finish = QDateTime::currentMSecsSinceEpoch();
       m_st = Complete;
     }
   }
   catch (const std::exception& e)
   {
     QMutexLocker lck(&m_mtx);
-    m_finish = std::chrono::system_clock::now();
+    m_finish = QDateTime::currentMSecsSinceEpoch();
     if (m_st == Canceling) m_st = Canceled;
     else m_st = Failed;
     QString msg = QString::fromUtf8(e.what());

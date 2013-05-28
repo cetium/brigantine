@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <brig/global.hpp>
-#include <chrono>
 #include <iterator>
 #include <QString>
 #include <QThread>
@@ -114,7 +113,7 @@ void task_model::vacuum(bool force)
   }
   else
   {
-    std::vector<std::pair<std::chrono::system_clock::time_point, size_t>> time_to_order;
+    std::vector<std::pair<qint64, size_t>> time_to_order;
     for (size_t i(0); i < m_tsks.size(); ++i)
       if (m_tsks[i]->is_finished())
         time_to_order.push_back(std::make_pair(m_tsks[i]->get_finish(), i));

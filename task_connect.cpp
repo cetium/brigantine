@@ -19,8 +19,8 @@ void task_connect::run_impl()
   std::vector<layer_ptr> lrs;
   for (const auto& lr: pvd->get_geometry_layers()) lrs.emplace_back(new layer_geometry(pvd, lr));
   for (const auto& lr: pvd->get_raster_layers()) lrs.emplace_back(new layer_raster(pvd, lr));
-  sort(begin(lrs), end(lrs), [](const layer_ptr& a, const layer_ptr& b){ return a->get_string() < b->get_string(); });
+  std::sort(std::begin(lrs), std::end(lrs), [](const layer_ptr& a, const layer_ptr& b){ return a->get_string() < b->get_string(); });
   pvd->reset_table_def();
-  emit signal_connected(pvd, lrs);
   progress( QString("layers: %1").arg(lrs.size()) );
+  emit signal_connected(pvd, lrs);
 }

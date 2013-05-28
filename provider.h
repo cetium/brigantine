@@ -52,7 +52,7 @@ public:
   QString get_icon() const  { return m_icon; }
   void reset_table_def();
   void reset_table_def(const brig::identifier& tbl);
-  bool try_table_def(const brig::identifier& tbl, brig::table_def& def);
+  bool try_table_def(const brig::identifier& tbl, brig::table_def& tbl_def);
   void set_extent(const brig::identifier& col, const brig::boost::box& box);
 }; // provider
 

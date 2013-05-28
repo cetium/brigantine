@@ -3,9 +3,7 @@
 #ifndef TASK_H
 #define TASK_H
 
-#include <chrono>
 #include <QMutex>
-#include <QMutexLocker>
 #include <QObject>
 #include <QString>
 #include "frame.h"
@@ -24,8 +22,8 @@ class task : public QObject {
 
   QMutex m_mtx;
   const int m_id;
-  const std::chrono::system_clock::time_point m_start;
-  std::chrono::system_clock::time_point m_finish;
+  const qint64 m_start;
+  qint64 m_finish;
   Status m_st;
   QString m_msg;
   frame m_fr;
@@ -42,8 +40,8 @@ signals:
 public:
   task();
   int get_id() const;
-  std::chrono::system_clock::time_point get_finish();
-  int get_milliseconds();
+  qint64 get_finish();
+  qint64 get_milliseconds();
   QString get_status();
   bool is_canceling();
   bool is_finished();
