@@ -68,7 +68,7 @@ QVariant task_model::data(const QModelIndex& index, int role) const
   case 4:
     {
     QString sec;
-    sec.setNum(double(tsk->get_milliseconds()) / 1000., 'f', 1);
+    sec.setNum(static_cast<qreal>(tsk->get_milliseconds()) / 1000., 'f', 1);
     return sec;
     }
   }
