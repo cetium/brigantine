@@ -32,6 +32,7 @@ void task_rendering::run_impl()
   QImage img(fr.size(), QImage::Format_ARGB32_Premultiplied);
   QPainter painter(&img);
   painter.eraseRect(img.rect());
+  painter.setCompositionMode(QPainter::CompositionMode_Darken);
   painter.setPen(Qt::black);
   painter.setBrush(Qt::lightGray);
   std::vector<brig::variant> row;
