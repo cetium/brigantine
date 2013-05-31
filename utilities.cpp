@@ -15,7 +15,8 @@ QRectF box_to_rect(const brig::boost::box& box)
 
 brig::boost::box rect_to_box(const QRectF& rect)
 {
-  return brig::boost::box(brig::boost::point(rect.left(), rect.top()), brig::boost::point(rect.right(), rect.bottom()));
+  using namespace brig::boost;
+  return box(point(rect.left(), rect.top()), point(rect.right(), rect.bottom()));
 }
 
 projection get_pj(const brig::column_def& col)
@@ -32,8 +33,7 @@ projection latlon()
 
 QRectF world(const projection& pj)
 {
-  transformer tr(latlon(), pj);
-  return tr.transform(QRectF(QPointF(-180, -90), QPointF(180, 90)));
+  return transformer(latlon(), pj).transform(QRectF(QPointF(-180, -90), QPointF(180, 90)));
 }
 
 QString rich_text(const QString& icon, const QString& txt, bool icon_suffix)
