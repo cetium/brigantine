@@ -1,5 +1,6 @@
 // Andrew Naplavkov
 
+#include <cstdint>
 #include <QApplication>
 #include <QHeaderView>
 #include <QMenu>
@@ -32,7 +33,7 @@ task_view::task_view(QWidget* parent) : QTableView(parent), m_mdl(0)
 
 void task_view::on_finished()
 {
-  if (qobject_cast<task*>(sender())->get_id() == int(m_idx_menu.internalPointer()))
+  if (intptr_t(qobject_cast<task*>(sender())->get_id()) == intptr_t(m_idx_menu.internalPointer()))
     m_cancel_act->setEnabled(false);
 }
 
@@ -88,7 +89,7 @@ void task_view::on_cancel()
   dlg.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
   dlg.setDefaultButton(QMessageBox::Ok);
   if (dlg.exec() != QMessageBox::Ok) return;
-  m_mdl.emit_cancel(int(m_idx_menu.internalPointer()));
+  m_mdl.emit_cancel(intptr_t(m_idx_menu.internalPointer()));
 }
 
 void task_view::on_cancel_all()

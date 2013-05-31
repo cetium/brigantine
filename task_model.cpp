@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <brig/global.hpp>
+#include <cstdint>
 #include <iterator>
 #include <QString>
 #include <QThread>
@@ -42,14 +43,14 @@ QVariant task_model::headerData(int section, Qt::Orientation orientation, int ro
 QModelIndex task_model::index(int row, int column, const QModelIndex&) const
 {
   if (row < 0 || row >= int(m_tsks.size()) || column < 0 || column >= 5) return QModelIndex();
-  return createIndex(row, column, (void*)m_tsks[row]->get_id());
+  return createIndex(row, column, (void*)intptr_t(m_tsks[row]->get_id()));
 }
 
 std::shared_ptr<task> task_model::get_task(const QModelIndex& index) const
 {
   if (!index.isValid() || index.row() >= int(m_tsks.size())) return std::shared_ptr<task>();
   std::shared_ptr<task> tsk = m_tsks[index.row()];
-  if (tsk->get_id() != int(index.internalPointer())) return std::shared_ptr<task>();
+  if (intptr_t(tsk->get_id()) != intptr_t(index.internalPointer())) return std::shared_ptr<task>();
   return tsk;
 }
 
