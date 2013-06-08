@@ -21,5 +21,6 @@ void task_tables::run_impl()
     strs.push_back(id.name);
     mdl->m_rows.push_back(move(strs));
   }
+  progress( QString("tables: %1").arg(mdl->m_rows.size()) );
   emit signal_rowset(mdl);
 }
